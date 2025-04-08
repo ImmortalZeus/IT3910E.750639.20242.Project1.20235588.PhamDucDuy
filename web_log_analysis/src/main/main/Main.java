@@ -1,18 +1,13 @@
 package main;
 
 import lineParsers.*;
+import logData.*;
+import logData.logData;
 import fileParsers.*;
 import exceptions.*;
 import utils.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Main {
     private static apacheFileParser aFP = new apacheFileParser();
@@ -22,12 +17,34 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            ArrayList<HashMap<String, String>> log_data = aFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/apache_logs_full.log");
-            for(HashMap<String, String> obj : log_data) {
-                for(String k : obj.keySet())
-                {
-                    System.out.println(k + " : " + obj.get(k));
-                }
+            logDataArray log_data = aFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/apache_logs_full.log");
+            for(logData obj : log_data.getAllLogData()) {
+                System.out.println("Time" + " : " + obj.getTime());
+                System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
+                System.out.println("Remote User" + " : " + obj.getRemoteUser());
+                System.out.println("Request" + " : " + obj.getRequest());
+                System.out.println("Response" + " : " + obj.getResponse());
+                System.out.println("Bytes" + " : " + obj.getBytes());
+                System.out.println("Referrer" + " : " + obj.getReferrer());
+                System.out.println("Agent" + " : " + obj.getAgent());
+                System.out.println("Request Method" + " : " + obj.getRequestMethod());
+                System.out.println("Request URL" + " : " + obj.getRequestURL());
+                System.out.println("Http Ver" + " : " + obj.getHttpVer());
+                System.out.println("=====================================");
+            }
+            System.out.println("=====================================");
+            for(logData obj : log_data.getByRequestMethod("GET")) {
+                System.out.println("Time" + " : " + obj.getTime());
+                System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
+                System.out.println("Remote User" + " : " + obj.getRemoteUser());
+                System.out.println("Request" + " : " + obj.getRequest());
+                System.out.println("Response" + " : " + obj.getResponse());
+                System.out.println("Bytes" + " : " + obj.getBytes());
+                System.out.println("Referrer" + " : " + obj.getReferrer());
+                System.out.println("Agent" + " : " + obj.getAgent());
+                System.out.println("Request Method" + " : " + obj.getRequestMethod());
+                System.out.println("Request URL" + " : " + obj.getRequestURL());
+                System.out.println("Http Ver" + " : " + obj.getHttpVer());
                 System.out.println("=====================================");
             }
         } catch (Exception e) {
