@@ -10,7 +10,11 @@ public class logDataArray {
         this.data = data;
     }
     public ArrayList<logData> getAllLogData() {
-        return this.data;
+        ArrayList<logData> res = new ArrayList<logData>();
+        for (logData obj : this.data) {
+            res.add(obj);
+        }
+        return res;
     }
     public ArrayList<logData> getByUser(String username) {
         ArrayList<logData> res = new ArrayList<logData>();
