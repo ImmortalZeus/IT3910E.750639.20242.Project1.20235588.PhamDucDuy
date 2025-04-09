@@ -11,10 +11,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import exceptions.*;
 import logData.logData;
-import utils.mapValueClassConverter;
+import utils.parsedValueClassConverter;
 
 public class nginxLineParser {
-    private static mapValueClassConverter mVCC = new mapValueClassConverter();
+    private static parsedValueClassConverter pVCC = new parsedValueClassConverter();
     public logData parse(String line) throws lineParserException {
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -43,7 +43,7 @@ public class nginxLineParser {
             map.put("request_url", parsedData.get("RequestURL"));
             map.put("http_ver", parsedData.get("HttpVer"));
             
-            map = mVCC.fix(map);
+            map = pVCC.fix(map);
             
             logData res = new logData(map);
             return res;

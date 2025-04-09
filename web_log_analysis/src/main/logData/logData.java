@@ -42,8 +42,8 @@ public class logData {
             return null;
         }
     }
-    public Integer getResponse() {
-        Object tmp = this.data.get("response");
+    public Integer getResponseStatusCode() {
+        Object tmp = this.data.get("response_status_code");
         if(tmp instanceof Integer) {
             return (Integer) tmp;
         } else {
