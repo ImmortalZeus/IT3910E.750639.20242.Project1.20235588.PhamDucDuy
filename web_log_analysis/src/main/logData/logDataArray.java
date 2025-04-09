@@ -16,7 +16,7 @@ public class logDataArray {
         }
         return res;
     }
-    public ArrayList<logData> getByUser(String username) {
+    public logDataArray getByUser(String username) {
         ArrayList<logData> res = new ArrayList<logData>();
         for (logData obj : this.data) {
             String objUser = obj.getRemoteUser();
@@ -25,9 +25,9 @@ public class logDataArray {
                     res.add(obj);
             }
         }
-        return res;
+        return (new logDataArray(res));
     }
-    public ArrayList<logData> getByRemoteIp(String remoteIp) {
+    public logDataArray getByRemoteIp(String remoteIp) {
         ArrayList<logData> res = new ArrayList<logData>();
         for (logData obj : this.data) {
             String objRemoteIp = obj.getRemoteIp();
@@ -36,9 +36,9 @@ public class logDataArray {
                     res.add(obj);
             }
         }
-        return res;
+        return (new logDataArray(res));
     }
-    public ArrayList<logData> getByPeriod(Date startDate, Date endDate) {
+    public logDataArray getByPeriod(Date startDate, Date endDate) {
         ArrayList<logData> res = new ArrayList<logData>();
         for (logData obj : this.data) {
             Date objTime = obj.getTime();
@@ -48,9 +48,9 @@ public class logDataArray {
                     res.add(obj);
             }
         }
-        return res;
+        return (new logDataArray(res));
     }
-    public ArrayList<logData> getByRequestMethod(String RequestMethod) {
+    public logDataArray getByRequestMethod(String RequestMethod) {
         ArrayList<logData> res = new ArrayList<logData>();
         for (logData obj : this.data) {
             String objRequestMethod = obj.getRequestMethod();
@@ -59,9 +59,9 @@ public class logDataArray {
                     res.add(obj);
             }
         }
-        return res;
+        return (new logDataArray(res));
     }
-    public ArrayList<logData> getByRequestURL(String RequestURL) {
+    public logDataArray getByRequestURL(String RequestURL) {
         ArrayList<logData> res = new ArrayList<logData>();
         for (logData obj : this.data) {
             String objRequestURL = obj.getRequestURL();
@@ -70,6 +70,6 @@ public class logDataArray {
                     res.add(obj);
             }
         }
-        return res;
+        return (new logDataArray(res));
     }
 }

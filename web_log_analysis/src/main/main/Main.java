@@ -33,7 +33,7 @@ public class Main {
                 System.out.println("=====================================");
             }
             System.out.println("=====================================");
-            for(logData obj : log_data.getByRequestMethod("GET")) {
+            for(logData obj : log_data.getByRequestMethod("GET").getAllLogData()) {
                 System.out.println("Time" + " : " + obj.getTime());
                 System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
                 System.out.println("Remote User" + " : " + obj.getRemoteUser());
