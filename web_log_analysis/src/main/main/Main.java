@@ -1,10 +1,11 @@
 package main;
 
-import lineParsers.*;
-import logData.*;
-import fileParsers.*;
-import exceptions.*;
-import utils.*;
+import models.*;
+import models.exceptions.*;
+import models.logData.logDataArray;
+import models.parsers.fileParsers.*;
+import models.parsers.lineParsers.*;
+import models.utils.*;
 
 import java.util.HashMap;
 import java.util.logging.Logger;
@@ -17,49 +18,53 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            logDataArray log_data = aFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/apache_logs_full.log");
+            System.out.println("");
+            long startTime = System.nanoTime();
+            logDataArray log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
+            long stopTime = System.nanoTime();
+            System.out.println(stopTime - startTime);
+            System.out.println(log_data.getAllLogData().get(0).toString());
+            // for(logData obj : log_data.getAllLogData()) {
+            //     System.out.println("Time" + " : " + obj.getTime());
+            //     System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
+            //     System.out.println("Remote User" + " : " + obj.getRemoteUser());
+            //     System.out.println("Request" + " : " + obj.getRequest());
+            //     System.out.println("Response Status Code" + " : " + obj.getResponseStatusCode());
+            //     System.out.println("Bytes" + " : " + obj.getBytes());
+            //     System.out.println("Referrer" + " : " + obj.getReferrer());
+            //     System.out.println("Agent" + " : " + obj.getAgent());
+            //     System.out.println("Request Method" + " : " + obj.getRequestMethod());
+            //     System.out.println("Request URL" + " : " + obj.getRequestURL());
+            //     System.out.println("Http Ver" + " : " + obj.getHttpVer());
+            //     System.out.println("=====================================");
+            // }
+            // System.out.println("=====================================");
+            // System.out.println("=====================================");
 
-            for(logData obj : log_data.getAllLogData()) {
-                System.out.println("Time" + " : " + obj.getTime());
-                System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
-                System.out.println("Remote User" + " : " + obj.getRemoteUser());
-                System.out.println("Request" + " : " + obj.getRequest());
-                System.out.println("Response Status Code" + " : " + obj.getResponseStatusCode());
-                System.out.println("Bytes" + " : " + obj.getBytes());
-                System.out.println("Referrer" + " : " + obj.getReferrer());
-                System.out.println("Agent" + " : " + obj.getAgent());
-                System.out.println("Request Method" + " : " + obj.getRequestMethod());
-                System.out.println("Request URL" + " : " + obj.getRequestURL());
-                System.out.println("Http Ver" + " : " + obj.getHttpVer());
-                System.out.println("=====================================");
-            }
-            System.out.println("=====================================");
-            System.out.println("=====================================");
+            // HashMap<String, Object> filter_rules = new HashMap<String, Object>();
+            // filter_rules.put("byRequestMethod", true);
+            // filter_rules.put("byRequestMethodValue", "GET");
 
-            HashMap<String, Object> filter_rules = new HashMap<String, Object>();
-            filter_rules.put("byRequestMethod", true);
-            filter_rules.put("byRequestMethodValue", "GET");
+            // logDataArray filteredByRequestMethod = log_data.filter(filter_rules);
 
-            logDataArray filteredByRequestMethod = log_data.filter(filter_rules);
-
-            for(logData obj : filteredByRequestMethod.getAllLogData()) {
-                System.out.println("Time" + " : " + obj.getTime());
-                System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
-                System.out.println("Remote User" + " : " + obj.getRemoteUser());
-                System.out.println("Request" + " : " + obj.getRequest());
-                System.out.println("Response Status Code" + " : " + obj.getResponseStatusCode());
-                System.out.println("Bytes" + " : " + obj.getBytes());
-                System.out.println("Referrer" + " : " + obj.getReferrer());
-                System.out.println("Agent" + " : " + obj.getAgent());
-                System.out.println("Request Method" + " : " + obj.getRequestMethod());
-                System.out.println("Request URL" + " : " + obj.getRequestURL());
-                System.out.println("Http Ver" + " : " + obj.getHttpVer());
-                System.out.println("=====================================");
-            }
-            System.out.println("=====================================");
-            System.out.println("=====================================");
-            System.out.println(log_data.getAllLogData().size());
-            System.out.println(filteredByRequestMethod.getAllLogData().size());
+            // for(logData obj : filteredByRequestMethod.getAllLogData()) {
+            //     System.out.println("Time" + " : " + obj.getTime());
+            //     System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
+            //     System.out.println("Remote User" + " : " + obj.getRemoteUser());
+            //     System.out.println("Request" + " : " + obj.getRequest());
+            //     System.out.println("Response Status Code" + " : " + obj.getResponseStatusCode());
+            //     System.out.println("Bytes" + " : " + obj.getBytes());
+            //     System.out.println("Referrer" + " : " + obj.getReferrer());
+            //     System.out.println("Agent" + " : " + obj.getAgent());
+            //     System.out.println("Request Method" + " : " + obj.getRequestMethod());
+            //     System.out.println("Request URL" + " : " + obj.getRequestURL());
+            //     System.out.println("Http Ver" + " : " + obj.getHttpVer());
+            //     System.out.println("=====================================");
+            // }
+            // System.out.println("=====================================");
+            // System.out.println("=====================================");
+            // System.out.println(log_data.getAllLogData().size());
+            // System.out.println(filteredByRequestMethod.getAllLogData().size());
         } catch (Exception e) {
             System.out.println(e);
         }
