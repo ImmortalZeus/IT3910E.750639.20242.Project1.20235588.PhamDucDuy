@@ -1,15 +1,17 @@
+import models.logData.logDataArray;
+import models.parsers.fileParsers.apacheFileParser;
+import models.parsers.fileParsers.nginxFileParser;
+import models.utils.fileReader;
 import models.utils.ip2Location;
 
 public class Test {
+    private static apacheFileParser aFP = new apacheFileParser();
+    private static nginxFileParser nFP = new nginxFileParser();
     public static void main(String[] args) {
         try {
             System.out.println("");
-            ip2Location x = new ip2Location();
             long startTime = System.nanoTime();
-            for(int i = 0; i < 50000; i++)
-            {
-                x.parse("217.168.17.5");
-            }
+            logDataArray log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
             long stopTime = System.nanoTime();
             System.out.println(stopTime - startTime);
         } catch (Exception e) {

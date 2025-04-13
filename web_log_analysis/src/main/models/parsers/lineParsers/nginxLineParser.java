@@ -17,15 +17,14 @@ import models.utils.parsedValueClassConverter;
 public class nginxLineParser {
     private static parsedValueClassConverter pVCC = new parsedValueClassConverter();
     private static ip2Location ipParser = new ip2Location();
+    private static ObjectMapper mapper = new ObjectMapper();
+    private static final String regex = "((?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<RequestURL>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))";
+    private static final Pattern pattern = Pattern.compile(regex);
     public logData parse(String line) throws lineParserException {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            HashMap<String, Object> map = mapper.readValue(line, new TypeReference<>() {});
+            HashMap<String, Object> map = mapper.readValue(line, new TypeReference<HashMap<String, Object>>() {});
 
-            
             String request = (String) map.get("request");
-            final String regex = "((?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<RequestURL>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))";
-            final Pattern pattern = Pattern.compile(regex);
             final Matcher matcher = pattern.matcher(request);
 
             HashMap<Integer, String> groupNameMapping = new HashMap<Integer, String>();
