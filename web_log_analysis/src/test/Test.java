@@ -11,7 +11,7 @@ public class Test {
         try {
             System.out.println("");
             long startTime = System.nanoTime();
-            logDataArray log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
+            logDataArray log_data = aFP.parse("./web_log_analysis/src/main/resources/logs_sample/large/apache_logs_large.log");
             long stopTime = System.nanoTime();
             System.out.println(stopTime - startTime);
         } catch (Exception e) {
