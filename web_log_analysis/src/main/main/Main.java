@@ -3,6 +3,7 @@ package main;
 import models.*;
 import models.exceptions.*;
 import models.logData.logDataArray;
+import models.parsers.ResultAggregator;
 import models.parsers.fileParsers.*;
 import models.parsers.lineParsers.*;
 import models.utils.*;
@@ -20,10 +21,11 @@ public class Main {
         try {
             System.out.println("");
             long startTime = System.nanoTime();
-            logDataArray log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
+            ResultAggregator log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/large/nginx_json_logs_large.log");
+            //ResultAggregator log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
             long stopTime = System.nanoTime();
             System.out.println(stopTime - startTime);
-            System.out.println(log_data.getAllLogData().get(0).toString());
+            System.out.println(log_data.getCountByCountryShort());
             // for(logData obj : log_data.getAllLogData()) {
             //     System.out.println("Time" + " : " + obj.getTime());
             //     System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
