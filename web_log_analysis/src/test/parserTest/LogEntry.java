@@ -1,3 +1,4 @@
+package parserTest;
 import java.util.Date;
 
 public class LogEntry {

@@ -2,14 +2,23 @@ package main;
 
 import models.*;
 import models.exceptions.*;
-import models.logData.logDataArray;
+import models.logData.logData;
+import models.mongoDB.mongoDB;
 import models.parsers.ResultAggregator;
 import models.parsers.fileParsers.*;
 import models.parsers.lineParsers.*;
 import models.utils.*;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
+import java.util.Properties;
 import java.util.logging.Logger;
+
+import com.mongodb.client.FindIterable;
 
 public class Main {
     private static apacheFileParser aFP = new apacheFileParser();
@@ -19,13 +28,34 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            System.out.println("");
+            loadProperties(Thread.currentThread().getContextClassLoader().getResource("mongodb_config.properties").getPath());
+
             long startTime = System.nanoTime();
-            ResultAggregator log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/large/nginx_json_logs_large.log");
+            ResultAggregator log_data = nFP.parse(Thread.currentThread().getContextClassLoader().getResource("resources/logs_sample/lite/nginx_json_logs_lite.log").getPath());
             //ResultAggregator log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
             long stopTime = System.nanoTime();
             System.out.println(stopTime - startTime);
-            System.out.println(log_data.getCountByCountryShort());
+            System.out.println(log_data.getCount());
+
+            HashMap<String, Object> filter_rules = new HashMap<String, Object>();
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+            Date date = sdf.parse("17/May/2015:08:05:23 +0000");
+
+            filter_rules.put("byPeriod", true);
+            filter_rules.put("byPeriodStartValue", date);
+
+            System.out.println(date);
+
+            mongoDB mongodb = new mongoDB();
+            int cnt = 0;
+            FindIterable<logData> x = mongodb.filter(filter_rules);
+            for (logData doc : x) {
+                //System.out.println(doc.toString());
+                cnt += 1;
+            }
+            System.out.println(cnt);
+
+
             // for(logData obj : log_data.getAllLogData()) {
             //     System.out.println("Time" + " : " + obj.getTime());
             //     System.out.println("Remote Ip" + " : " + obj.getRemoteIp());
@@ -36,7 +66,7 @@ public class Main {
             //     System.out.println("Referrer" + " : " + obj.getReferrer());
             //     System.out.println("Agent" + " : " + obj.getAgent());
             //     System.out.println("Request Method" + " : " + obj.getRequestMethod());
-            //     System.out.println("Request URL" + " : " + obj.getRequestURL());
+            //     System.out.println("Request URL" + " : " + obj.getByRequestUrl());
             //     System.out.println("Http Ver" + " : " + obj.getHttpVer());
             //     System.out.println("=====================================");
             // }
@@ -59,7 +89,7 @@ public class Main {
             //     System.out.println("Referrer" + " : " + obj.getReferrer());
             //     System.out.println("Agent" + " : " + obj.getAgent());
             //     System.out.println("Request Method" + " : " + obj.getRequestMethod());
-            //     System.out.println("Request URL" + " : " + obj.getRequestURL());
+            //     System.out.println("Request URL" + " : " + obj.getByRequestUrl());
             //     System.out.println("Http Ver" + " : " + obj.getHttpVer());
             //     System.out.println("=====================================");
             // }
@@ -69,6 +99,20 @@ public class Main {
             // System.out.println(filteredByRequestMethod.getAllLogData().size());
         } catch (Exception e) {
             System.out.println(e);
+        }
+    }
+
+    private static void loadProperties(String filePath) throws propertiesLoaderException {
+        try (FileInputStream input = new FileInputStream(filePath)) {
+            Properties props = new Properties();
+            props.load(input);
+            
+            // Set properties into system properties
+            System.getProperties().putAll(props);
+
+            System.out.println("Properties loaded into System properties!");
+        } catch (Exception e) {
+            throw new propertiesLoaderException();
         }
     }
 }

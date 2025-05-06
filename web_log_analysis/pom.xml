@@ -20,14 +20,52 @@
         <!-- Change the directories for sources -->
         <sourceDirectory>src/main</sourceDirectory>
         <testSourceDirectory>src/test</testSourceDirectory>
-
+        
         <!-- Optionally, change the build output directories -->
         <directory>target</directory>
-        <outputDirectory>target/classes</outputDirectory>
-        <testOutputDirectory>target/test-classes</testOutputDirectory>
+        <outputDirectory>${project.build.directory}/classes</outputDirectory>
+        <testOutputDirectory>${project.build.directory}/test-classes</testOutputDirectory>
+
+        <resources>
+            <resource>
+                <directory>${project.build.sourceDirectory}</directory>
+                <includes>
+                    <include>*.*</include>
+                </includes>
+                <targetPath>${project.build.outputDirectory}</targetPath>
+            </resource>
+            <resource>
+                <directory>${project.build.sourceDirectory}/resources</directory>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+                <targetPath>${project.build.outputDirectory}/resources</targetPath>
+            </resource>
+        </resources>
     </build>
 
     <dependencies>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.18</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-crypt</artifactId>
+            <version>5.4.0</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.maxmind.geoip2</groupId>

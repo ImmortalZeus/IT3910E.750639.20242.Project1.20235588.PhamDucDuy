@@ -11,7 +11,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.ip2location.IPResult;
+
 import models.logData.logData;
+import models.mongoDB.mongoDB;
 import models.parsers.ResultAggregator;
 import models.exceptions.*;
 import models.utils.ip2Location;
@@ -20,8 +23,9 @@ import models.utils.parsedValueClassConverter;
 public class nginxLineParser implements Runnable {
     private static parsedValueClassConverter pVCC = new parsedValueClassConverter();
     private static ip2Location ipParser = new ip2Location();
+        private static mongoDB mongodb = new mongoDB();
     private static ObjectMapper mapper = new ObjectMapper();
-    private static final String regex = "((?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<RequestURL>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))";
+    private static final String regex = "((?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))";
     private static final Pattern pattern = Pattern.compile(regex);
     private ResultAggregator aggregator;
     private List<String> lines;
@@ -48,12 +52,22 @@ public class nginxLineParser implements Runnable {
                     map.put("request_method", matcher.group(2));
                     map.put("request_url", matcher.group(3));
                     map.put("http_ver", matcher.group(4));
-                    map.put("geo_info", ipParser.parse(map.get("remote_ip").toString()));
+                    IPResult ipResult = ipParser.parse(map.get("remote_ip").toString());
+                    map.put("country_short", ipResult.getCountryShort());
+                    map.put("country_long", ipResult.getCountryLong());
+                    map.put("region", ipResult.getRegion());
+                    map.put("city", ipResult.getCity());
+                    map.put("latitude", ipResult.getLatitude());
+                    map.put("longitude", ipResult.getLongitude());
+                    map.put("zip_code", ipResult.getZipCode());
+                    map.put("time_zone", ipResult.getTimeZone());
                 }
 
                 map = pVCC.fix(map);
                 
                 logData res = new logData(map);
+                mongodb.insertOne(res);
+
                 aggregator.collect(res);
     
                 // HashMap<String, String> res = new HashMap<String, String>();

@@ -5,17 +5,16 @@ import java.util.HashMap;
 import com.ip2location.*;
 
 import models.exceptions.*;
-import models.geoInfo.geoInfo;
 
 public class ip2Location {
     private static String IPv4DBPath = "./web_log_analysis/src/main/resources/ip2Location/IP2LOCATION-LITE-DB11.BIN";
     private static String IPv6DBPath = "./web_log_analysis/src/main/resources/ip2Location/IP2LOCATION-LITE-DB11.IPV6.BIN";
     private static IP2Location locIPv4 = null;
     private static IP2Location locIPv6 = null;
-    private static HashMap<String, geoInfo> cache = new HashMap<String, geoInfo>();
+    private static HashMap<String, IPResult> cache = new HashMap<String, IPResult>();
     private static IPTools iptools = new IPTools();
 
-    public geoInfo parse(String IP) throws ip2LocationException {
+    public IPResult parse(String IP) throws ip2LocationException {
         if(cache.containsKey(IP)) {
             return cache.get(IP);
         } else {
@@ -30,9 +29,8 @@ public class ip2Location {
                     IPResult rec = locIPv4.IPQuery(IP);
                     if("OK".equals(rec.getStatus()))
                     {
-                        geoInfo geo = new geoInfo(rec);
-                        cache.put(IP, geo);
-                        return geo;
+                        cache.put(IP, rec);
+                        return rec;
                     }
                     else
                     {
@@ -47,9 +45,8 @@ public class ip2Location {
                     IPResult rec = locIPv6.IPQuery(IP);
                     if("OK".equals(rec.getStatus()))
                     {
-                        geoInfo geo = new geoInfo(rec);
-                        cache.put(IP, geo);
-                        return geo;
+                        cache.put(IP, rec);
+                        return rec;
                     }
                     else
                     {
