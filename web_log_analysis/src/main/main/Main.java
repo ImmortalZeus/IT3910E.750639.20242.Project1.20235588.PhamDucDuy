@@ -37,6 +37,8 @@ public class Main {
             System.out.println(stopTime - startTime);
             System.out.println(log_data.getCount());
 
+            // =============================================
+
             HashMap<String, Object> filter_rules = new HashMap<String, Object>();
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
             Date date = sdf.parse("17/May/2015:08:05:23 +0000");
@@ -44,17 +46,19 @@ public class Main {
             filter_rules.put("byPeriod", true);
             filter_rules.put("byPeriodStartValue", date);
 
-            System.out.println(date);
-
+            // ================= Filter =====================
             mongoDB mongodb = new mongoDB();
             int cnt = 0;
             FindIterable<logData> x = mongodb.filter(filter_rules);
             for (logData doc : x) {
+                // Do something here
                 //System.out.println(doc.toString());
                 cnt += 1;
             }
             System.out.println(cnt);
 
+            // ================= Count =====================
+            System.out.println(mongodb.count(filter_rules));
 
             // for(logData obj : log_data.getAllLogData()) {
             //     System.out.println("Time" + " : " + obj.getTime());
