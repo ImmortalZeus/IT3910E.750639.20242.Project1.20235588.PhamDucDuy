@@ -2,7 +2,6 @@ package models.parsers.fileParsers;
 
 import models.exceptions.*;
 import models.logData.logData;
-import models.logData.logDataArray;
 import models.parsers.lineParsers.*;
 import models.parsers.ResultAggregator;
 import models.utils.*;

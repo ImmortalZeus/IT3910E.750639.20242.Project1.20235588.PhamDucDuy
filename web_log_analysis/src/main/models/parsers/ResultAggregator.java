@@ -16,7 +16,7 @@ public class ResultAggregator {
     private final Map<String, AtomicLong> countByReferrer = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> countByAgent = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> countByRequestMethod = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByRequestURL = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> countByByRequestUrl = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> countByHttpVer = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> countByCountryShort = new ConcurrentHashMap<>();
 
@@ -43,14 +43,14 @@ public class ResultAggregator {
         countByRequestMethod
             .computeIfAbsent(e.getRequestMethod(), k -> new AtomicLong())
             .incrementAndGet();
-        countByRequestURL
-            .computeIfAbsent(e.getRequestURL(), k -> new AtomicLong())
+        countByByRequestUrl
+            .computeIfAbsent(e.getRequestUrl(), k -> new AtomicLong())
             .incrementAndGet();
         countByHttpVer
             .computeIfAbsent(e.getHttpVer(), k -> new AtomicLong())
             .incrementAndGet();
         countByCountryShort
-            .computeIfAbsent(e.getGeoInfo().getCountryShort(), k -> new AtomicLong())
+            .computeIfAbsent(e.getCountryShort(), k -> new AtomicLong())
             .incrementAndGet();
     }
 
@@ -90,8 +90,8 @@ public class ResultAggregator {
         return countByRequestMethod;
     }
 
-    public Map<String, AtomicLong> getCountByRequestURL() {
-        return countByRequestURL;
+    public Map<String, AtomicLong> getCountByByRequestUrl() {
+        return countByByRequestUrl;
     }
 
     public Map<String, AtomicLong> getCountByHttpVer() {

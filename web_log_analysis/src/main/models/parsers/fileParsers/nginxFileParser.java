@@ -2,7 +2,6 @@ package models.parsers.fileParsers;
 
 import models.exceptions.*;
 import models.logData.logData;
-import models.logData.logDataArray;
 import models.parsers.ResultAggregator;
 import models.parsers.lineParsers.*;
 import models.utils.*;
@@ -55,7 +54,7 @@ public class nginxFileParser {
                         line = br.readLine();
                     }
                     if (!batch.isEmpty()) {
-                        executor.submit(new apacheLineParser(new ArrayList<>(batch), aggregator));
+                        executor.submit(new nginxLineParser(new ArrayList<>(batch), aggregator));
                     }
                     executor.shutdown();
                     executor.awaitTermination(1, TimeUnit.HOURS);
