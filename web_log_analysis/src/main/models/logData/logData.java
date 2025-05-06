@@ -6,107 +6,129 @@ import java.util.HashMap;
 import models.geoInfo.geoInfo;
 
 public class logData {
-    private HashMap<String, Object> data = new HashMap<String, Object>();
+    private Date time;
+    private String remoteip;
+    private String remoteuser;
+    private String request;
+    private Integer responsestatuscode;
+    private Integer bytes;
+    private String referrer;
+    private String agent;
+    private String requestmethod;
+    private String requesturl;
+    private String httpver;
+    private geoInfo geoinfo;
 
     public logData(HashMap<String, Object> data) {
-        this.data = data;
+        Object tmptime = data.get("time");
+        if(tmptime instanceof Date) {
+            this.time = (Date) tmptime;
+        } else {
+            this.time = null;
+        }
+        Object tmpremoteip = data.get("remote_ip");
+        if(tmpremoteip instanceof String) {
+            this.remoteip = (String) tmpremoteip;
+        } else {
+            this.remoteip = null;
+        }
+        Object tmpremoteuser = data.get("remote_user");
+        if(tmpremoteuser instanceof String) {
+            this.remoteuser = (String) tmpremoteuser;
+        } else {
+            this.remoteuser = null;
+        }
+        Object tmprequest = data.get("request");
+        if(tmprequest instanceof String) {
+            this.request = (String) tmprequest;
+        } else {
+            this.request = null;
+        }
+        Object tmpresponsestatuscode = data.get("response_status_code");
+        if(tmpresponsestatuscode instanceof Integer) {
+            this.responsestatuscode = (Integer) tmpresponsestatuscode;
+        } else {
+            this.responsestatuscode = null;
+        }
+        Object tmpbytes = data.get("bytes");
+        if(tmpbytes instanceof Integer) {
+            this.bytes = (Integer) tmpbytes;
+        } else {
+            this.bytes = null;
+        }
+        Object tmpreferrer = data.get("referrer");
+        if(tmpreferrer instanceof String) {
+            this.referrer = (String) tmpreferrer;
+        } else {
+            this.referrer = null;
+        }
+        Object tmpagent = data.get("agent");
+        if(tmpagent instanceof String) {
+            this.agent = (String) tmpagent;
+        } else {
+            this.agent = null;
+        }
+        Object tmprequestmethod = data.get("request_method");
+        if(tmprequestmethod instanceof String) {
+            this.requestmethod = (String) tmprequestmethod;
+        } else {
+            this.requestmethod = null;
+        }
+        Object tmprequesturl = data.get("request_url");
+        if(tmprequesturl instanceof String) {
+            this.requesturl = (String) tmprequesturl;
+        } else {
+            this.requesturl = null;
+        }
+        Object tmphttpver = data.get("http_ver");
+        if(tmphttpver instanceof String) {
+            this.httpver = (String) tmphttpver;
+        } else {
+            this.httpver = null;
+        }
+        Object tmpgeoinfo = data.get("geo_info");
+        if(tmpgeoinfo instanceof geoInfo) {
+            this.geoinfo = (geoInfo) tmpgeoinfo;
+        } else {
+            this.geoinfo = null;
+        }
     }
 
     public Date getTime() {
-        Object tmp = this.data.get("time");
-        if(tmp instanceof Date) {
-            return (Date) tmp;
-        } else {
-            return null;
-        }
+        return this.time;
     }
     public String getRemoteIp() {
-        Object tmp = this.data.get("remote_ip");
-        if(tmp instanceof String) {
-            return (String) tmp;
-        } else {
-            return null;
-        }
+        return this.remoteip;
     }
     public String getRemoteUser() {
-        Object tmp = this.data.get("remote_user");
-        if(tmp instanceof String) {
-            return (String) tmp;
-        } else {
-            return null;
-        }
+        return this.remoteuser;
     }
     public String getRequest() {
-        Object tmp = this.data.get("request");
-        if(tmp instanceof String) {
-            return (String) tmp;
-        } else {
-            return null;
-        }
+        return this.request;
     }
     public Integer getResponseStatusCode() {
-        Object tmp = this.data.get("response_status_code");
-        if(tmp instanceof Integer) {
-            return (Integer) tmp;
-        } else {
-            return null;
-        }
+        return this.responsestatuscode;
     }
     public Integer getBytes() {
-        Object tmp = this.data.get("bytes");
-        if(tmp instanceof Integer) {
-            return (Integer) tmp;
-        } else {
-            return null;
-        }
+        return this.bytes;
     }
     public String getReferrer() {
-        Object tmp = this.data.get("referrer");
-        if(tmp instanceof String) {
-            return (String) tmp;
-        } else {
-            return null;
-        }
+        return this.referrer;
     }
     public String getAgent() {
-        Object tmp = this.data.get("agent");
-        if(tmp instanceof String) {
-            return (String) tmp;
-        } else {
-            return null;
-        }
+        return this.agent;
     }
     public String getRequestMethod() {
-        Object tmp = this.data.get("request_method");
-        if(tmp instanceof String) {
-            return (String) tmp;
-        } else {
-            return null;
-        }
+        return this.requestmethod;
     }
     public String getRequestURL() {
-        Object tmp = this.data.get("request_url");
-        if(tmp instanceof String) {
-            return (String) tmp;
-        } else {
-            return null;
-        }
+        return this.requesturl;
     }
     public String getHttpVer() {
-        Object tmp = this.data.get("http_ver");
-        if(tmp instanceof String) {
-            return (String) tmp;
-        } else {
-            return null;
-        }
+        return this.httpver;
     }
     public geoInfo getGeoInfo() {
-        Object tmp = this.data.get("geo_info");
-        if(tmp instanceof geoInfo) {
-            return (geoInfo) tmp;
-        } else {
-            return null;
-        }
+        return this.geoinfo;
     }
     @Override
     public String toString() {

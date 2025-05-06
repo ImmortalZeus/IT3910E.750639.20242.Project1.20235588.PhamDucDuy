@@ -3,31 +3,84 @@ package models.parsers.fileParsers;
 import models.exceptions.*;
 import models.logData.logData;
 import models.logData.logDataArray;
+import models.parsers.ResultAggregator;
 import models.parsers.lineParsers.*;
 import models.utils.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class nginxFileParser {
-    private static fileReader fR = new fileReader();
-    private static nginxLineParser nLP = new nginxLineParser();
+    private static final int BATCH_SIZE = 100;
 
-    public logDataArray parse(String filepath) throws fileParserException {
-        int j = 0;
+    public ResultAggregator parse(String filepath) throws fileParserException {
         try {
-            ArrayList<logData> res = new ArrayList<logData>();
+            // ExecutorService executor = Executors.newFixedThreadPool(
+            //     Runtime.getRuntime().availableProcessors()
+            // );
 
-            String filedata = fR.read(filepath);
-            String[] lines = filedata.split("\n");
+            ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+            ResultAggregator aggregator = new ResultAggregator();
 
-            for (int i = 0; i < lines.length; i++) {
-                j = i;
-                logData parsed = nLP.parse(lines[i]);
-                res.add(parsed);
+
+            File file = null;
+            FileReader fr = null;
+            BufferedReader br = null;
+            try {
+                file = new File(filepath);
+                if(!file.exists() || !file.isFile()) {
+                    // do something here
+                    throw new fileReaderException();
+                } else {
+                    fr = new FileReader(file);
+                    br = new BufferedReader(fr);
+                    List<String> batch = new ArrayList<>(BATCH_SIZE);
+                    String line = br.readLine().trim();
+                    while (line != null) {
+                        if(line.length() > 0)
+                        {
+                            batch.add(line);
+                            if (batch.size() >= BATCH_SIZE)
+                            {
+                                executor.submit(new nginxLineParser(new ArrayList<>(batch), aggregator));
+                                batch.clear();
+                            }
+                        }
+                        line = br.readLine();
+                    }
+                    if (!batch.isEmpty()) {
+                        executor.submit(new apacheLineParser(new ArrayList<>(batch), aggregator));
+                    }
+                    executor.shutdown();
+                    executor.awaitTermination(1, TimeUnit.HOURS);
+                    if(fr != null) {
+                        fr.close();
+                    }
+                    if(br != null) {
+                        br.close();
+                    }
+                    return aggregator.report();
+                }
+            } catch (Exception e) {
+                try {
+                    if(fr != null) {
+                        fr.close();
+                    }
+                    if(br != null) {
+                        br.close();
+                    }
+                } catch(Exception e2) {
+                }
+                throw new fileReaderException();
             }
-            return (new logDataArray(res));
+
         } catch (Exception e) {
-            System.out.println(j);
             throw new fileParserException();
         }
     }
