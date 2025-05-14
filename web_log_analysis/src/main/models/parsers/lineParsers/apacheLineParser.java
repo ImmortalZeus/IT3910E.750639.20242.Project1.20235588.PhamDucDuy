@@ -14,12 +14,16 @@ import models.parsers.ResultAggregator;
 import models.utils.ip2Location;
 import models.utils.parsedValueClassConverter;
 
+import ua_parser.Parser;
+import ua_parser.Client;
+
 public class apacheLineParser implements Runnable {
     private static parsedValueClassConverter pVCC = new parsedValueClassConverter();
     private static ip2Location ipParser = new ip2Location();
     private static mongoDB mongodb = new mongoDB();
     private static final String regex = "^" + "(?<RemoteIp>-|(?:^|\\b)(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){3})\\s-\\s(?<RemoteUser>-|[a-z_][a-z0-9_]{0,30})\\s(\\[(?<DateTime>(?<Date>[0-2][0-9]\\/\\w{3}\\/[12]\\d{3}):(?<Time>\\d{2}:\\d{2}:\\d{2})[^\\]]*+)\\])\\s(\\\"(?<Request>(?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))\\\")\\s(?<Response>-|\\d{3})\\s(?<Bytes>-|\\d+)\\s\\\"(?<Referrer>[^\\s]+)\\\"\\s\\\"(?<UserAgent>[^\\\"]*+)\\\"(?:\\s\\\"(?<ForwardFor>[^\\\"]*+)\\\")?" + "$";
     private static final Pattern pattern = Pattern.compile(regex);
+    private static final Parser useragentParser = new Parser();
     private ResultAggregator aggregator;
     private List<String> lines;
     public apacheLineParser(List<String> lines, ResultAggregator agg) {
@@ -81,6 +85,14 @@ public class apacheLineParser implements Runnable {
                     map.put("longitude", ipResult.getLongitude());
                     map.put("zip_code", ipResult.getZipCode());
                     map.put("time_zone", ipResult.getTimeZone());
+                    String ua = map.get("agent").toString().trim();
+                    if(ua != "-")
+                    {
+                        Client useragentParsed = useragentParser.parse(ua);
+                        map.put("browser", useragentParsed.userAgent.family);
+                        map.put("OS", useragentParsed.os.family);
+                        map.put("device", useragentParsed.device.family);
+                    }
                 }
 
                 map = pVCC.fix(map);
