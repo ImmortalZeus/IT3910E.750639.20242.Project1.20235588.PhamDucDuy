@@ -20,6 +20,9 @@ import models.exceptions.*;
 import models.utils.ip2Location;
 import models.utils.parsedValueClassConverter;
 
+import ua_parser.Client;
+import ua_parser.Parser;
+
 public class nginxLineParser implements Runnable {
     private static parsedValueClassConverter pVCC = new parsedValueClassConverter();
     private static ip2Location ipParser = new ip2Location();
@@ -27,6 +30,7 @@ public class nginxLineParser implements Runnable {
     private static ObjectMapper mapper = new ObjectMapper();
     private static final String regex = "((?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))";
     private static final Pattern pattern = Pattern.compile(regex);
+    private static final Parser useragentParser = new Parser();
     private ResultAggregator aggregator;
     private List<String> lines;
     public nginxLineParser(List<String> lines, ResultAggregator agg) {
@@ -61,6 +65,14 @@ public class nginxLineParser implements Runnable {
                     map.put("longitude", ipResult.getLongitude());
                     map.put("zip_code", ipResult.getZipCode());
                     map.put("time_zone", ipResult.getTimeZone());
+                    String ua = map.get("agent").toString().trim();
+                    if(ua != "-")
+                    {
+                        Client useragentParsed = useragentParser.parse(ua);
+                        map.put("browser", useragentParsed.userAgent.family);
+                        map.put("OS", useragentParsed.os.family);
+                        map.put("device", useragentParsed.device.family);
+                    }
                 }
 
                 map = pVCC.fix(map);

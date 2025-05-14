@@ -44,7 +44,12 @@ public class logData {
     private String zipCode;
     @BsonProperty("timeZone")
     private String timeZone;
-
+    @BsonProperty("browser")
+    private String browser;
+    @BsonProperty("OS")
+    private String OS;
+    @BsonProperty("device")
+    private String device;
     public logData() {}
     public logData(HashMap<String, Object> data) {
         Object tmptime = data.get("time");
@@ -161,12 +166,30 @@ public class logData {
         } else {
             this.timeZone = null;
         }
+        Object tmpbrowser = data.get("browser");
+        if(tmpbrowser instanceof String) {
+            this.browser = (String) tmpbrowser;
+        } else {
+            this.browser = null;
+        }
+        Object tmpOS = data.get("OS");
+        if(tmpOS instanceof String) {
+            this.OS = (String) tmpOS;
+        } else {
+            this.OS = null;
+        }
+        Object tmpdevice = data.get("device");
+        if(tmpdevice instanceof String) {
+            this.device = (String) tmpdevice;
+        } else {
+            this.device = null;
+        }
     }
 
     public logData(Date time, String remoteIp, String remoteUser, String request, Integer responseStatusCode,
             Integer bytes, String referrer, String agent, String requestMethod, String requestUrl, String httpVer,
             String countryShort, String countryLong, String region, String city, Float latitude, Float longitude,
-            String zipCode, String timeZone) {
+            String zipCode, String timeZone, String browser, String OS, String device) {
         this.time = time;
         this.remoteIp = remoteIp;
         this.remoteUser = remoteUser;
@@ -186,6 +209,9 @@ public class logData {
         this.longitude = longitude;
         this.zipCode = zipCode;
         this.timeZone = timeZone;
+        this.browser = browser;
+        this.OS = OS;
+        this.device = device;
     }
     public Date getTime() {
         return this.time;
@@ -244,7 +270,16 @@ public class logData {
     public String getTimeZone() {
         return this.timeZone;
     }
-    
+    public String getBrowser() {
+        return browser;
+    }
+    public String getOS() {
+        return OS;
+    }
+    public String getDevice() {
+        return device;
+    }
+
     public void setTime(Date time) {
         this.time = time;
     }
@@ -302,6 +337,16 @@ public class logData {
     public void setTimeZone(String timeZone) {
         this.timeZone = timeZone;
     }
+    public void setBrowser(String browser) {
+        this.browser = browser;
+    }
+    public void setOS(String oS) {
+        OS = oS;
+    }
+    public void setDevice(String device) {
+        this.device = device;
+    }
+
     @Override
     public String toString() {
         return "Time" + " : " + this.getTime() + '\n' +
@@ -322,6 +367,9 @@ public class logData {
                 "Latitude" + " : " + this.getLatitude() + '\n' + 
                 "Longitude" + " : " + this.getLongitude() + '\n' + 
                 "Zip Code" + " : " + this.getZipCode() + '\n' + 
-                "Time Zone" + " : " + this.getTimeZone();
+                "Time Zone" + " : " + this.getTimeZone() + '\n' + 
+                "Browser" + " : " + this.getBrowser() + '\n' + 
+                "OS" + " : " + this.getOS() + '\n' + 
+                "Device" + " : " + this.getDevice();
     }
 }

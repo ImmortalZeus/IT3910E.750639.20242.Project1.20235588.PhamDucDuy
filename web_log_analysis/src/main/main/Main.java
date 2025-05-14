@@ -31,7 +31,7 @@ public class Main {
             loadProperties(Thread.currentThread().getContextClassLoader().getResource("mongodb_config.properties").getPath());
 
             long startTime = System.nanoTime();
-            ResultAggregator log_data = nFP.parse(Thread.currentThread().getContextClassLoader().getResource("resources/logs_sample/lite/nginx_json_logs_lite.log").getPath());
+            ResultAggregator log_data = nFP.parse(Thread.currentThread().getContextClassLoader().getResource("resources/logs_sample/large/nginx_json_logs_large.log").getPath());
             //ResultAggregator log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
             long stopTime = System.nanoTime();
             System.out.println(stopTime - startTime);
@@ -44,7 +44,8 @@ public class Main {
             Date date = sdf.parse("17/May/2015:08:05:23 +0000");
 
             filter_rules.put("byPeriod", true);
-            filter_rules.put("byPeriodStartValue", date);
+            Date[] datearr = {date};
+            filter_rules.put("byPeriodValue", datearr);
 
             // ================= Filter =====================
             mongoDB mongodb = new mongoDB();

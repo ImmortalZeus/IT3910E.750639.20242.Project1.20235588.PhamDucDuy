@@ -19,6 +19,12 @@ public class ResultAggregator {
     private final Map<String, AtomicLong> countByByRequestUrl = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> countByHttpVer = new ConcurrentHashMap<>();
     private final Map<String, AtomicLong> countByCountryShort = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> countByCountryLong = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> countByRegion = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> countByCity = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> countByBrowser = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> countByOS = new ConcurrentHashMap<>();
+    private final Map<String, AtomicLong> countByDevice = new ConcurrentHashMap<>();
 
     public void collect(logData e) {
         count.incrementAndGet();
@@ -51,6 +57,24 @@ public class ResultAggregator {
             .incrementAndGet();
         countByCountryShort
             .computeIfAbsent(e.getCountryShort(), k -> new AtomicLong())
+            .incrementAndGet();
+        countByCountryLong
+            .computeIfAbsent(e.getCountryLong(), k -> new AtomicLong())
+            .incrementAndGet();
+        countByRegion
+            .computeIfAbsent(e.getRegion(), k -> new AtomicLong())
+            .incrementAndGet();
+        countByCity
+            .computeIfAbsent(e.getCity(), k -> new AtomicLong())
+            .incrementAndGet();
+        countByBrowser
+            .computeIfAbsent(e.getBrowser(), k -> new AtomicLong())
+            .incrementAndGet();
+        countByOS
+            .computeIfAbsent(e.getOS(), k -> new AtomicLong())
+            .incrementAndGet();
+        countByDevice
+            .computeIfAbsent(e.getDevice(), k -> new AtomicLong())
             .incrementAndGet();
     }
 
@@ -101,4 +125,29 @@ public class ResultAggregator {
     public Map<String, AtomicLong> getCountByCountryShort() {
         return countByCountryShort;
     }
+
+    public Map<String, AtomicLong> getCountByCountryLong() {
+        return countByCountryLong;
+    }
+
+    public Map<String, AtomicLong> getCountByRegion() {
+        return countByRegion;
+    }
+
+    public Map<String, AtomicLong> getCountByCity() {
+        return countByCity;
+    }
+
+    public Map<String, AtomicLong> getCountByBrowser() {
+        return countByBrowser;
+    }
+
+    public Map<String, AtomicLong> getCountByOS() {
+        return countByOS;
+    }
+
+    public Map<String, AtomicLong> getCountByDevice() {
+        return countByDevice;
+    }
+
 }

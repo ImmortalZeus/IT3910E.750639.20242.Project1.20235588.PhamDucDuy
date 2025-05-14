@@ -1,5 +1,7 @@
 package models.mongoDB;
 
+import java.lang.reflect.Array;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -60,280 +62,53 @@ public class mongoDB {
         /*
         filter_rules {
             "byPeriod": Boolean (true | false),
-            "byPeriodStartValue": Date,
-            "byPeriodEndValue": Date,
+            "byPeriodValue": [byPeriodStartValue0: Date, byPeriodEndValue0: Date, byPeriodStartValue1: Date, byPeriodEndValue1: Date, ....]
 
             "byRemoteUser": Boolean (true | false),
-            "byRemoteUserValue": String,
+            "byRemoteUserValue": [value0: String, value1: String, ...],
 
             "byRemoteIp": Boolean (true | false),
-            "byRemoteIpValue": String,
+            "byRemoteIpValue": [value0: String, value1: String, ...],
 
             "byRequest": Boolean (true | false),
-            "byRequestValue": String,
+            "byRequestValue": [value0: String, value1: String, ...],
 
             "byResponseStatusCode": Boolean (true | false),
-            "byResponseStatusCodeValue": Integer,
+            "byResponseStatusCodeValue": [value0: Integer, value1: Integer, ...],
 
             "byBytes": Boolean (true | false),
-            "byBytesValue": Integer,
+            "byBytesValue": [value0: Integer, value1: Integer, ...],
 
             "byReferrer": Boolean (true | false),
-            "byReferrerValue": String,
+            "byReferrerValue": [value0: String, value1: String, ...],
 
             "byAgent": Boolean (true | false),
-            "byAgentValue": String,
+            "byAgentValue": [value0: String, value1: String, ...],
 
             "byRequestMethod": Boolean (true | false),
-            "byRequestMethodValue": String,
+            "byRequestMethodValue": [value0: String, value1: String, ...],
 
-            "byByRequestUrl": Boolean (true | false),
-            "byByRequestUrlValue": String,
+            "byRequestUrl": Boolean (true | false),
+            "byRequestUrlValue": [value0: String, value1: String, ...],
 
             "byHttpVer": Boolean (true | false),
-            "byHttpVerValue": String,
+            "byHttpVerValue": [value0: String, value1: String, ...],
 
             "byCountryShort": Boolean (true | false),
-            "byCountryShortValue": String,
+            "byCountryShortValue": [value0: String, value1: String, ...],
 
             "byCountryLong": Boolean (true | false),
-            "byCountryLongValue": String,
+            "byCountryLongValue": [value0: String, value1: String, ...],
 
             "byRegion": Boolean (true | false),
-            "byRegionValue": String,
+            "byRegionValue": [value0: String, value1: String, ...],
 
             "byCity": Boolean (true | false),
-            "byCityValue": String,
-
-            "byLatitude": Boolean (true | false),
-            "byLatitudeValue": Float,
-
-            "byLongitude": Boolean (true | false),
-            "byLongitudeValue": Float,
-
-            "byZipCode": Boolean (true | false),
-            "byZipCodeValue": String,
-
-            "byTimeZone": Boolean (true | false),
-            "byTimeZoneValue": String,
-
+            "byCityValue": [value0: String, value1: String, ...],
         }
         */
-        Boolean filter_rules_byPeriod = (Boolean) filter_rules.get("byPeriod");
-        Date filter_rules_byPeriodStartValue = (Date) filter_rules.get("byPeriodStartValue");
-        Date filter_rules_byPeriodEndValue = (Date) filter_rules.get("byPeriodEndValue");
+        ArrayList<Bson> filtersList = createFiltersList(filter_rules);
 
-        Boolean filter_rules_byRemoteIp = (Boolean) filter_rules.get("byRemoteIp");
-        String filter_rules_byRemoteIpValue = (String) filter_rules.get("byRemoteIpValue");
-
-        Boolean filter_rules_byRemoteUser = (Boolean) filter_rules.get("byRemoteUser");
-        String filter_rules_byRemoteUserValue = (String) filter_rules.get("byRemoteUserValue");
-
-        Boolean filter_rules_byRequest = (Boolean) filter_rules.get("byRequest");
-        String filter_rules_byRequestValue = (String) filter_rules.get("byRequestValue");
-
-        Boolean filter_rules_byResponseStatusCode = (Boolean) filter_rules.get("byResponseStatusCode");
-        Integer filter_rules_byResponseStatusCodeValue = (Integer) filter_rules.get("byResponseStatusCodeValue");
-
-        Boolean filter_rules_byBytes = (Boolean) filter_rules.get("byBytes");
-        Integer filter_rules_byBytesValue = (Integer) filter_rules.get("byBytesValue");
-
-        Boolean filter_rules_byReferrer = (Boolean) filter_rules.get("byReferrer");
-        String filter_rules_byReferrerValue = (String) filter_rules.get("byReferrerValue");
-
-        Boolean filter_rules_byAgent = (Boolean) filter_rules.get("byAgent");
-        String filter_rules_byAgentValue = (String) filter_rules.get("byAgentValue");
-
-        Boolean filter_rules_byRequestMethod = (Boolean) filter_rules.get("byRequestMethod");
-        String filter_rules_byRequestMethodValue = (String) filter_rules.get("byRequestMethodValue");
-
-        Boolean filter_rules_byByRequestUrl = (Boolean) filter_rules.get("byByRequestUrl");
-        String filter_rules_byByRequestUrlValue = (String) filter_rules.get("byByRequestUrlValue");
-
-        Boolean filter_rules_byHttpVer = (Boolean) filter_rules.get("byHttpVer");
-        String filter_rules_byHttpVerValue = (String) filter_rules.get("byHttpVerValue");
-
-        Boolean filter_rules_byCountryShort = (Boolean) filter_rules.get("byCountryShort");
-        String filter_rules_byCountryShortValue = (String) filter_rules.get("byCountryShortValue");
-
-        Boolean filter_rules_byCountryLong = (Boolean) filter_rules.get("byCountryLong");
-        String filter_rules_byCountryLongValue = (String) filter_rules.get("byCountryLongValue");
-
-        Boolean filter_rules_byRegion = (Boolean) filter_rules.get("byRegion");
-        String filter_rules_byRegionValue = (String) filter_rules.get("byRegionValue");
-
-        Boolean filter_rules_byCity = (Boolean) filter_rules.get("byCity");
-        String filter_rules_byCityValue = (String) filter_rules.get("byCityValue");
-
-        Boolean filter_rules_byLatitude = (Boolean) filter_rules.get("byLatitude");
-        Float filter_rules_byLatitudeValue = (Float) filter_rules.get("byLatitudeValue");
-
-        Boolean filter_rules_byLongitude = (Boolean) filter_rules.get("byLongitude");
-        Float filter_rules_byLongitudeValue = (Float) filter_rules.get("byLongitudeValue");
-
-        Boolean filter_rules_byZipCode = (Boolean) filter_rules.get("byZipCode");
-        String filter_rules_byZipCodeValue = (String) filter_rules.get("byZipCodeValue");
-
-        Boolean filter_rules_byTimeZone = (Boolean) filter_rules.get("byTimeZone");
-        String filter_rules_byTimeZoneValue = (String) filter_rules.get("byTimeZoneValue");
-
-
-        ArrayList<Bson> filtersList = new ArrayList<Bson>();
-        if(filter_rules_byPeriod != null && filter_rules_byPeriod.equals(true))
-        {
-            if(filter_rules_byPeriodStartValue != null)
-            {
-                filtersList.add(gte("time", filter_rules_byPeriodStartValue));
-            }
-            if(filter_rules_byPeriodEndValue != null)
-            {
-                filtersList.add(lte("time", filter_rules_byPeriodEndValue));
-            }
-        }
-
-        if(filter_rules_byRemoteIp != null && filter_rules_byRemoteIp.equals(true))
-        {
-            if(filter_rules_byRemoteIpValue != null)
-            {
-                filtersList.add(eq("remoteIp", filter_rules_byRemoteIpValue));
-            }
-        }
-
-        if(filter_rules_byRemoteUser != null && filter_rules_byRemoteUser.equals(true))
-        {
-            if(filter_rules_byRemoteUserValue != null)
-            {
-                filtersList.add(eq("remoteUser", filter_rules_byRemoteUserValue));
-            }
-        }
-
-        if(filter_rules_byRequest != null && filter_rules_byRequest.equals(true))
-        {
-            if(filter_rules_byRequestValue != null)
-            {
-                filtersList.add(eq("request", filter_rules_byRequestValue));
-            }
-        }
-
-        if(filter_rules_byResponseStatusCode != null && filter_rules_byResponseStatusCode.equals(true))
-        {
-            if(filter_rules_byResponseStatusCodeValue != null)
-            {
-                filtersList.add(eq("responseStatusCode", filter_rules_byResponseStatusCodeValue));
-            }
-        }
-
-        if(filter_rules_byBytes != null && filter_rules_byBytes.equals(true))
-        {
-            if(filter_rules_byBytesValue != null)
-            {
-                filtersList.add(eq("bytes", filter_rules_byBytesValue));
-            }
-        }
-
-        if(filter_rules_byReferrer != null && filter_rules_byReferrer.equals(true))
-        {
-            if(filter_rules_byReferrerValue != null)
-            {
-                filtersList.add(eq("referrer", filter_rules_byReferrerValue));
-            }
-        }
-
-        if(filter_rules_byAgent != null && filter_rules_byAgent.equals(true))
-        {
-            if(filter_rules_byAgentValue != null)
-            {
-                filtersList.add(eq("agent", filter_rules_byAgentValue));
-            }
-        }
-
-        if(filter_rules_byRequestMethod != null && filter_rules_byRequestMethod.equals(true))
-        {
-            if(filter_rules_byRequestMethodValue != null)
-            {
-                filtersList.add(eq("requestMethod", filter_rules_byRequestMethodValue));
-            }
-        }
-
-        if(filter_rules_byByRequestUrl != null && filter_rules_byByRequestUrl.equals(true))
-        {
-            if(filter_rules_byByRequestUrlValue != null)
-            {
-                filtersList.add(eq("requestUrl", filter_rules_byByRequestUrlValue));
-            }
-        }
-
-        if(filter_rules_byHttpVer != null && filter_rules_byHttpVer.equals(true))
-        {
-            if(filter_rules_byHttpVerValue != null)
-            {
-                filtersList.add(eq("httpVer", filter_rules_byHttpVerValue));
-            }
-        }
-
-        if(filter_rules_byCountryShort != null && filter_rules_byCountryShort.equals(true))
-        {
-            if(filter_rules_byCountryShortValue != null)
-            {
-                filtersList.add(eq("countryShort", filter_rules_byCountryShortValue));
-            }
-        }
-
-        if(filter_rules_byCountryLong != null && filter_rules_byCountryLong.equals(true))
-        {
-            if(filter_rules_byCountryLongValue != null)
-            {
-                filtersList.add(eq("countryLong", filter_rules_byCountryLongValue));
-            }
-        }
-
-        if(filter_rules_byRegion != null && filter_rules_byRegion.equals(true))
-        {
-            if(filter_rules_byRegionValue != null)
-            {
-                filtersList.add(eq("region", filter_rules_byRegionValue));
-            }
-        }
-
-        if(filter_rules_byCity != null && filter_rules_byCity.equals(true))
-        {
-            if(filter_rules_byCityValue != null)
-            {
-                filtersList.add(eq("city", filter_rules_byCityValue));
-            }
-        }
-
-        if(filter_rules_byLatitude != null && filter_rules_byLatitude.equals(true))
-        {
-            if(filter_rules_byLatitudeValue != null)
-            {
-                filtersList.add(eq("latitude", filter_rules_byLatitudeValue));
-            }
-        }
-
-        if(filter_rules_byLongitude != null && filter_rules_byLongitude.equals(true))
-        {
-            if(filter_rules_byLongitudeValue != null)
-            {
-                filtersList.add(eq("longitude", filter_rules_byLongitudeValue));
-            }
-        }
-
-        if(filter_rules_byZipCode != null && filter_rules_byZipCode.equals(true))
-        {
-            if(filter_rules_byZipCodeValue != null)
-            {
-                filtersList.add(eq("zipCode", filter_rules_byZipCodeValue));
-            }
-        }
-
-        if(filter_rules_byTimeZone != null && filter_rules_byTimeZone.equals(true))
-        {
-            if(filter_rules_byTimeZoneValue != null)
-            {
-                filtersList.add(eq("timeZone", filter_rules_byTimeZoneValue));
-            }
-        }
         Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
         FindIterable<logData> res = collection.find(query);
@@ -371,8 +146,8 @@ public class mongoDB {
             "byRequestMethod": Boolean (true | false),
             "byRequestMethodValue": String,
 
-            "byByRequestUrl": Boolean (true | false),
-            "byByRequestUrlValue": String,
+            "byRequestUrl": Boolean (true | false),
+            "byRequestUrlValue": String,
 
             "byHttpVer": Boolean (true | false),
             "byHttpVerValue": String,
@@ -403,224 +178,397 @@ public class mongoDB {
 
         }
         */
-        Boolean filter_rules_byPeriod = (Boolean) filter_rules.get("byPeriod");
-        Date filter_rules_byPeriodStartValue = (Date) filter_rules.get("byPeriodStartValue");
-        Date filter_rules_byPeriodEndValue = (Date) filter_rules.get("byPeriodEndValue");
+        ArrayList<Bson> filtersList = createFiltersList(filter_rules);
 
-        Boolean filter_rules_byRemoteIp = (Boolean) filter_rules.get("byRemoteIp");
-        String filter_rules_byRemoteIpValue = (String) filter_rules.get("byRemoteIpValue");
-
-        Boolean filter_rules_byRemoteUser = (Boolean) filter_rules.get("byRemoteUser");
-        String filter_rules_byRemoteUserValue = (String) filter_rules.get("byRemoteUserValue");
-
-        Boolean filter_rules_byRequest = (Boolean) filter_rules.get("byRequest");
-        String filter_rules_byRequestValue = (String) filter_rules.get("byRequestValue");
-
-        Boolean filter_rules_byResponseStatusCode = (Boolean) filter_rules.get("byResponseStatusCode");
-        Integer filter_rules_byResponseStatusCodeValue = (Integer) filter_rules.get("byResponseStatusCodeValue");
-
-        Boolean filter_rules_byBytes = (Boolean) filter_rules.get("byBytes");
-        Integer filter_rules_byBytesValue = (Integer) filter_rules.get("byBytesValue");
-
-        Boolean filter_rules_byReferrer = (Boolean) filter_rules.get("byReferrer");
-        String filter_rules_byReferrerValue = (String) filter_rules.get("byReferrerValue");
-
-        Boolean filter_rules_byAgent = (Boolean) filter_rules.get("byAgent");
-        String filter_rules_byAgentValue = (String) filter_rules.get("byAgentValue");
-
-        Boolean filter_rules_byRequestMethod = (Boolean) filter_rules.get("byRequestMethod");
-        String filter_rules_byRequestMethodValue = (String) filter_rules.get("byRequestMethodValue");
-
-        Boolean filter_rules_byByRequestUrl = (Boolean) filter_rules.get("byByRequestUrl");
-        String filter_rules_byByRequestUrlValue = (String) filter_rules.get("byByRequestUrlValue");
-
-        Boolean filter_rules_byHttpVer = (Boolean) filter_rules.get("byHttpVer");
-        String filter_rules_byHttpVerValue = (String) filter_rules.get("byHttpVerValue");
-
-        Boolean filter_rules_byCountryShort = (Boolean) filter_rules.get("byCountryShort");
-        String filter_rules_byCountryShortValue = (String) filter_rules.get("byCountryShortValue");
-
-        Boolean filter_rules_byCountryLong = (Boolean) filter_rules.get("byCountryLong");
-        String filter_rules_byCountryLongValue = (String) filter_rules.get("byCountryLongValue");
-
-        Boolean filter_rules_byRegion = (Boolean) filter_rules.get("byRegion");
-        String filter_rules_byRegionValue = (String) filter_rules.get("byRegionValue");
-
-        Boolean filter_rules_byCity = (Boolean) filter_rules.get("byCity");
-        String filter_rules_byCityValue = (String) filter_rules.get("byCityValue");
-
-        Boolean filter_rules_byLatitude = (Boolean) filter_rules.get("byLatitude");
-        Float filter_rules_byLatitudeValue = (Float) filter_rules.get("byLatitudeValue");
-
-        Boolean filter_rules_byLongitude = (Boolean) filter_rules.get("byLongitude");
-        Float filter_rules_byLongitudeValue = (Float) filter_rules.get("byLongitudeValue");
-
-        Boolean filter_rules_byZipCode = (Boolean) filter_rules.get("byZipCode");
-        String filter_rules_byZipCodeValue = (String) filter_rules.get("byZipCodeValue");
-
-        Boolean filter_rules_byTimeZone = (Boolean) filter_rules.get("byTimeZone");
-        String filter_rules_byTimeZoneValue = (String) filter_rules.get("byTimeZoneValue");
-
-
-        ArrayList<Bson> filtersList = new ArrayList<Bson>();
-        if(filter_rules_byPeriod != null && filter_rules_byPeriod.equals(true))
-        {
-            if(filter_rules_byPeriodStartValue != null)
-            {
-                filtersList.add(gte("time", filter_rules_byPeriodStartValue));
-            }
-            if(filter_rules_byPeriodEndValue != null)
-            {
-                filtersList.add(lte("time", filter_rules_byPeriodEndValue));
-            }
-        }
-
-        if(filter_rules_byRemoteIp != null && filter_rules_byRemoteIp.equals(true))
-        {
-            if(filter_rules_byRemoteIpValue != null)
-            {
-                filtersList.add(eq("remoteIp", filter_rules_byRemoteIpValue));
-            }
-        }
-
-        if(filter_rules_byRemoteUser != null && filter_rules_byRemoteUser.equals(true))
-        {
-            if(filter_rules_byRemoteUserValue != null)
-            {
-                filtersList.add(eq("remoteUser", filter_rules_byRemoteUserValue));
-            }
-        }
-
-        if(filter_rules_byRequest != null && filter_rules_byRequest.equals(true))
-        {
-            if(filter_rules_byRequestValue != null)
-            {
-                filtersList.add(eq("request", filter_rules_byRequestValue));
-            }
-        }
-
-        if(filter_rules_byResponseStatusCode != null && filter_rules_byResponseStatusCode.equals(true))
-        {
-            if(filter_rules_byResponseStatusCodeValue != null)
-            {
-                filtersList.add(eq("responseStatusCode", filter_rules_byResponseStatusCodeValue));
-            }
-        }
-
-        if(filter_rules_byBytes != null && filter_rules_byBytes.equals(true))
-        {
-            if(filter_rules_byBytesValue != null)
-            {
-                filtersList.add(eq("bytes", filter_rules_byBytesValue));
-            }
-        }
-
-        if(filter_rules_byReferrer != null && filter_rules_byReferrer.equals(true))
-        {
-            if(filter_rules_byReferrerValue != null)
-            {
-                filtersList.add(eq("referrer", filter_rules_byReferrerValue));
-            }
-        }
-
-        if(filter_rules_byAgent != null && filter_rules_byAgent.equals(true))
-        {
-            if(filter_rules_byAgentValue != null)
-            {
-                filtersList.add(eq("agent", filter_rules_byAgentValue));
-            }
-        }
-
-        if(filter_rules_byRequestMethod != null && filter_rules_byRequestMethod.equals(true))
-        {
-            if(filter_rules_byRequestMethodValue != null)
-            {
-                filtersList.add(eq("requestMethod", filter_rules_byRequestMethodValue));
-            }
-        }
-
-        if(filter_rules_byByRequestUrl != null && filter_rules_byByRequestUrl.equals(true))
-        {
-            if(filter_rules_byByRequestUrlValue != null)
-            {
-                filtersList.add(eq("requestUrl", filter_rules_byByRequestUrlValue));
-            }
-        }
-
-        if(filter_rules_byHttpVer != null && filter_rules_byHttpVer.equals(true))
-        {
-            if(filter_rules_byHttpVerValue != null)
-            {
-                filtersList.add(eq("httpVer", filter_rules_byHttpVerValue));
-            }
-        }
-
-        if(filter_rules_byCountryShort != null && filter_rules_byCountryShort.equals(true))
-        {
-            if(filter_rules_byCountryShortValue != null)
-            {
-                filtersList.add(eq("countryShort", filter_rules_byCountryShortValue));
-            }
-        }
-
-        if(filter_rules_byCountryLong != null && filter_rules_byCountryLong.equals(true))
-        {
-            if(filter_rules_byCountryLongValue != null)
-            {
-                filtersList.add(eq("countryLong", filter_rules_byCountryLongValue));
-            }
-        }
-
-        if(filter_rules_byRegion != null && filter_rules_byRegion.equals(true))
-        {
-            if(filter_rules_byRegionValue != null)
-            {
-                filtersList.add(eq("region", filter_rules_byRegionValue));
-            }
-        }
-
-        if(filter_rules_byCity != null && filter_rules_byCity.equals(true))
-        {
-            if(filter_rules_byCityValue != null)
-            {
-                filtersList.add(eq("city", filter_rules_byCityValue));
-            }
-        }
-
-        if(filter_rules_byLatitude != null && filter_rules_byLatitude.equals(true))
-        {
-            if(filter_rules_byLatitudeValue != null)
-            {
-                filtersList.add(eq("latitude", filter_rules_byLatitudeValue));
-            }
-        }
-
-        if(filter_rules_byLongitude != null && filter_rules_byLongitude.equals(true))
-        {
-            if(filter_rules_byLongitudeValue != null)
-            {
-                filtersList.add(eq("longitude", filter_rules_byLongitudeValue));
-            }
-        }
-
-        if(filter_rules_byZipCode != null && filter_rules_byZipCode.equals(true))
-        {
-            if(filter_rules_byZipCodeValue != null)
-            {
-                filtersList.add(eq("zipCode", filter_rules_byZipCodeValue));
-            }
-        }
-
-        if(filter_rules_byTimeZone != null && filter_rules_byTimeZone.equals(true))
-        {
-            if(filter_rules_byTimeZoneValue != null)
-            {
-                filtersList.add(eq("timeZone", filter_rules_byTimeZoneValue));
-            }
-        }
         Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
         Long res = collection.countDocuments(query);
         return res;
+    }
+
+    public ArrayList<Bson> createFiltersList(HashMap<String, Object> filter_rules) {
+        /*
+        filter_rules {
+            "byPeriod": Boolean (true | false),
+            "byPeriodValue": [byPeriodStartValue0: Date, byPeriodEndValue0: Date, byPeriodStartValue1: Date, byPeriodEndValue1: Date, ....]
+
+            "byRemoteUser": Boolean (true | false),
+            "byRemoteUserValue": [value0: String, value1: String, ...],
+
+            "byRemoteIp": Boolean (true | false),
+            "byRemoteIpValue": [value0: String, value1: String, ...],
+
+            "byRequest": Boolean (true | false),
+            "byRequestValue": [value0: String, value1: String, ...],
+
+            "byResponseStatusCode": Boolean (true | false),
+            "byResponseStatusCodeValue": [value0: Integer, value1: Integer, ...],
+
+            "byBytes": Boolean (true | false),
+            "byBytesValue": [value0: Integer, value1: Integer, ...],
+
+            "byReferrer": Boolean (true | false),
+            "byReferrerValue": [value0: String, value1: String, ...],
+
+            "byAgent": Boolean (true | false),
+            "byAgentValue": [value0: String, value1: String, ...],
+
+            "byRequestMethod": Boolean (true | false),
+            "byRequestMethodValue": [value0: String, value1: String, ...],
+
+            "byRequestUrl": Boolean (true | false),
+            "byRequestUrlValue": [value0: String, value1: String, ...],
+
+            "byHttpVer": Boolean (true | false),
+            "byHttpVerValue": [value0: String, value1: String, ...],
+
+            "byCountryShort": Boolean (true | false),
+            "byCountryShortValue": [value0: String, value1: String, ...],
+
+            "byCountryLong": Boolean (true | false),
+            "byCountryLongValue": [value0: String, value1: String, ...],
+
+            "byRegion": Boolean (true | false),
+            "byRegionValue": [value0: String, value1: String, ...],
+
+            "byCity": Boolean (true | false),
+            "byCityValue": [value0: String, value1: String, ...],
+        }
+        */
+        Boolean filter_rules_byPeriod = (Boolean) filter_rules.get("byPeriod");
+        Date[] filter_rules_byPeriodValue = this.createArrayFromObject(Date.class, filter_rules.get("byPeriodValue"));
+
+        Boolean filter_rules_byRemoteIp = (Boolean) filter_rules.get("byRemoteIp");
+        String[] filter_rules_byRemoteIpValue = this.createArrayFromObject(String.class, filter_rules.get("byRemoteIpValue"));
+
+        Boolean filter_rules_byRemoteUser = (Boolean) filter_rules.get("byRemoteUser");
+        String[] filter_rules_byRemoteUserValue = this.createArrayFromObject(String.class, filter_rules.get("byRemoteUserValue"));
+
+        Boolean filter_rules_byRequest = (Boolean) filter_rules.get("byRequest");
+        String[] filter_rules_byRequestValue = this.createArrayFromObject(String.class, filter_rules.get("byRequestValue"));
+
+        Boolean filter_rules_byResponseStatusCode = (Boolean) filter_rules.get("byResponseStatusCode");
+        Integer[] filter_rules_byResponseStatusCodeValue = this.createArrayFromObject(Integer.class, filter_rules.get("byResponseStatusCodeValue"));
+
+        Boolean filter_rules_byBytes = (Boolean) filter_rules.get("byBytes");
+        Integer[] filter_rules_byBytesValue = this.createArrayFromObject(Integer.class, filter_rules.get("byBytesValue"));
+
+        Boolean filter_rules_byReferrer = (Boolean) filter_rules.get("byReferrer");
+        String[] filter_rules_byReferrerValue = this.createArrayFromObject(String.class, filter_rules.get("byReferrerValue"));
+
+        Boolean filter_rules_byAgent = (Boolean) filter_rules.get("byAgent");
+        String[] filter_rules_byAgentValue = this.createArrayFromObject(String.class, filter_rules.get("byAgentValue"));
+
+        Boolean filter_rules_byRequestMethod = (Boolean) filter_rules.get("byRequestMethod");
+        String[] filter_rules_byRequestMethodValue = this.createArrayFromObject(String.class, filter_rules.get("byRequestMethodValue"));
+
+        Boolean filter_rules_byRequestUrl = (Boolean) filter_rules.get("byRequestUrl");
+        String[] filter_rules_byRequestUrlValue = this.createArrayFromObject(String.class, filter_rules.get("byRequestUrlValue"));
+
+        Boolean filter_rules_byHttpVer = (Boolean) filter_rules.get("byHttpVer");
+        String[] filter_rules_byHttpVerValue = this.createArrayFromObject(String.class, filter_rules.get("byHttpVerValue"));
+
+        Boolean filter_rules_byCountryShort = (Boolean) filter_rules.get("byCountryShort");
+        String[] filter_rules_byCountryShortValue = this.createArrayFromObject(String.class, filter_rules.get("byCountryShortValue"));
+
+        Boolean filter_rules_byCountryLong = (Boolean) filter_rules.get("byCountryLong");
+        String[] filter_rules_byCountryLongValue = this.createArrayFromObject(String.class, filter_rules.get("byCountryLongValue"));
+
+        Boolean filter_rules_byRegion = (Boolean) filter_rules.get("byRegion");
+        String[] filter_rules_byRegionValue = this.createArrayFromObject(String.class, filter_rules.get("byRegionValue"));
+
+        Boolean filter_rules_byCity = (Boolean) filter_rules.get("byCity");
+        String[] filter_rules_byCityValue =  this.createArrayFromObject(String.class, filter_rules.get("byCityValue"));
+
+        ArrayList<Bson> filtersList = new ArrayList<Bson>();
+
+        ArrayList<Bson> filtersList_byPeriod = new ArrayList<Bson>();
+        if(filter_rules_byPeriod != null && filter_rules_byPeriod.equals(true))
+        {
+            ArrayList<Bson> tmpfilterslist = new ArrayList<Bson>();
+            for(int i = 0; i < filter_rules_byPeriodValue.length; i++)
+            {
+                if(i % 2 == 0 && filter_rules_byPeriodValue[i] != null)
+                {
+                    tmpfilterslist.add(gte("time", filter_rules_byPeriodValue[i]));
+                }
+                else if(i % 2 == 1 && filter_rules_byPeriodValue[i] != null)
+                {
+                    tmpfilterslist.add(lte("time", filter_rules_byPeriodValue[i]));
+                    filtersList_byPeriod.add(and(tmpfilterslist));
+                    tmpfilterslist.clear();
+                }
+            }
+        }
+        if(!filtersList_byPeriod.isEmpty())
+        {
+            filtersList.add(or(filtersList_byPeriod));
+        }
+
+        ArrayList<Bson> filtersList_byRemoteIp = new ArrayList<Bson>();
+        if(filter_rules_byRemoteIp != null && filter_rules_byRemoteIp.equals(true))
+        {
+            for(String remoteIpValue : filter_rules_byRemoteIpValue)
+            {
+                if(remoteIpValue != null)
+                {
+                    filtersList_byRemoteIp.add(eq("remoteIp", remoteIpValue));
+                }
+            }
+        }
+        if(!filtersList_byRemoteIp.isEmpty())
+        {
+            filtersList.add(or(filtersList_byRemoteIp));
+        }
+
+        ArrayList<Bson> filtersList_byRemoteUser = new ArrayList<Bson>();
+        if(filter_rules_byRemoteUser != null && filter_rules_byRemoteUser.equals(true))
+        {
+            for(String remoteUserValue : filter_rules_byRemoteUserValue)
+            {
+                if(remoteUserValue != null)
+                {
+                    filtersList_byRemoteUser.add(eq("remoteUser", remoteUserValue));
+                }
+            }
+        }
+        if(!filtersList_byRemoteUser.isEmpty())
+        {
+            filtersList.add(or(filtersList_byRemoteUser));
+        }
+
+        ArrayList<Bson> filtersList_byRequest = new ArrayList<Bson>();
+        if(filter_rules_byRequest != null && filter_rules_byRequest.equals(true))
+        {
+            for(String requestValue : filter_rules_byRequestValue)
+            {
+                if(requestValue != null)
+                {
+                    filtersList_byRequest.add(eq("request", requestValue));
+                }
+            }
+        }
+        if(!filtersList_byRequest.isEmpty())
+        {
+            filtersList.add(or(filtersList_byRequest));
+        }
+
+        ArrayList<Bson> filtersList_byResponseStatusCodeValue = new ArrayList<Bson>();
+        if(filter_rules_byResponseStatusCode != null && filter_rules_byResponseStatusCode.equals(true))
+        {
+            for(Integer responseStatusCodeValue : filter_rules_byResponseStatusCodeValue)
+            {
+                if(responseStatusCodeValue != null)
+                {
+                    filtersList_byResponseStatusCodeValue.add(eq("responseStatusCode", responseStatusCodeValue));
+                }
+            }
+        }
+        if(!filtersList_byResponseStatusCodeValue.isEmpty())
+        {
+            filtersList.add(or(filtersList_byResponseStatusCodeValue));
+        }
+
+        ArrayList<Bson> filtersList_byBytes = new ArrayList<Bson>();
+        if(filter_rules_byBytes != null && filter_rules_byBytes.equals(true))
+        {
+            for(Integer bytesValue : filter_rules_byBytesValue)
+            {
+                if(bytesValue != null)
+                {
+                    filtersList_byBytes.add(eq("bytes", bytesValue));
+                }
+            }
+        }
+        if(!filtersList_byBytes.isEmpty())
+        {
+            filtersList.add(or(filtersList_byBytes));
+        }
+
+        ArrayList<Bson> filtersList_byReferrer = new ArrayList<Bson>();
+        if(filter_rules_byReferrer != null && filter_rules_byReferrer.equals(true))
+        {
+            for(String referrerValue : filter_rules_byReferrerValue)
+            {
+                if(referrerValue != null)
+                {
+                    filtersList_byReferrer.add(eq("referrer", referrerValue));
+                }
+            }
+        }
+        if(!filtersList_byReferrer.isEmpty())
+        {
+            filtersList.add(or(filtersList_byReferrer));
+        }
+
+        ArrayList<Bson> filtersList_byAgent = new ArrayList<Bson>();
+        if(filter_rules_byAgent != null && filter_rules_byAgent.equals(true))
+        {
+            for(String agentValue : filter_rules_byAgentValue)
+            {
+                if(agentValue != null)
+                {
+                    filtersList_byAgent.add(eq("agent", agentValue));
+                }
+            }
+        }
+        if(!filtersList_byAgent.isEmpty())
+        {
+            filtersList.add(or(filtersList_byAgent));
+        }
+
+        ArrayList<Bson> filtersList_byRequestMethod = new ArrayList<Bson>();
+        if(filter_rules_byRequestMethod != null && filter_rules_byRequestMethod.equals(true))
+        {
+            for(String requestMethodValue : filter_rules_byRequestMethodValue)
+            {
+                if(requestMethodValue != null)
+                {
+                    filtersList_byRequestMethod.add(eq("requestMethod", requestMethodValue));
+                }
+            }
+        }
+        if(!filtersList_byRequestMethod.isEmpty())
+        {
+            filtersList.add(or(filtersList_byRequestMethod));
+        }
+
+        ArrayList<Bson> filtersList_byRequestUrl = new ArrayList<Bson>();
+        if(filter_rules_byRequestUrl != null && filter_rules_byRequestUrl.equals(true))
+        {
+            for(String requestUrlValue : filter_rules_byRequestUrlValue)
+            {
+                if(requestUrlValue != null)
+                {
+                    filtersList_byRequestUrl.add(eq("requestUrl", requestUrlValue));
+                }
+            }
+        }
+        if(!filtersList_byRequestUrl.isEmpty())
+        {
+            filtersList.add(or(filtersList_byRequestUrl));
+        }
+
+        ArrayList<Bson> filtersList_byHttpVer = new ArrayList<Bson>();
+        if(filter_rules_byHttpVer != null && filter_rules_byHttpVer.equals(true))
+        {
+            for(String httpVerValue : filter_rules_byHttpVerValue)
+            {
+                if(httpVerValue != null)
+                {
+                    filtersList_byHttpVer.add(eq("httpVer", httpVerValue));
+                }
+            }
+        }
+        if(!filtersList_byHttpVer.isEmpty())
+        {
+            filtersList.add(or(filtersList_byHttpVer));
+        }
+
+        ArrayList<Bson> filtersList_byCountryShort = new ArrayList<Bson>();
+        if(filter_rules_byCountryShort != null && filter_rules_byCountryShort.equals(true))
+        {
+            for(String countryShortValue : filter_rules_byCountryShortValue)
+            {
+                if(countryShortValue != null)
+                {
+                    filtersList_byCountryShort.add(eq("countryShort", countryShortValue));
+                }
+            }
+        }
+        if(!filtersList_byCountryShort.isEmpty())
+        {
+            filtersList.add(or(filtersList_byCountryShort));
+        }
+
+        ArrayList<Bson> filtersList_byCountryLong = new ArrayList<Bson>();
+        if(filter_rules_byCountryLong != null && filter_rules_byCountryLong.equals(true))
+        {
+            for(String countryLongValue : filter_rules_byCountryLongValue)
+            {
+                if(countryLongValue != null)
+                {
+                    filtersList_byCountryLong.add(eq("countryLong", countryLongValue));
+                }
+            }
+        }
+        if(!filtersList_byCountryLong.isEmpty())
+        {
+            filtersList.add(or(filtersList_byCountryLong));
+        }
+
+        ArrayList<Bson> filtersList_byRegion = new ArrayList<Bson>();
+        if(filter_rules_byRegion != null && filter_rules_byRegion.equals(true))
+        {
+            for(String regionValue : filter_rules_byRegionValue)
+            {
+                if(regionValue != null)
+                {
+                    filtersList_byRegion.add(eq("region", regionValue));
+                }
+            }
+        }
+        if(!filtersList_byRegion.isEmpty())
+        {
+            filtersList.add(or(filtersList_byRegion));
+        }
+
+        ArrayList<Bson> filtersList_byCity = new ArrayList<Bson>();
+        if(filter_rules_byCity != null && filter_rules_byCity.equals(true))
+        {
+            for(String cityValue : filter_rules_byCityValue)
+            {
+                if(cityValue != null)
+                {
+                    filtersList_byCity.add(eq("city", cityValue));
+                }
+            }
+        }
+        if(!filtersList_byCity.isEmpty())
+        {
+            filtersList.add(or(filtersList_byCity));
+        }
+
+        return filtersList;
+    }
+
+    private <T> T createInstance(Class<T> clazz) throws Exception {
+        // example : MyObject obj = createInstance(MyObject.class);
+        return clazz.getDeclaredConstructor().newInstance(); // Assumes a no-arg constructor
+    }
+
+    private <T> T createInstance(Class<T> clazz, Class<?>[] paramTypes, Object[] args) throws Exception {
+        // example : MyObject obj = createInstance(MyObject.class, new Class[]{String.class, int.class}, new Object[]{"Alice", 42});
+        return clazz.getDeclaredConstructor(paramTypes).newInstance(args);
+    }
+
+    private <T> T[] createArray(Class<T> clazz, int length) {
+        // example : MyObject[] array = createArray(MyObject.class, 3);
+        @SuppressWarnings("unchecked")
+        T[] array = (T[]) Array.newInstance(clazz, length);
+        return array;
+    }
+
+    private <T> T[] createArrayFromObjectList(Class<T> clazz, List<T> list) {
+        @SuppressWarnings("unchecked")
+        T[] array = (T[]) Array.newInstance(clazz, list.size());
+        return list.toArray(array);
+    }
+
+    private <T> T[] createArrayFromObjectArray(Class<T> clazz, Object[] source) {
+        @SuppressWarnings("unchecked")
+        T[] array = (T[]) Array.newInstance(clazz, source.length);
+        return array;
+    }
+
+    private <T> T[] createArrayFromObject(Class<T> clazz, Object obj) {
+        if (obj instanceof List<?>) {
+            obj = ((List<?>) obj).toArray(createArray(Object.class, 1));
+        }
+        if (obj instanceof Object[]) {
+            return this.createArrayFromObjectArray(clazz, (Object[]) obj);
+        } else {
+            return null;
+        }
     }
 }
