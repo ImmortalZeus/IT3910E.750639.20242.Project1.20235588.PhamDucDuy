@@ -10,9 +10,9 @@ import com.ip2location.IPResult;
 import models.exceptions.*;
 import models.logData.logData;
 import models.mongoDB.mongoDB;
-import models.parsers.ResultAggregator;
 import models.utils.ip2Location;
 import models.utils.parsedValueClassConverter;
+import models.utils.userAgentParser;
 
 import ua_parser.Parser;
 import ua_parser.Client;
@@ -23,12 +23,10 @@ public class apacheLineParser implements Runnable {
     private static mongoDB mongodb = new mongoDB();
     private static final String regex = "^" + "(?<RemoteIp>-|(?:^|\\b)(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){3})\\s-\\s(?<RemoteUser>-|[a-z_][a-z0-9_]{0,30})\\s(\\[(?<DateTime>(?<Date>[0-2][0-9]\\/\\w{3}\\/[12]\\d{3}):(?<Time>\\d{2}:\\d{2}:\\d{2})[^\\]]*+)\\])\\s(\\\"(?<Request>(?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))\\\")\\s(?<Response>-|\\d{3})\\s(?<Bytes>-|\\d+)\\s\\\"(?<Referrer>[^\\s]+)\\\"\\s\\\"(?<UserAgent>[^\\\"]*+)\\\"(?:\\s\\\"(?<ForwardFor>[^\\\"]*+)\\\")?" + "$";
     private static final Pattern pattern = Pattern.compile(regex);
-    private static final Parser useragentParser = new Parser();
-    private ResultAggregator aggregator;
+    private static final userAgentParser useragentParser = new userAgentParser();
     private List<String> lines;
-    public apacheLineParser(List<String> lines, ResultAggregator agg) {
+    public apacheLineParser(List<String> lines) {
         this.lines = lines;
-        this.aggregator = agg;
     }
     @Override
     public void run() {
@@ -76,22 +74,41 @@ public class apacheLineParser implements Runnable {
                     map.put("request_method", matcher.group(9));
                     map.put("request_url", matcher.group(10));
                     map.put("http_ver", matcher.group(11));
-                    IPResult ipResult = ipParser.parse(map.get("remote_ip").toString());
-                    map.put("country_short", ipResult.getCountryShort());
-                    map.put("country_long", ipResult.getCountryLong());
-                    map.put("region", ipResult.getRegion());
-                    map.put("city", ipResult.getCity());
-                    map.put("latitude", ipResult.getLatitude());
-                    map.put("longitude", ipResult.getLongitude());
-                    map.put("zip_code", ipResult.getZipCode());
-                    map.put("time_zone", ipResult.getTimeZone());
-                    String ua = map.get("agent").toString().trim();
-                    if(ua != "-")
-                    {
-                        Client useragentParsed = useragentParser.parse(ua);
-                        map.put("browser", useragentParsed.userAgent.family);
-                        map.put("OS", useragentParsed.os.family);
-                        map.put("device", useragentParsed.device.family);
+                    try {
+                        IPResult ipResult = ipParser.parse(map.get("remote_ip").toString());
+                        map.put("country_short", ipResult.getCountryShort());
+                        map.put("country_long", ipResult.getCountryLong());
+                        map.put("region", ipResult.getRegion());
+                        map.put("city", ipResult.getCity());
+                        map.put("zip_code", ipResult.getZipCode());
+                        map.put("time_zone", ipResult.getTimeZone());
+                    } catch(Exception e) {
+                        map.put("country_short", "-");
+                        map.put("country_long", "-");
+                        map.put("region", "-");
+                        map.put("city", "-");
+                        map.put("zip_code", "-");
+                        map.put("time_zone", "-");
+                    }
+                    try {
+                        String ua = map.get("agent").toString().trim();
+                        if(ua != null && ua != "-")
+                        {
+                            Client useragentParsed = useragentParser.parse(ua);
+                            map.put("browser", useragentParsed.userAgent.family);
+                            map.put("OS", useragentParsed.os.family);
+                            map.put("device", useragentParsed.device.family);
+                        }
+                        else
+                        {
+                            map.put("browser", "-");
+                            map.put("OS", "-");
+                            map.put("device", "-");
+                        }
+                    } catch(Exception e) {
+                        map.put("browser", "-");
+                        map.put("OS", "-");
+                        map.put("device", "-");
                     }
                 }
 
@@ -99,8 +116,6 @@ public class apacheLineParser implements Runnable {
     
                 logData res = new logData(map);
                 mongodb.insertOne(res);
-
-                aggregator.collect(res);
             }
         } catch (Exception e) {
         }

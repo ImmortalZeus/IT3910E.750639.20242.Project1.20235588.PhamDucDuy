@@ -3,7 +3,6 @@ package models.parsers.fileParsers;
 import models.exceptions.*;
 import models.logData.logData;
 import models.parsers.lineParsers.*;
-import models.parsers.ResultAggregator;
 import models.utils.*;
 
 import java.io.BufferedReader;
@@ -18,14 +17,13 @@ import java.util.concurrent.TimeUnit;
 public class apacheFileParser {
     private static final int BATCH_SIZE = 100;
 
-    public ResultAggregator parse(String filepath) throws fileParserException {
+    public void parse(String filepath) throws fileParserException {
         try {
             // ExecutorService executor = Executors.newFixedThreadPool(
             //     Runtime.getRuntime().availableProcessors()
             // );
 
             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-            ResultAggregator aggregator = new ResultAggregator();
 
 
             File file = null;
@@ -47,14 +45,14 @@ public class apacheFileParser {
                             batch.add(line);
                             if (batch.size() >= BATCH_SIZE)
                             {
-                                executor.submit(new apacheLineParser(new ArrayList<>(batch), aggregator));
+                                executor.submit(new apacheLineParser(new ArrayList<>(batch)));
                                 batch.clear();
                             }
                         }
                         line = br.readLine();
                     }
                     if (!batch.isEmpty()) {
-                        executor.submit(new apacheLineParser(new ArrayList<>(batch), aggregator));
+                        executor.submit(new apacheLineParser(new ArrayList<>(batch)));
                     }
                     executor.shutdown();
                     executor.awaitTermination(1, TimeUnit.HOURS);
@@ -64,7 +62,6 @@ public class apacheFileParser {
                     if(br != null) {
                         br.close();
                     }
-                    return aggregator.report();
                 }
             } catch (Exception e) {
                 try {
