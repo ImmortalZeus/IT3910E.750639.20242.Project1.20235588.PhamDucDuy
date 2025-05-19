@@ -4,7 +4,6 @@ import models.*;
 import models.exceptions.*;
 import models.logData.logData;
 import models.mongoDB.mongoDB;
-import models.parsers.ResultAggregator;
 import models.parsers.fileParsers.*;
 import models.parsers.lineParsers.*;
 import models.utils.*;
@@ -14,7 +13,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -31,35 +32,43 @@ public class Main {
             loadProperties(Thread.currentThread().getContextClassLoader().getResource("mongodb_config.properties").getPath());
 
             long startTime = System.nanoTime();
-            ResultAggregator log_data = nFP.parse(Thread.currentThread().getContextClassLoader().getResource("resources/logs_sample/large/nginx_json_logs_large.log").getPath());
+            nFP.parse(Thread.currentThread().getContextClassLoader().getResource("resources/logs_sample/large/nginx_json_logs_large.log").getPath());
             //ResultAggregator log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
             long stopTime = System.nanoTime();
             System.out.println(stopTime - startTime);
-            System.out.println(log_data.getCount());
 
             // =============================================
 
             HashMap<String, Object> filter_rules = new HashMap<String, Object>();
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
-            Date date = sdf.parse("17/May/2015:08:05:23 +0000");
+            Date date = sdf.parse("17/May/2015:08:05:32 +0000");
 
             filter_rules.put("byPeriod", true);
-            Date[] datearr = {date};
-            filter_rules.put("byPeriodValue", datearr);
+            Map<String, Date> filterdatemap = new HashMap<String, Date>()
+            {
+                {
+                    put("byPeriodStartValue", date);
+                }
+            };
+            List<Map<String, Date>> arr = List.of(filterdatemap);
+            filter_rules.put("byPeriodValue", arr);
 
             // ================= Filter =====================
             mongoDB mongodb = new mongoDB();
             int cnt = 0;
-            FindIterable<logData> x = mongodb.filter(filter_rules);
+            FindIterable<logData> x = mongodb.filter(new HashMap<String, Object>());
             for (logData doc : x) {
                 // Do something here
-                //System.out.println(doc.toString());
+                // System.out.println(doc.toString());
                 cnt += 1;
             }
             System.out.println(cnt);
 
             // ================= Count =====================
+            long startTime2 = System.nanoTime();
             System.out.println(mongodb.count(filter_rules));
+            long stopTime2 = System.nanoTime();
+            System.out.println(stopTime2 - startTime2);
 
             // for(logData obj : log_data.getAllLogData()) {
             //     System.out.println("Time" + " : " + obj.getTime());

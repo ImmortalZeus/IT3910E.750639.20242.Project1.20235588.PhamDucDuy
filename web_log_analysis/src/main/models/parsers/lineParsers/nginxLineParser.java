@@ -15,10 +15,10 @@ import com.ip2location.IPResult;
 
 import models.logData.logData;
 import models.mongoDB.mongoDB;
-import models.parsers.ResultAggregator;
 import models.exceptions.*;
 import models.utils.ip2Location;
 import models.utils.parsedValueClassConverter;
+import models.utils.userAgentParser;
 
 import ua_parser.Client;
 import ua_parser.Parser;
@@ -26,16 +26,14 @@ import ua_parser.Parser;
 public class nginxLineParser implements Runnable {
     private static parsedValueClassConverter pVCC = new parsedValueClassConverter();
     private static ip2Location ipParser = new ip2Location();
-        private static mongoDB mongodb = new mongoDB();
+    private static mongoDB mongodb = new mongoDB();
     private static ObjectMapper mapper = new ObjectMapper();
     private static final String regex = "((?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))";
     private static final Pattern pattern = Pattern.compile(regex);
-    private static final Parser useragentParser = new Parser();
-    private ResultAggregator aggregator;
+    private static final userAgentParser useragentParser = new userAgentParser();
     private List<String> lines;
-    public nginxLineParser(List<String> lines, ResultAggregator agg) {
+    public nginxLineParser(List<String> lines) {
         this.lines = lines;
-        this.aggregator = agg;
         // mapper.disable(MapperFeature.AUTO_DETECT_CREATORS);
         // mapper.disable(MapperFeature.AUTO_DETECT_FIELDS);
         // mapper.disable(MapperFeature.AUTO_DETECT_GETTERS);
@@ -56,32 +54,48 @@ public class nginxLineParser implements Runnable {
                     map.put("request_method", matcher.group(2));
                     map.put("request_url", matcher.group(3));
                     map.put("http_ver", matcher.group(4));
-                    IPResult ipResult = ipParser.parse(map.get("remote_ip").toString());
-                    map.put("country_short", ipResult.getCountryShort());
-                    map.put("country_long", ipResult.getCountryLong());
-                    map.put("region", ipResult.getRegion());
-                    map.put("city", ipResult.getCity());
-                    map.put("latitude", ipResult.getLatitude());
-                    map.put("longitude", ipResult.getLongitude());
-                    map.put("zip_code", ipResult.getZipCode());
-                    map.put("time_zone", ipResult.getTimeZone());
-                    String ua = map.get("agent").toString().trim();
-                    if(ua != "-")
-                    {
-                        Client useragentParsed = useragentParser.parse(ua);
-                        map.put("browser", useragentParsed.userAgent.family);
-                        map.put("OS", useragentParsed.os.family);
-                        map.put("device", useragentParsed.device.family);
+                    try {
+                        IPResult ipResult = ipParser.parse(map.get("remote_ip").toString());
+                        map.put("country_short", ipResult.getCountryShort());
+                        map.put("country_long", ipResult.getCountryLong());
+                        map.put("region", ipResult.getRegion());
+                        map.put("city", ipResult.getCity());
+                        map.put("zip_code", ipResult.getZipCode());
+                        map.put("time_zone", ipResult.getTimeZone());
+                    } catch(Exception e) {
+                        map.put("country_short", "-");
+                        map.put("country_long", "-");
+                        map.put("region", "-");
+                        map.put("city", "-");
+                        map.put("zip_code", "-");
+                        map.put("time_zone", "-");
+                    }
+                    try {
+                        String ua = map.get("agent").toString().trim();
+                        if(ua != null && ua != "-")
+                        {
+                            Client useragentParsed = useragentParser.parse(ua);
+                            map.put("browser", useragentParsed.userAgent.family);
+                            map.put("OS", useragentParsed.os.family);
+                            map.put("device", useragentParsed.device.family);
+                        }
+                        else
+                        {
+                            map.put("browser", "-");
+                            map.put("OS", "-");
+                            map.put("device", "-");
+                        }
+                    } catch(Exception e) {
+                        map.put("browser", "-");
+                        map.put("OS", "-");
+                        map.put("device", "-");
                     }
                 }
 
                 map = pVCC.fix(map);
                 
                 logData res = new logData(map);
-                mongodb.insertOne(res);
-
-                aggregator.collect(res);
-    
+                mongodb.insertOne(res);    
                 // HashMap<String, String> res = new HashMap<String, String>();
                 // for(Map.Entry<String, Object> tmp: map.entrySet())
                 // {

@@ -17,10 +17,10 @@ public class parsedValueClassConverter {
                 } else if (map.get("response") instanceof Integer) {
                     map.put("response_status_code", Integer.valueOf((Integer) map.get("response")));
                 } else {
-                    map.put("response_status_code", null);
+                    map.put("response_status_code", -1);
                 }
             } catch (Exception e) {
-                map.put("response_status_code", null);
+                map.put("response_status_code", -1);
             } finally {
                 map.remove("response");
             }
@@ -33,28 +33,28 @@ public class parsedValueClassConverter {
                 } else if (map.get("bytes") instanceof Integer) {
                     map.put("bytes", Integer.valueOf((Integer) map.get("bytes")));
                 } else {
-                    map.put("bytes", null);
+                    map.put("bytes", -1);
                 }
             } catch (Exception e) {
-                map.put("bytes", null);
+                map.put("bytes", -1);
             }
         }
 
-        if(map.containsKey("time")) {
-            try {
-                if (map.get("time") instanceof String) {
-                    // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
-                    // OffsetDateTime dateTime = OffsetDateTime.parse((String) map.get("time"), formatter);
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
-                    Date date = sdf.parse((String) map.get("time"));
-                    map.put("time", date);
-                } else {
-                    map.put("time", null);
-                }
-            } catch (Exception e) {
-                map.put("time", null);
-            }
-        }
+        // if(map.containsKey("time")) {
+        //     try {
+        //         if (map.get("time") instanceof String) {
+        //             // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+        //             // OffsetDateTime dateTime = OffsetDateTime.parse((String) map.get("time"), formatter);
+        //             SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+        //             Date date = sdf.parse((String) map.get("time"));
+        //             map.put("time", date);
+        //         } else {
+        //             map.put("time", null);
+        //         }
+        //     } catch (Exception e) {
+        //         map.put("time", null);
+        //     }
+        // }
         return map;
     }
 }

@@ -3,7 +3,10 @@ package models.mongoDB;
 import java.lang.reflect.Array;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
@@ -190,7 +193,14 @@ public class mongoDB {
         /*
         filter_rules {
             "byPeriod": Boolean (true | false),
-            "byPeriodValue": [byPeriodStartValue0: Date, byPeriodEndValue0: Date, byPeriodStartValue1: Date, byPeriodEndValue1: Date, ....]
+            "byPeriodValue": [{
+                byPeriodStartValue: Date,
+                byPeriodEndValue: Date
+            }, {
+                byPeriodStartValue: Date,
+                byPeriodEndValue: Date
+            }, 
+            ....]
 
             "byRemoteUser": Boolean (true | false),
             "byRemoteUserValue": [value0: String, value1: String, ...],
@@ -236,49 +246,49 @@ public class mongoDB {
         }
         */
         Boolean filter_rules_byPeriod = (Boolean) filter_rules.get("byPeriod");
-        Date[] filter_rules_byPeriodValue = this.createArrayFromObject(Date.class, filter_rules.get("byPeriodValue"));
-
+        Map<String, Date>[] filter_rules_byPeriodValue = this.createMapArrayFromObject(Map.class, filter_rules.get("byPeriodValue"));
+        
         Boolean filter_rules_byRemoteIp = (Boolean) filter_rules.get("byRemoteIp");
-        String[] filter_rules_byRemoteIpValue = this.createArrayFromObject(String.class, filter_rules.get("byRemoteIpValue"));
+        String[] filter_rules_byRemoteIpValue = this.createStringArrayFromObject(String.class, filter_rules.get("byRemoteIpValue"));
 
         Boolean filter_rules_byRemoteUser = (Boolean) filter_rules.get("byRemoteUser");
-        String[] filter_rules_byRemoteUserValue = this.createArrayFromObject(String.class, filter_rules.get("byRemoteUserValue"));
+        String[] filter_rules_byRemoteUserValue = this.createStringArrayFromObject(String.class, filter_rules.get("byRemoteUserValue"));
 
         Boolean filter_rules_byRequest = (Boolean) filter_rules.get("byRequest");
-        String[] filter_rules_byRequestValue = this.createArrayFromObject(String.class, filter_rules.get("byRequestValue"));
+        String[] filter_rules_byRequestValue = this.createStringArrayFromObject(String.class, filter_rules.get("byRequestValue"));
 
         Boolean filter_rules_byResponseStatusCode = (Boolean) filter_rules.get("byResponseStatusCode");
-        Integer[] filter_rules_byResponseStatusCodeValue = this.createArrayFromObject(Integer.class, filter_rules.get("byResponseStatusCodeValue"));
+        Integer[] filter_rules_byResponseStatusCodeValue = this.createIntegerArrayFromObject(Integer.class, filter_rules.get("byResponseStatusCodeValue"));
 
         Boolean filter_rules_byBytes = (Boolean) filter_rules.get("byBytes");
-        Integer[] filter_rules_byBytesValue = this.createArrayFromObject(Integer.class, filter_rules.get("byBytesValue"));
+        Integer[] filter_rules_byBytesValue = this.createIntegerArrayFromObject(Integer.class, filter_rules.get("byBytesValue"));
 
         Boolean filter_rules_byReferrer = (Boolean) filter_rules.get("byReferrer");
-        String[] filter_rules_byReferrerValue = this.createArrayFromObject(String.class, filter_rules.get("byReferrerValue"));
+        String[] filter_rules_byReferrerValue = this.createStringArrayFromObject(String.class, filter_rules.get("byReferrerValue"));
 
         Boolean filter_rules_byAgent = (Boolean) filter_rules.get("byAgent");
-        String[] filter_rules_byAgentValue = this.createArrayFromObject(String.class, filter_rules.get("byAgentValue"));
+        String[] filter_rules_byAgentValue = this.createStringArrayFromObject(String.class, filter_rules.get("byAgentValue"));
 
         Boolean filter_rules_byRequestMethod = (Boolean) filter_rules.get("byRequestMethod");
-        String[] filter_rules_byRequestMethodValue = this.createArrayFromObject(String.class, filter_rules.get("byRequestMethodValue"));
+        String[] filter_rules_byRequestMethodValue = this.createStringArrayFromObject(String.class, filter_rules.get("byRequestMethodValue"));
 
         Boolean filter_rules_byRequestUrl = (Boolean) filter_rules.get("byRequestUrl");
-        String[] filter_rules_byRequestUrlValue = this.createArrayFromObject(String.class, filter_rules.get("byRequestUrlValue"));
+        String[] filter_rules_byRequestUrlValue = this.createStringArrayFromObject(String.class, filter_rules.get("byRequestUrlValue"));
 
         Boolean filter_rules_byHttpVer = (Boolean) filter_rules.get("byHttpVer");
-        String[] filter_rules_byHttpVerValue = this.createArrayFromObject(String.class, filter_rules.get("byHttpVerValue"));
+        String[] filter_rules_byHttpVerValue = this.createStringArrayFromObject(String.class, filter_rules.get("byHttpVerValue"));
 
         Boolean filter_rules_byCountryShort = (Boolean) filter_rules.get("byCountryShort");
-        String[] filter_rules_byCountryShortValue = this.createArrayFromObject(String.class, filter_rules.get("byCountryShortValue"));
+        String[] filter_rules_byCountryShortValue = this.createStringArrayFromObject(String.class, filter_rules.get("byCountryShortValue"));
 
         Boolean filter_rules_byCountryLong = (Boolean) filter_rules.get("byCountryLong");
-        String[] filter_rules_byCountryLongValue = this.createArrayFromObject(String.class, filter_rules.get("byCountryLongValue"));
+        String[] filter_rules_byCountryLongValue = this.createStringArrayFromObject(String.class, filter_rules.get("byCountryLongValue"));
 
         Boolean filter_rules_byRegion = (Boolean) filter_rules.get("byRegion");
-        String[] filter_rules_byRegionValue = this.createArrayFromObject(String.class, filter_rules.get("byRegionValue"));
+        String[] filter_rules_byRegionValue = this.createStringArrayFromObject(String.class, filter_rules.get("byRegionValue"));
 
         Boolean filter_rules_byCity = (Boolean) filter_rules.get("byCity");
-        String[] filter_rules_byCityValue =  this.createArrayFromObject(String.class, filter_rules.get("byCityValue"));
+        String[] filter_rules_byCityValue =  this.createStringArrayFromObject(String.class, filter_rules.get("byCityValue"));
 
         ArrayList<Bson> filtersList = new ArrayList<Bson>();
 
@@ -288,16 +298,23 @@ public class mongoDB {
             ArrayList<Bson> tmpfilterslist = new ArrayList<Bson>();
             for(int i = 0; i < filter_rules_byPeriodValue.length; i++)
             {
-                if(i % 2 == 0 && filter_rules_byPeriodValue[i] != null)
+                if(filter_rules_byPeriodValue[i].get("byPeriodStartValue") != null)
                 {
-                    tmpfilterslist.add(gte("time", filter_rules_byPeriodValue[i]));
+                    //tmpfilterslist.add(gte("time", filter_rules_byPeriodValue[i]));
+                    tmpfilterslist.add(new Document("$expr", new Document("$gte", List.of(
+                        new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%b/%Y:%H:%M:%S %z")),
+                        filter_rules_byPeriodValue[i].get("byPeriodStartValue")
+                    ))));
                 }
-                else if(i % 2 == 1 && filter_rules_byPeriodValue[i] != null)
+                if(filter_rules_byPeriodValue[i].get("byPeriodEndValue") != null)
                 {
-                    tmpfilterslist.add(lte("time", filter_rules_byPeriodValue[i]));
-                    filtersList_byPeriod.add(and(tmpfilterslist));
-                    tmpfilterslist.clear();
+                    //tmpfilterslist.add(lte("time", filter_rules_byPeriodValue[i]));
+                    tmpfilterslist.add(new Document("$expr", new Document("$lte", List.of(
+                        new Document("$toDate", "$time"),
+                        filter_rules_byPeriodValue[i].get("byPeriodEndValue")
+                    ))));
                 }
+                filtersList_byPeriod.add(and(tmpfilterslist));
             }
         }
         if(!filtersList_byPeriod.isEmpty())
@@ -549,24 +566,64 @@ public class mongoDB {
         return array;
     }
 
-    private <T> T[] createArrayFromObjectList(Class<T> clazz, List<T> list) {
-        @SuppressWarnings("unchecked")
-        T[] array = (T[]) Array.newInstance(clazz, list.size());
-        return list.toArray(array);
-    }
-
-    private <T> T[] createArrayFromObjectArray(Class<T> clazz, Object[] source) {
-        @SuppressWarnings("unchecked")
-        T[] array = (T[]) Array.newInstance(clazz, source.length);
-        return array;
-    }
-
-    private <T> T[] createArrayFromObject(Class<T> clazz, Object obj) {
+    private <T> T[] createStringArrayFromObject(Class<? extends String> clazz, Object obj) {
         if (obj instanceof List<?>) {
             obj = ((List<?>) obj).toArray(createArray(Object.class, 1));
         }
         if (obj instanceof Object[]) {
-            return this.createArrayFromObjectArray(clazz, (Object[]) obj);
+            Object[] source = (Object[]) obj;
+            @SuppressWarnings("unchecked")
+            T[] array = (T[]) Array.newInstance(clazz, source.length);
+            for(int i = 0; i < source.length; i++)
+            {
+                if(clazz.isInstance(source[i]))
+                {
+                    array[i] = (T) source[i];
+                }
+            }
+            return array;
+        } else {
+            return null;
+        }
+    }
+
+    private <T> T[] createIntegerArrayFromObject(Class<? extends Integer> clazz, Object obj) {
+        if (obj instanceof List<?>) {
+            obj = ((List<?>) obj).toArray(createArray(Object.class, 1));
+        }
+        if (obj instanceof Object[]) {
+            Object[] source = (Object[]) obj;
+            @SuppressWarnings("unchecked")
+            T[] array = (T[]) Array.newInstance(clazz, source.length);
+            for(int i = 0; i < source.length; i++)
+            {
+                if(clazz.isInstance(source[i]))
+                {
+                    array[i] = (T) source[i];
+                }
+            }
+            return array;
+        } else {
+            return null;
+        }
+    }
+
+    private <K, V> Map<K, V>[] createMapArrayFromObject(Class<?> clazz, Object obj) {
+        if (obj instanceof List<?>) {
+            obj = ((List<?>) obj).toArray(createArray(Object.class, 1));
+        }
+        if (obj instanceof Object[]) {
+            Object[] source = (Object[]) obj;
+            @SuppressWarnings("unchecked")
+            Map<K, V>[] array = (Map<K, V>[]) Array.newInstance(clazz, source.length);
+            for(int i = 0; i < source.length; i++)
+            {
+                if(clazz.isInstance(source[i]))
+                {
+                    array[i] = (Map<K, V>) source[i];
+                }
+            }
+            return array;
         } else {
             return null;
         }
