@@ -32,7 +32,7 @@ public class Main {
             loadProperties(Thread.currentThread().getContextClassLoader().getResource("mongodb_config.properties").getPath());
 
             long startTime = System.nanoTime();
-            nFP.parse(Thread.currentThread().getContextClassLoader().getResource("resources/logs_sample/large/nginx_json_logs_large.log").getPath());
+            aFP.parse(Thread.currentThread().getContextClassLoader().getResource("resources/logs_sample/large/apache_logs_large.log").getPath());
             //ResultAggregator log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
             long stopTime = System.nanoTime();
             System.out.println(stopTime - startTime);

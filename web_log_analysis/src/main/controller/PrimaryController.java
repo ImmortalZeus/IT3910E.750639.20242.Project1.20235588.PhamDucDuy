@@ -5,13 +5,19 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -44,13 +50,16 @@ public class PrimaryController {
     @FXML private TableColumn<logData, String> timeColumn;
     @FXML private TableColumn<logData, String> ipColumn;
     @FXML private TableColumn<logData, String> userColumn;
-    @FXML private TableColumn<logData, String> requestColumn;
+    @FXML private TableColumn<logData, String> methodColumn;
+    @FXML private TableColumn<logData, String> requestURLColumn;
     @FXML private TableColumn<logData, Integer> statusCodeColumn;
     @FXML private TableColumn<logData, Integer> bytesColumn;
     @FXML private TableColumn<logData, String> referrerColumn;
-    @FXML private TableColumn<logData, String> agentColumn;
-    @FXML private TableColumn<logData, String> methodColumn;
     @FXML private TableColumn<logData, String> locationColumn;
+    @FXML private TableColumn<logData, String> browserColumn;
+    @FXML private TableColumn<logData, String> osColumn;
+    @FXML private TableColumn<logData, String> deviceColumn;
+    @FXML private TableColumn<logData, String> agentColumn;
 
     @FXML private HBox tableSection;
     // @FXML private TextField searchField;
@@ -262,17 +271,133 @@ public class PrimaryController {
         timeColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
         ipColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRemoteIp()));
         userColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRemoteUser()));
-        requestColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequest()));
+        methodColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequestMethod()));
+        requestURLColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequestUrl()));
         statusCodeColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getResponseStatusCode()).asObject());
         bytesColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getBytes()).asObject());
         referrerColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getReferrer()));
-        agentColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getAgent()));
-        methodColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequestMethod()));
         locationColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getCountryLong()));
+        browserColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getBrowser()));
+        osColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getOS()));
+        deviceColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDevice()));
+        agentColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getAgent()));
 
-        ObservableList<logData> x = mongodb.filter(new HashMap<String, Object>()).into(FXCollections.observableArrayList());
+        HashMap<String, Object> filter_rules = new HashMap<String, Object>();
+
+        filter_rules.put("byIndex", true);
+        Map<String, Integer> filterIndexMap = new HashMap<String, Integer>()
+        {
+            {
+                put("byIndexStartValue", 1);
+                put("byIndexEndValue", 500);
+            }
+        };
+        List<Map<String, Integer>> arr = List.of(filterIndexMap);
+        filter_rules.put("byIndexValue", arr);
+        
+        ObservableList<logData> x = mongodb.filter(filter_rules).into(FXCollections.observableArrayList());
 
         logTable.setItems(x);
+
+        logTable.skinProperty().addListener((obs, oldSkin, newSkin) -> {
+            ScrollBar verticalBar = findVerticalScrollBar(logTable);
+            if (verticalBar != null) {
+                final Integer dataMinIndex = 1;
+                final Integer dataMaxIndex = Math.toIntExact(mongodb.count(new HashMap<>()));
+                final ObservableList<logData> logTableItems = logTable.getItems();
+                final AtomicReference<Integer> firstLogTableIndex = new AtomicReference<>(logTableItems.get(0).getIndex());
+                final AtomicReference<Integer> lastLogTableIndex = new AtomicReference<>(logTableItems.get(logTableItems.size() - 1).getIndex());
+                verticalBar.valueProperty().addListener((obs2, oldVal, newVal) -> {
+                    final Integer estimateNewVal = Long.valueOf(Math.round(newVal.doubleValue() / verticalBar.getMax() * (lastLogTableIndex.get() - firstLogTableIndex.get()) + firstLogTableIndex.get())).intValue();
+                    final Integer estimateOldVal = Long.valueOf(Math.round(oldVal.doubleValue() / verticalBar.getMax() * (lastLogTableIndex.get() - firstLogTableIndex.get()) + firstLogTableIndex.get())).intValue();
+                    if((newVal.doubleValue() / verticalBar.getMax() * 100 > 80 && estimateNewVal - estimateOldVal > 1) || (newVal.doubleValue() / verticalBar.getMax() * 100 < 20 && estimateOldVal - estimateNewVal > 1)) {
+                        final Integer currentVal = estimateNewVal;
+                        Integer fi = Math.max(dataMinIndex, currentVal - 500);
+                        Integer se = Math.min(dataMaxIndex, currentVal + 500);
+
+                        HashMap<String, Object> filter_rules2 = new HashMap<String, Object>();
+
+                        filter_rules2.put("byIndex", true);
+
+                        Map<String, Integer> filterIndexMap2 = new HashMap<String, Integer>()
+                        {
+                            {
+                                put("byIndexStartValue", fi);
+                                put("byIndexEndValue", se);
+                            }
+                        };
+                        List<Map<String, Integer>> arr2 = List.of(filterIndexMap2);
+                        filter_rules2.put("byIndexValue", arr2);
+                        ObservableList<logData> x2 = mongodb.filter(filter_rules2).into(FXCollections.observableArrayList());
+                        
+                        logTable.setItems(x2);
+                        logTableItems.clear();
+                        logTableItems.addAll(x2);
+                        firstLogTableIndex.set(logTableItems.get(0).getIndex());
+                        lastLogTableIndex.set(logTableItems.get(logTableItems.size() - 1).getIndex());
+                        
+                        logTable.scrollTo((currentVal - fi));
+                    }
+                    // final Integer fi = Math.max(Double.valueOf(Math.floor(currentval/1000)).intValue() + 1, dataMinIndex);
+                    // final Integer se = Math.min(Double.valueOf(Math.floor(currentval/1000)).intValue() + 1, dataMaxIndex);
+                    // if (oldVal.doubleValue() < newVal.doubleValue() && newVal.doubleValue() == verticalBar.getMax()) {
+                    //     System.out.println("Scrolled to bottom. Loading more...");
+                        
+                    //     final Integer currentIndex = logTable.getItems().get(0).getIndex();
+
+                    //     HashMap<String, Object> filter_rules2 = new HashMap<String, Object>();
+
+                    //     filter_rules2.put("byIndex", true);
+
+                    //     final Integer se = Math.min(currentIndex - 1 + 1000 + 1000, dataMaxIndex);
+                    //     Map<String, Integer> filterIndexMap2 = new HashMap<String, Integer>()
+                    //     {
+                    //         {
+                    //             put("byIndexStartValue", Math.max(se + 1 - 1000, dataMinIndex));
+                    //             put("byIndexEndValue", se);
+                    //         }
+                    //     };
+                    //     List<Map<String, Integer>> arr2 = List.of(filterIndexMap2);
+                    //     filter_rules2.put("byIndexValue", arr2);
+                    //     ObservableList<logData> x2 = mongodb.filter(filter_rules2).into(FXCollections.observableArrayList());
+                    //     logTable.setItems(x2);
+                    //     logTable.scrollTo(0);
+                    // }
+                    // else if (oldVal.doubleValue() > newVal.doubleValue() && newVal.doubleValue() == verticalBar.getMin()) {
+                    //     System.out.println("Scrolled to top. Loading more...");
+                        
+                    //     final Integer currentIndex = logTable.getItems().get(0).getIndex();
+
+                    //     HashMap<String, Object> filter_rules2 = new HashMap<String, Object>();
+
+                    //     filter_rules2.put("byIndex", true);
+
+                    //     final Integer fi = Math.max(currentIndex - 1000, dataMinIndex);
+                    //     Map<String, Integer> filterIndexMap2 = new HashMap<String, Integer>()
+                    //     {
+                    //         {
+                    //             put("byIndexStartValue", Math.max(currentIndex - 1000, dataMinIndex));
+                    //             put("byIndexEndValue", Math.min(fi - 1 + 1000, dataMaxIndex));
+                    //         }
+                    //     };
+                    //     List<Map<String, Integer>> arr2 = List.of(filterIndexMap2);
+                    //     filter_rules2.put("byIndexValue", arr2);
+                    //     ObservableList<logData> x2 = mongodb.filter(filter_rules2).into(FXCollections.observableArrayList());
+                    //     logTable.setItems(x2);
+                    //     logTable.scrollTo(logTable.getItems().size() - 1);
+                    // }
+                });
+            }
+        });
+    }
+
+    private ScrollBar findVerticalScrollBar(TableView<?> table) {
+        for (var node : table.lookupAll(".scroll-bar")) {
+            if (node instanceof ScrollBar sb && sb.getOrientation() == Orientation.VERTICAL) {
+                return sb;
+            }
+        }
+        return null;
     }
 
     public static Map<String, Integer> loadDataFromFile(String filePath) {

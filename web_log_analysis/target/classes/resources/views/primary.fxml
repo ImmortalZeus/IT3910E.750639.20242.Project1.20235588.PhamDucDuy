@@ -57,18 +57,21 @@
                 <!-- Log Table: grows horizontally -->
                 <TableView fx:id="logTable" prefHeight="301.0" prefWidth="1000.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                   <columns>
-                    <TableColumn fx:id="indexColumn" sortable="false" prefWidth="100.0" text="Index"/>
+                    <TableColumn fx:id="indexColumn" sortable="false" prefWidth="70.0" text="Index"/>
                     <TableColumn fx:id="dateColumn" sortable="false" prefWidth="100.0" text="Date"/>
                     <TableColumn fx:id="timeColumn" sortable="false" prefWidth="90.0" text="Time"/>
                     <TableColumn fx:id="ipColumn" sortable="false" prefWidth="110.0" text="IP"/>
-                    <TableColumn fx:id="userColumn" sortable="false" prefWidth="70.0" text="User"/>
-                    <TableColumn fx:id="requestColumn" sortable="false" prefWidth="160.0" text="Request"/>
+                    <TableColumn fx:id="userColumn" sortable="false" prefWidth="90.0" text="User"/>
+                    <TableColumn fx:id="methodColumn" sortable="false" prefWidth="70.0" text="Method"/>
+                    <TableColumn fx:id="requestURLColumn" sortable="false" prefWidth="160.0" text="Request URL"/>
                     <TableColumn fx:id="statusCodeColumn" sortable="false" prefWidth="70.0" text="Status Code"/>
                     <TableColumn fx:id="bytesColumn" sortable="false" prefWidth="70.0" text="Bytes"/>
                     <TableColumn fx:id="referrerColumn" sortable="false" prefWidth="120.0" text="Referrer"/>
-                    <TableColumn fx:id="agentColumn" sortable="false" prefWidth="220.0" text="Agent"/>
-                    <TableColumn fx:id="methodColumn" sortable="false" prefWidth="90.0" text="Method"/>
                     <TableColumn fx:id="locationColumn" sortable="false" prefWidth="200.0" text="Location"/>
+                    <TableColumn fx:id="browserColumn" sortable="false" prefWidth="70.0" text="Browser"/>
+                    <TableColumn fx:id="osColumn" sortable="false" prefWidth="70.0" text="OS"/>
+                    <TableColumn fx:id="deviceColumn" sortable="false" prefWidth="70.0" text="Device"/>
+                    <TableColumn fx:id="agentColumn" sortable="false" prefWidth="220.0" text="Agent"/>
                   </columns>
                 </TableView>
                 <!-- Status Table: fixed width -->

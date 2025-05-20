@@ -63,61 +63,6 @@ public class mongoDB {
     }
 
     public FindIterable<logData> filter(HashMap<String, Object> filter_rules) {
-        /*
-        filter_rules {
-            "byPeriod": Boolean (true | false),
-            "byPeriodValue": [{
-                byPeriodStartValue: Date,
-                byPeriodEndValue: Date
-            }, {
-                byPeriodStartValue: Date,
-                byPeriodEndValue: Date
-            }, 
-            ....]
-
-            "byRemoteUser": Boolean (true | false),
-            "byRemoteUserValue": [value0: String, value1: String, ...],
-
-            "byRemoteIp": Boolean (true | false),
-            "byRemoteIpValue": [value0: String, value1: String, ...],
-
-            "byRequest": Boolean (true | false),
-            "byRequestValue": [value0: String, value1: String, ...],
-
-            "byResponseStatusCode": Boolean (true | false),
-            "byResponseStatusCodeValue": [value0: Integer, value1: Integer, ...],
-
-            "byBytes": Boolean (true | false),
-            "byBytesValue": [value0: Integer, value1: Integer, ...],
-
-            "byReferrer": Boolean (true | false),
-            "byReferrerValue": [value0: String, value1: String, ...],
-
-            "byAgent": Boolean (true | false),
-            "byAgentValue": [value0: String, value1: String, ...],
-
-            "byRequestMethod": Boolean (true | false),
-            "byRequestMethodValue": [value0: String, value1: String, ...],
-
-            "byRequestUrl": Boolean (true | false),
-            "byRequestUrlValue": [value0: String, value1: String, ...],
-
-            "byHttpVer": Boolean (true | false),
-            "byHttpVerValue": [value0: String, value1: String, ...],
-
-            "byCountryShort": Boolean (true | false),
-            "byCountryShortValue": [value0: String, value1: String, ...],
-
-            "byCountryLong": Boolean (true | false),
-            "byCountryLongValue": [value0: String, value1: String, ...],
-
-            "byRegion": Boolean (true | false),
-            "byRegionValue": [value0: String, value1: String, ...],
-
-            "byCity": Boolean (true | false),
-            "byCityValue": [value0: String, value1: String, ...],
-        }
-        */
         ArrayList<Bson> filtersList = createFiltersList(filter_rules);
 
         Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
@@ -126,67 +71,12 @@ public class mongoDB {
         return res;
     }
 
-    public Long count(HashMap<String, Object> filter_rules) {
-        /*
-        filter_rules {
-            "byPeriod": Boolean (true | false),
-            "byPeriodValue": [{
-                byPeriodStartValue: Date,
-                byPeriodEndValue: Date
-            }, {
-                byPeriodStartValue: Date,
-                byPeriodEndValue: Date
-            }, 
-            ....]
-
-            "byRemoteUser": Boolean (true | false),
-            "byRemoteUserValue": [value0: String, value1: String, ...],
-
-            "byRemoteIp": Boolean (true | false),
-            "byRemoteIpValue": [value0: String, value1: String, ...],
-
-            "byRequest": Boolean (true | false),
-            "byRequestValue": [value0: String, value1: String, ...],
-
-            "byResponseStatusCode": Boolean (true | false),
-            "byResponseStatusCodeValue": [value0: Integer, value1: Integer, ...],
-
-            "byBytes": Boolean (true | false),
-            "byBytesValue": [value0: Integer, value1: Integer, ...],
-
-            "byReferrer": Boolean (true | false),
-            "byReferrerValue": [value0: String, value1: String, ...],
-
-            "byAgent": Boolean (true | false),
-            "byAgentValue": [value0: String, value1: String, ...],
-
-            "byRequestMethod": Boolean (true | false),
-            "byRequestMethodValue": [value0: String, value1: String, ...],
-
-            "byRequestUrl": Boolean (true | false),
-            "byRequestUrlValue": [value0: String, value1: String, ...],
-
-            "byHttpVer": Boolean (true | false),
-            "byHttpVerValue": [value0: String, value1: String, ...],
-
-            "byCountryShort": Boolean (true | false),
-            "byCountryShortValue": [value0: String, value1: String, ...],
-
-            "byCountryLong": Boolean (true | false),
-            "byCountryLongValue": [value0: String, value1: String, ...],
-
-            "byRegion": Boolean (true | false),
-            "byRegionValue": [value0: String, value1: String, ...],
-
-            "byCity": Boolean (true | false),
-            "byCityValue": [value0: String, value1: String, ...],
-        }
-        */
+    public Integer count(HashMap<String, Object> filter_rules) {
         ArrayList<Bson> filtersList = createFiltersList(filter_rules);
 
         Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
-        Long res = collection.countDocuments(query);
+        Integer res = Long.valueOf(collection.countDocuments(query)).intValue();
         return res;
     }
 
@@ -219,6 +109,16 @@ public class mongoDB {
     public ArrayList<Bson> createFiltersList(HashMap<String, Object> filter_rules) {
         /*
         filter_rules {
+            "byIndex": Boolean (true | false),
+            "byIndexValue": [{
+                byIndexStartValue: Integer,
+                byIndexEndValue: Integer
+            }, {
+                byIndexStartValue: Integer,
+                byIndexEndValue: Integer
+            }, 
+            ....]
+
             "byPeriod": Boolean (true | false),
             "byPeriodValue": [{
                 byPeriodStartValue: Date,
@@ -272,6 +172,9 @@ public class mongoDB {
             "byCityValue": [value0: String, value1: String, ...],
         }
         */
+        Boolean filter_rules_byIndex = (Boolean) filter_rules.get("byIndex");
+        Map<String, Integer>[] filter_rules_byIndexValue = this.createMapArrayFromObject(Map.class, filter_rules.get("byIndexValue"));
+
         Boolean filter_rules_byPeriod = (Boolean) filter_rules.get("byPeriod");
         Map<String, Date>[] filter_rules_byPeriodValue = this.createMapArrayFromObject(Map.class, filter_rules.get("byPeriodValue"));
         
@@ -318,6 +221,29 @@ public class mongoDB {
         String[] filter_rules_byCityValue =  this.createStringArrayFromObject(String.class, filter_rules.get("byCityValue"));
 
         ArrayList<Bson> filtersList = new ArrayList<Bson>();
+
+
+        ArrayList<Bson> filtersList_byIndex = new ArrayList<Bson>();
+        if(filter_rules_byIndex != null && filter_rules_byIndex.equals(true))
+        {
+            ArrayList<Bson> tmpfilterslist = new ArrayList<Bson>();
+            for(int i = 0; i < filter_rules_byIndexValue.length; i++)
+            {
+                if(filter_rules_byIndexValue[i].get("byIndexStartValue") != null)
+                {
+                    tmpfilterslist.add(gte("index", filter_rules_byIndexValue[i].get("byIndexStartValue")));
+                }
+                if(filter_rules_byIndexValue[i].get("byIndexEndValue") != null)
+                {
+                    tmpfilterslist.add(lte("index", filter_rules_byIndexValue[i].get("byIndexEndValue")));
+                }
+                filtersList_byIndex.add(and(tmpfilterslist));
+            }
+        }
+        if(!filtersList_byIndex.isEmpty())
+        {
+            filtersList.add(or(filtersList_byIndex));
+        }
 
         ArrayList<Bson> filtersList_byPeriod = new ArrayList<Bson>();
         if(filter_rules_byPeriod != null && filter_rules_byPeriod.equals(true))
