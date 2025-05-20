@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.test_gui.StreamController" stylesheets="@style.css">
+
+    <!-- Top Header Bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" prefHeight="48.0" style="-fx-background-color: #3B5B75;">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+            <children>
+                <Label style="-fx-text-fill: white; -fx-font-size: 16px;" text="Service Log Analyzer" />
+            </children>
+        </HBox>
+    </top>
+
+    <!-- Left Sidebar Menu -->
+    <left>
+        <VBox fx:id="menuPane" alignment="TOP_LEFT" prefWidth="194.0" spacing="15" style="-fx-background-color: #2C3E50;">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+            <children>
+                <Label style="-fx-text-fill: white; -fx-font-size: 30px;" text="Menu" />
+                <Button fx:id="dashboardBtn" maxWidth="Infinity" onAction="#onDashboardButtonPressed" styleClass="menu-button" text="Dashboard" />
+                <Button fx:id="streamBtn" maxWidth="Infinity" onAction="#onStreamButtonPressed" styleClass="menu-button" text="Stream" />
+                <Button fx:id="explorerBtn" maxWidth="Infinity" onAction="#onExplorerButtonPressed" styleClass="menu-button" text="Explorer" />
+            </children>
+        </VBox>
+    </left>
+
+    <!-- Center Table Content -->
+    <center>
+        <AnchorPane>
+            <TableView fx:id="logTable" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+                <columns>
+                    <TableColumn fx:id="dateColumn" prefWidth="100.0" text="Date" />
+                    <TableColumn fx:id="timeColumn" prefWidth="90.0" text="Time" />
+                    <TableColumn fx:id="ipColumn" prefWidth="110.0" text="IP" />
+                    <TableColumn fx:id="userColumn" prefWidth="70.0" text="User" />
+                    <TableColumn fx:id="requestColumn" prefWidth="160.0" text="Request" />
+                    <TableColumn fx:id="statusColumn" prefWidth="70.0" text="Status" />
+                    <TableColumn fx:id="bytesColumn" prefWidth="70.0" text="Bytes" />
+                    <TableColumn fx:id="referrerColumn" prefWidth="120.0" text="Referrer" />
+                    <TableColumn fx:id="agentColumn" prefWidth="220.0" text="Agent" />
+                    <TableColumn fx:id="methodColumn" prefWidth="90.0" text="Method" />
+                    <TableColumn fx:id="locationColumn" prefWidth="200.0" text="Location" />
+                </columns>
+            </TableView>
+        </AnchorPane>
+    </center>
+</BorderPane>
