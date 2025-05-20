@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,6 +14,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -22,12 +25,32 @@ import javafx.animation.FadeTransition;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Popup;
 import javafx.util.Duration;
+import models.logData.logData;
+import models.mongoDB.mongoDB;
+import org.bson.Document;
 
+import com.mongodb.client.FindIterable;
+
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class PrimaryController {
 
-    @FXML private TableView<?> logTable;
+    @FXML private TableView<logData> logTable;
     @FXML private TableView<?> statusTable;
+    @FXML private TableColumn<logData, Integer> indexColumn;
+    @FXML private TableColumn<logData, String> dateColumn;
+    @FXML private TableColumn<logData, String> timeColumn;
+    @FXML private TableColumn<logData, String> ipColumn;
+    @FXML private TableColumn<logData, String> userColumn;
+    @FXML private TableColumn<logData, String> requestColumn;
+    @FXML private TableColumn<logData, Integer> statusCodeColumn;
+    @FXML private TableColumn<logData, Integer> bytesColumn;
+    @FXML private TableColumn<logData, String> referrerColumn;
+    @FXML private TableColumn<logData, String> agentColumn;
+    @FXML private TableColumn<logData, String> methodColumn;
+    @FXML private TableColumn<logData, String> locationColumn;
 
     @FXML private HBox tableSection;
     // @FXML private TextField searchField;
@@ -175,14 +198,20 @@ public class PrimaryController {
     @FXML
     private PieChart pieChart;
 
-    private final String DATA_FILE = "/data_placeholder/country_request.txt"; // fixed file name and added leading slash
-
     @FXML
     private LineChart<String, Number> lineChart;
 
     @FXML
     public void initialize() {
-        Map<String, Integer> countryData = loadDataFromFile(DATA_FILE);
+        Map<String, Integer> countryData = new HashMap<String, Integer>();
+
+        mongoDB mongodb = new mongoDB();
+        ArrayList<Document> tmp = mongodb.aggregate("countryShort");
+        for (Document doc : tmp) {
+            Object key = doc.get("_id");
+            int count = doc.getInteger("count", 0);
+            countryData.put(key != null ? key.toString() : "-", count);
+        }
         if (countryData == null || countryData.isEmpty()) return;
 
         int totalRequests = countryData.values().stream().mapToInt(Integer::intValue).sum();
@@ -207,8 +236,8 @@ public class PrimaryController {
 
             // Create a styled label as a tooltip
             Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
-            tooltipLabel.getStyleClass().add("piechart-tooltip");
             tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+            tooltipLabel.getStyleClass().add("piechart-tooltip");
             Popup popup = new Popup();
             popup.getContent().add(tooltipLabel);
             popup.setAutoHide(true);
@@ -228,6 +257,22 @@ public class PrimaryController {
             data.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
         }
 
+        indexColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getIndex()).asObject());
+        dateColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
+        timeColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
+        ipColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRemoteIp()));
+        userColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRemoteUser()));
+        requestColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequest()));
+        statusCodeColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getResponseStatusCode()).asObject());
+        bytesColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getBytes()).asObject());
+        referrerColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getReferrer()));
+        agentColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getAgent()));
+        methodColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequestMethod()));
+        locationColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getCountryLong()));
+
+        ObservableList<logData> x = mongodb.filter(new HashMap<String, Object>()).into(FXCollections.observableArrayList());
+
+        logTable.setItems(x);
     }
 
     public static Map<String, Integer> loadDataFromFile(String filePath) {

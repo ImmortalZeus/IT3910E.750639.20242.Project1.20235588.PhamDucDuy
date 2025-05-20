@@ -3,6 +3,7 @@ package models.parsers.lineParsers;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,8 +32,8 @@ public class nginxLineParser implements Runnable {
     private static final String regex = "((?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))";
     private static final Pattern pattern = Pattern.compile(regex);
     private static final userAgentParser useragentParser = new userAgentParser();
-    private List<String> lines;
-    public nginxLineParser(List<String> lines) {
+    private List<SimpleEntry<Integer, String>> lines;
+    public nginxLineParser(List<SimpleEntry<Integer, String>> lines) {
         this.lines = lines;
         // mapper.disable(MapperFeature.AUTO_DETECT_CREATORS);
         // mapper.disable(MapperFeature.AUTO_DETECT_FIELDS);
@@ -43,9 +44,9 @@ public class nginxLineParser implements Runnable {
         try {
             Matcher matcher = pattern.matcher("");
             HashMap<String, Object> map = new HashMap<String, Object>();
-            for (String line : lines) {
+            for (SimpleEntry<Integer, String> line : lines) {
                 map.clear();
-                map = mapper.readValue(line, new TypeReference<HashMap<String, Object>>() {});
+                map = mapper.readValue(line.getValue(), new TypeReference<HashMap<String, Object>>() {});
 
                 String request = (String) map.get("request");
                 matcher.reset(request);
@@ -91,7 +92,7 @@ public class nginxLineParser implements Runnable {
                         map.put("device", "-");
                     }
                 }
-
+                map.put("index", line.getKey());
                 map = pVCC.fix(map);
                 
                 logData res = new logData(map);

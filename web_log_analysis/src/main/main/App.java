@@ -9,7 +9,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import models.exceptions.propertiesLoaderException;
+
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Properties;
 
 public class App extends Application {
     public static Stage primaryStage;
@@ -88,6 +92,25 @@ public class App extends Application {
     // }
 
     public static void main(String[] args) {
+        try {
+            loadProperties(Thread.currentThread().getContextClassLoader().getResource("mongodb_config.properties").getPath());
+        } catch (Exception e) {
+
+        }
+
         launch(args);
+    }
+    private static void loadProperties(String filePath) throws propertiesLoaderException {
+        try (FileInputStream input = new FileInputStream(filePath)) {
+            Properties props = new Properties();
+            props.load(input);
+            
+            // Set properties into system properties
+            System.getProperties().putAll(props);
+
+            System.out.println("Properties loaded into System properties!");
+        } catch (Exception e) {
+            throw new propertiesLoaderException();
+        }
     }
 }

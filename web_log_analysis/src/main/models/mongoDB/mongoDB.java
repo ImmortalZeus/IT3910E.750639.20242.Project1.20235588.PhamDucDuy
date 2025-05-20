@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.collections.iterators.FilterIterator;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -23,6 +22,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Sorts;
 import com.mongodb.client.FindIterable;
 
 import models.logData.logData;
@@ -30,14 +30,15 @@ import models.logData.logData;
 import static com.mongodb.client.model.Filters.*;
 
 public class mongoDB {
-    private static MongoClient mongoClient;
+    private static MongoClient mongoClient = null;
     private static MongoDatabase database;
     private static MongoCollection<logData> collection;
     private static final String now = Long.toString(System.nanoTime());
 
     public mongoDB() {
         String mongoUri = System.getProperty("mongodb.uri");
-        
+        mongoUri = mongoUri == null ? "mongodb://localhost:27017" : mongoUri;
+
         String databaseName = System.getProperty("database.name");
         databaseName = databaseName == null ? "project1" : databaseName;
         
@@ -65,7 +66,14 @@ public class mongoDB {
         /*
         filter_rules {
             "byPeriod": Boolean (true | false),
-            "byPeriodValue": [byPeriodStartValue0: Date, byPeriodEndValue0: Date, byPeriodStartValue1: Date, byPeriodEndValue1: Date, ....]
+            "byPeriodValue": [{
+                byPeriodStartValue: Date,
+                byPeriodEndValue: Date
+            }, {
+                byPeriodStartValue: Date,
+                byPeriodEndValue: Date
+            }, 
+            ....]
 
             "byRemoteUser": Boolean (true | false),
             "byRemoteUserValue": [value0: String, value1: String, ...],
@@ -114,7 +122,7 @@ public class mongoDB {
 
         Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
-        FindIterable<logData> res = collection.find(query);
+        FindIterable<logData> res = collection.find(query).sort(Sorts.ascending("index"));
         return res;
     }
 
@@ -122,63 +130,56 @@ public class mongoDB {
         /*
         filter_rules {
             "byPeriod": Boolean (true | false),
-            "byPeriodStartValue": Date,
-            "byPeriodEndValue": Date,
+            "byPeriodValue": [{
+                byPeriodStartValue: Date,
+                byPeriodEndValue: Date
+            }, {
+                byPeriodStartValue: Date,
+                byPeriodEndValue: Date
+            }, 
+            ....]
 
             "byRemoteUser": Boolean (true | false),
-            "byRemoteUserValue": String,
+            "byRemoteUserValue": [value0: String, value1: String, ...],
 
             "byRemoteIp": Boolean (true | false),
-            "byRemoteIpValue": String,
+            "byRemoteIpValue": [value0: String, value1: String, ...],
 
             "byRequest": Boolean (true | false),
-            "byRequestValue": String,
+            "byRequestValue": [value0: String, value1: String, ...],
 
             "byResponseStatusCode": Boolean (true | false),
-            "byResponseStatusCodeValue": Integer,
+            "byResponseStatusCodeValue": [value0: Integer, value1: Integer, ...],
 
             "byBytes": Boolean (true | false),
-            "byBytesValue": Integer,
+            "byBytesValue": [value0: Integer, value1: Integer, ...],
 
             "byReferrer": Boolean (true | false),
-            "byReferrerValue": String,
+            "byReferrerValue": [value0: String, value1: String, ...],
 
             "byAgent": Boolean (true | false),
-            "byAgentValue": String,
+            "byAgentValue": [value0: String, value1: String, ...],
 
             "byRequestMethod": Boolean (true | false),
-            "byRequestMethodValue": String,
+            "byRequestMethodValue": [value0: String, value1: String, ...],
 
             "byRequestUrl": Boolean (true | false),
-            "byRequestUrlValue": String,
+            "byRequestUrlValue": [value0: String, value1: String, ...],
 
             "byHttpVer": Boolean (true | false),
-            "byHttpVerValue": String,
+            "byHttpVerValue": [value0: String, value1: String, ...],
 
             "byCountryShort": Boolean (true | false),
-            "byCountryShortValue": String,
+            "byCountryShortValue": [value0: String, value1: String, ...],
 
             "byCountryLong": Boolean (true | false),
-            "byCountryLongValue": String,
+            "byCountryLongValue": [value0: String, value1: String, ...],
 
             "byRegion": Boolean (true | false),
-            "byRegionValue": String,
+            "byRegionValue": [value0: String, value1: String, ...],
 
             "byCity": Boolean (true | false),
-            "byCityValue": String,
-
-            "byLatitude": Boolean (true | false),
-            "byLatitudeValue": Float,
-
-            "byLongitude": Boolean (true | false),
-            "byLongitudeValue": Float,
-
-            "byZipCode": Boolean (true | false),
-            "byZipCodeValue": String,
-
-            "byTimeZone": Boolean (true | false),
-            "byTimeZoneValue": String,
-
+            "byCityValue": [value0: String, value1: String, ...],
         }
         */
         ArrayList<Bson> filtersList = createFiltersList(filter_rules);
@@ -186,6 +187,32 @@ public class mongoDB {
         Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
         Long res = collection.countDocuments(query);
+        return res;
+    }
+
+    public ArrayList<Document> aggregate(String field) {
+        List<Bson> pipeline = Arrays.asList(
+            new Document("$group", new Document("_id", "$" + field)
+                .append("count", new Document("$sum", 1)))
+        );
+
+        ArrayList<Document> res = collection.aggregate(pipeline, Document.class).into(new ArrayList<>());
+        return res;
+    }
+
+    public ArrayList<Document> aggregate(HashMap<String, Object> filter_rules, String field) {
+
+        ArrayList<Bson> filtersList = createFiltersList(filter_rules);
+
+        Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
+        
+        List<Bson> pipeline = Arrays.asList(
+            new Document("$match", query),
+            new Document("$group", new Document("_id", "$" + field)
+                .append("count", new Document("$sum", 1)))
+        );
+
+        ArrayList<Document> res = collection.aggregate(pipeline, Document.class).into(new ArrayList<>());
         return res;
     }
 

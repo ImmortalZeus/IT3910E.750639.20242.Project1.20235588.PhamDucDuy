@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -37,12 +38,14 @@ public class apacheFileParser {
                 } else {
                     fr = new FileReader(file);
                     br = new BufferedReader(fr);
-                    List<String> batch = new ArrayList<>(BATCH_SIZE);
+                    List<SimpleEntry<Integer, String>> batch = new ArrayList<>(BATCH_SIZE);
+                    Integer cnt = 1;
                     String line = br.readLine().trim();
                     while (line != null) {
                         if(line.length() > 0)
                         {
-                            batch.add(line);
+                            batch.add(new SimpleEntry<>(cnt, line));
+                            cnt += 1;
                             if (batch.size() >= BATCH_SIZE)
                             {
                                 executor.submit(new apacheLineParser(new ArrayList<>(batch)));

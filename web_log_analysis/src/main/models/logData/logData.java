@@ -5,6 +5,8 @@ import java.util.HashMap;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class logData {
+    @BsonProperty("index")
+    private Integer index = -1;
     @BsonProperty("time")
     private String time = "-";
     @BsonProperty("remoteIp")
@@ -47,6 +49,12 @@ public class logData {
     private String device = "-";
     public logData() {}
     public logData(HashMap<String, Object> data) {
+        Object tmpindex = data.get("index");
+        if(tmpindex instanceof Integer) {
+            this.index = (Integer) tmpindex;
+        } else {
+            this.index = -1;
+        }
         Object tmptime = data.get("time");
         if(tmptime instanceof String) {
             this.time = (String) tmptime;
@@ -169,10 +177,11 @@ public class logData {
         }
     }
 
-    public logData(String time, String remoteIp, String remoteUser, String request, Integer responseStatusCode,
+    public logData(Integer index, String time, String remoteIp, String remoteUser, String request, Integer responseStatusCode,
             Integer bytes, String referrer, String agent, String requestMethod, String requestUrl, String httpVer,
             String countryShort, String countryLong, String region, String city,
             String zipCode, String timeZone, String browser, String OS, String device) {
+        this.index = index;
         this.time = time;
         this.remoteIp = remoteIp;
         this.remoteUser = remoteUser;
@@ -193,6 +202,9 @@ public class logData {
         this.browser = browser;
         this.OS = OS;
         this.device = device;
+    }
+    public Integer getIndex() {
+        return this.index;
     }
     public String getTime() {
         return this.time;
@@ -255,6 +267,9 @@ public class logData {
         return device;
     }
 
+    public void setIndex(Integer index) {
+        this.index = index;
+    }
     public void setTime(String time) {
         this.time = time;
     }

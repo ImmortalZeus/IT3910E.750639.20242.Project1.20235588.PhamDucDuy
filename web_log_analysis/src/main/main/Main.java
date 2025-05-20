@@ -70,6 +70,14 @@ public class Main {
             long stopTime2 = System.nanoTime();
             System.out.println(stopTime2 - startTime2);
 
+            // ================= Aggregation =====================
+            long startTime3 = System.nanoTime();
+            //System.out.println(mongodb.aggregate("time"));
+            //System.out.println(mongodb.aggregate("requestMethod"));
+            mongodb.aggregate("time");
+            long stopTime3 = System.nanoTime();
+            System.out.println(stopTime3 - startTime3);
+
             // for(logData obj : log_data.getAllLogData()) {
             //     System.out.println("Time" + " : " + obj.getTime());
             //     System.out.println("Remote Ip" + " : " + obj.getRemoteIp());

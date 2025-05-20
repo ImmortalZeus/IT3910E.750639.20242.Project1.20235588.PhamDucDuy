@@ -1,5 +1,6 @@
 package models.parsers.lineParsers;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -24,8 +25,8 @@ public class apacheLineParser implements Runnable {
     private static final String regex = "^" + "(?<RemoteIp>-|(?:^|\\b)(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){3})\\s-\\s(?<RemoteUser>-|[a-z_][a-z0-9_]{0,30})\\s(\\[(?<DateTime>(?<Date>[0-2][0-9]\\/\\w{3}\\/[12]\\d{3}):(?<Time>\\d{2}:\\d{2}:\\d{2})[^\\]]*+)\\])\\s(\\\"(?<Request>(?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))\\\")\\s(?<Response>-|\\d{3})\\s(?<Bytes>-|\\d+)\\s\\\"(?<Referrer>[^\\s]+)\\\"\\s\\\"(?<UserAgent>[^\\\"]*+)\\\"(?:\\s\\\"(?<ForwardFor>[^\\\"]*+)\\\")?" + "$";
     private static final Pattern pattern = Pattern.compile(regex);
     private static final userAgentParser useragentParser = new userAgentParser();
-    private List<String> lines;
-    public apacheLineParser(List<String> lines) {
+    private List<SimpleEntry<Integer, String>> lines;
+    public apacheLineParser(List<SimpleEntry<Integer, String>> lines) {
         this.lines = lines;
     }
     @Override
@@ -35,11 +36,11 @@ public class apacheLineParser implements Runnable {
             //HashMap<Integer, String> groupNameMapping = new HashMap<Integer, String>();
             //HashMap<String, Object> parsedData = new HashMap<String, Object>();
             HashMap<String, Object> map = new HashMap<String, Object>();
-            for (String line : lines) {
+            for (SimpleEntry<Integer, String> line : lines) {
                 //groupNameMapping.clear();
                 //parsedData.clear();
                 map.clear();
-                matcher.reset(line);
+                matcher.reset(line.getValue());
                 // for(Map.Entry<String, Integer> tmp: matcher.namedGroups().entrySet())
                 // {
                 //     groupNameMapping.put(tmp.getValue(), tmp.getKey());
@@ -111,7 +112,7 @@ public class apacheLineParser implements Runnable {
                         map.put("device", "-");
                     }
                 }
-
+                map.put("index", line.getKey());
                 map = pVCC.fix(map);
     
                 logData res = new logData(map);
