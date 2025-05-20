@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Pos?>     
+<?import org.controlsfx.control.RangeSlider?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="controller.FilterController">
+
+    <!-- Top Header Bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" prefHeight="48.0" style="-fx-background-color: #3B5B75;">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+            <children>
+                <Label style="-fx-text-fill: white; -fx-font-size: 16px;" text="Service Log Analyzer" />
+            </children>
+        </HBox>
+    </top>
+
+    <!-- Center Content Area -->
+    <center>
+        <VBox spacing="20.0" alignment="TOP_CENTER">
+            <padding>
+                <Insets top="10" left="20" right="20" bottom="20" />
+            </padding>
+
+            <!-- Back Button -->
+            <HBox alignment="TOP_LEFT">
+                <Button fx:id="backButton" text="Back" onAction="#onBackButtonPressed" />
+            </HBox>
+
+            <!-- Grid of Filter Boxes -->
+            <GridPane hgap="15" vgap="15" alignment="CENTER">
+
+                <!-- Row 1 -->
+                <StackPane GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="IP Address" />
+                        <TextField fx:id="ipField" promptText="Search IP..." styleClass="neon-input"/>
+                    </VBox>
+                </StackPane>
+
+                <StackPane GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="filter-box">
+                    <VBox spacing="5">
+                    <Label text="Timestamp" />
+                        <VBox spacing="5" alignment="CENTER_LEFT">
+                            <DatePicker fx:id="timestampFromDate" promptText="From..." styleClass="neon-input"/>
+                            <TextField fx:id="timestampFromTime" promptText="HH:mm:ss" styleClass="neon-input"/>
+                        </VBox>
+                        
+                        <!-- To Date & Time -->
+                        <VBox spacing="5" alignment="CENTER_LEFT">
+                            <DatePicker fx:id="timestampToDate" promptText="To..." styleClass="neon-input"/>
+                            <TextField fx:id="timestampToTime" promptText="HH:mm:ss" styleClass="neon-input"/>
+                        </VBox>
+                    </VBox>
+                </StackPane>
+
+                <StackPane GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="Location" />
+                        <TextField fx:id="CountryField" promptText="Country..." styleClass="neon-input"/>
+                        <TextField fx:id="RegionField" promptText="Region..." styleClass="neon-input"/>
+                        <TextField fx:id="CityField" promptText="City..." styleClass="neon-input"/>
+                    </VBox>
+                </StackPane>
+
+                <StackPane GridPane.rowIndex="0" GridPane.columnIndex="3" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="Request" />
+                        <FlowPane hgap="8" vgap="8" alignment="TOP_LEFT"> 
+                            <ToggleButton text="GET" styleClass="method-button"/>
+                            <ToggleButton text="POST" styleClass="method-button"/>
+                            <ToggleButton text="PUT" styleClass="method-button"/>
+                            <ToggleButton text="HEAD" styleClass="method-button"/>
+                            <ToggleButton text="DELETE" styleClass="method-button"/>
+                            <ToggleButton text="PATCH" styleClass="method-button"/>
+                            <ToggleButton text="OPTIONS" styleClass="method-button"/>
+                            <ToggleButton text="TRACE" styleClass="method-button"/>
+                            <ToggleButton text="CONNECT" styleClass="method-button"/>
+                        </FlowPane>
+                    </VBox>
+                </StackPane>
+
+                <!-- Row 2 -->
+                <StackPane GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="Response Code" />
+                        <VBox fx:id="responseCodeBox" spacing="5"/>
+                        <Button text="+" fx:id="addResponseCodeBtn" onAction="#onAddResponseCodeBox" />
+                    </VBox>
+                </StackPane>
+
+                <StackPane fx:id="sizeSliderStack" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="Size (Bytes)" />
+                            
+                            <VBox spacing="10">
+                                <VBox spacing="2">
+                                    <TextField fx:id="sizeFieldMin" promptText="Min..." styleClass="neon-input"/>
+                                    <Label fx:id="minErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
+                                </VBox>
+                                <VBox spacing="2">
+                                    <TextField fx:id="sizeFieldMax" promptText="Max..." styleClass="neon-input"/>
+                                    <Label fx:id="maxErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
+                                </VBox>
+                            </VBox>
+
+                            <StackPane fx:id="sizeSliderStack" styleClass="slider-stack">
+                                <RangeSlider fx:id="sizeRangeSlider" styleClass="range-slider"
+                                    min="0" max="524288"
+                                    lowValue="0" highValue="524288"
+                                    showTickMarks="true" showTickLabels="true"
+                                    majorTickUnit="131072"
+                                    minorTickCount="8" />
+                                
+                                <HBox spacing="20" alignment="CENTER" mouseTransparent="true">
+                                    <Label fx:id="minSizeLabel" text="0 B" styleClass="floating-label" opacity="0" />
+                                    <Label fx:id="maxSizeLabel" text="524,288 B" styleClass="floating-label" opacity="0" />
+                                </HBox>
+                            </StackPane>
+                    </VBox>
+                </StackPane>
+
+
+                <StackPane GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="Referrer" />
+                        <TextField fx:id="referrerField" promptText="Search Referrer..." styleClass="neon-input"/>
+                    </VBox>
+                </StackPane>
+
+                <StackPane GridPane.rowIndex="1" GridPane.columnIndex="3" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="User Agent" />
+                        <TextField fx:id="agentField" promptText="OS..." styleClass="neon-input"/>
+                        <TextField fx:id="browserField" promptText="Browser..." styleClass="neon-input"/>
+                        <TextField fx:id="deviceField" promptText="Device..." styleClass="neon-input"/>
+                    </VBox>
+                </StackPane>
+
+            </GridPane>
+
+            <!-- Bottom Buttons -->
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button fx:id="clearButton" text="Clear" />
+                <Button fx:id="applyButton" text="Apply" onAction="#onApplyButtonPressed" />
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

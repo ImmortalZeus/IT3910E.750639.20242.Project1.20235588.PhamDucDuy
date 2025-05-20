@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.Region?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="controller.ExplorerController">
+
+    <!-- Top Header Bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" prefHeight="48.0" styleClass="header-bar">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+            <children>
+                <Label text="Service Log Analyzer" styleClass="header-title" />
+            </children>
+        </HBox>
+    </top>
+
+    <!-- Sidebar Menu -->
+    <left>
+        <VBox fx:id="menuPane" alignment="TOP_LEFT" prefWidth="194.0" spacing="15" styleClass="sidebar">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+            <children>
+                <Label text="Menu" styleClass="menu-title" />
+                <Button fx:id="dashboardBtn" maxWidth="Infinity" onAction="#onDashboardButtonPressed" styleClass="menu-button" text="Dashboard" />
+                <Button fx:id="streamBtn" maxWidth="Infinity" onAction="#onStreamButtonPressed" styleClass="menu-button" text="Stream" />
+                <Button fx:id="explorerBtn" maxWidth="Infinity" onAction="#onExplorerButtonPressed" styleClass="menu-button" text="Explorer" />
+            </children>
+        </VBox>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <VBox spacing="30" alignment="TOP_CENTER" styleClass="about-section">
+            <padding><Insets top="30" bottom="30" left="30" right="30"/></padding>
+
+            <!-- About Section -->
+            <HBox spacing="40" alignment="CENTER_LEFT">
+                <VBox spacing="10">
+                    <Label text="About Us" styleClass="section-title"/>
+                    <ImageView fx:id="team" fitWidth="100" fitHeight="100">
+                        <image>
+                            <Image url="@images/team.png" />
+                        </image>
+                    </ImageView>
+                </VBox>
+                <VBox spacing="10">
+                    <Label text="Service Logs Analysis" styleClass="section-subtitle"/>
+                    <Label wrapText="true" maxWidth="500" styleClass="about-text"
+                           text="This is a Java application using JavaFX for its UI, designed to analyze and visualize log data from Apache and Nginx servers. It provides insights into server status and security issues."/>
+                </VBox>
+            </HBox>
+
+            <!-- Members -->
+            <HBox spacing="40" alignment="CENTER">
+                <VBox spacing="10" alignment="CENTER" styleClass="member-card">
+                    <Label text="Hoàng Gia Nam Anh - 20235584" styleClass="member-name"/>
+                    <Label text="CyberSecurity 01 - K68 HUST SOICT" styleClass="member-role"/>
+                    <ImageView fx:id="hgna" fitWidth="150" fitHeight="150"/>
+                    <Label text="&quot;Thằng bên cạnh gánh hết.&quot;" styleClass="quote-label"/>
+                </VBox>
+
+                <VBox spacing="10" alignment="CENTER" styleClass="member-card">
+                    <Label text="Phạm Đức Duy - 20235588" styleClass="member-name"/>
+                    <Label text="CyberSecurity 01 - K68 HUST SOICT" styleClass="member-role"/>
+                    <ImageView fx:id="pdd" fitWidth="150" fitHeight="150"/>
+                    <Label text="&quot;Bất lực và mệt mỏi thực sự với Project 1.&quot;" styleClass="quote-label"/>
+                </VBox>
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>

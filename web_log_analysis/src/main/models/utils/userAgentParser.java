@@ -12,12 +12,16 @@ public class userAgentParser {
     private static HashMap<String, Client> cache = new HashMap<String, Client>();
 
     public Client parse(String ua) throws userAgentParserException {
-        if(cache.containsKey(ua)) {
-            return cache.get(ua);
-        } else {
-            Client useragentParsed = useragentParser.parse(ua);
-            cache.put(ua, useragentParsed);
-            return useragentParsed;
+        try {
+            if(cache.containsKey(ua)) {
+                return cache.get(ua);
+            } else {
+                Client useragentParsed = useragentParser.parse(ua);
+                cache.put(ua, useragentParsed);
+                return useragentParsed;
+            }
+        } catch (Exception e) {
+            throw new userAgentParserException();            
         }
     }
 }
