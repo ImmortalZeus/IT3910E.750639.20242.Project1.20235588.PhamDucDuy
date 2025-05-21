@@ -22,7 +22,7 @@
     </top>
 
     <!-- Sidebar Menu -->
-    <left>
+    <!-- <left>
         <VBox fx:id="menuPane" alignment="TOP_LEFT" prefWidth="194.0" spacing="15" styleClass="sidebar">
             <padding>
                 <Insets bottom="20" left="20" right="20" top="20" />
@@ -34,7 +34,7 @@
                 <Button fx:id="explorerBtn" maxWidth="Infinity" onAction="#onExplorerButtonPressed" styleClass="menu-button" text="Explorer" />
             </children>
         </VBox>
-    </left>
+    </left> -->
 
     <!-- Main Content -->
     <center>
@@ -74,6 +74,13 @@
                     <Label text="&quot;Bất lực và mệt mỏi thực sự với Project 1.&quot;" styleClass="quote-label"/>
                 </VBox>
             </HBox>
+            <padding><Insets top="30" bottom="30" left="30" right="30"/></padding>
+
+            <!-- Upload Button -->
+            <Button fx:id="uploadApacheButton" text="Upload Apache Log File" onAction="#onUploadButtonPressed"
+                    styleClass="upload-button" maxWidth="200" />
+            <Button fx:id="uploadNginxButton" text="Upload Nginx Log File" onAction="#onUploadButtonPressed"
+                    styleClass="upload-button" maxWidth="200" />
         </VBox>
     </center>
 </BorderPane>

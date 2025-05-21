@@ -51,22 +51,47 @@
     -fx-background-color: #112233;
 }
 
-/* TableView Styling */
-.table-view {
-    -fx-background-color: #0D1B2A;
-    -fx-border-color: #00FFFF;
-    -fx-border-width: 2px;
-    -fx-table-cell-border-color: #1B263B;
+.log-table {
+    -fx-background-color: #0A1C26;
+    -fx-border-color: #00ffff;
+    -fx-border-width: 1px;
+    -fx-text-fill: #00ffff;
 }
 
-.table-column {
-    -fx-alignment: CENTER_LEFT;
+.log-table .column-header-background {
+    -fx-background-color: #142C38;
 }
 
-.highlighted-table {
-    -fx-border-color: #00FFFF;
-    -fx-border-width: 2;
-    -fx-border-radius: 6;
+.log-table .table-cell {
+    -fx-background-color: #0A1C26;
+    -fx-text-fill: #00ffff;
+}
+
+.log-table .table-row-cell:selected {
+    -fx-background-color: #004E64;
+}
+
+/* ========== LineChart Styling ========== */
+.custom-line-chart {
+    -fx-background-color: #0A1C26;
+    -fx-border-color: #00ffff;
+    -fx-border-width: 1px;
+}
+
+.custom-line-chart .chart-plot-background {
+    -fx-background-color: #121F2D;
+}
+
+.custom-line-chart .chart-legend {
+    -fx-text-fill: #00ffff;
+}
+
+.custom-line-chart .axis-label,
+.custom-line-chart .chart-title,
+.custom-line-chart .axis-tick-mark,
+.custom-line-chart .axis {
+    -fx-text-fill: #00ffff;
+    -fx-stroke: #00ffff;
 }
 
 /* DatePicker Styling */
@@ -268,4 +293,15 @@
     -fx-prompt-text-fill: #00ffff88;
     -fx-border-color: transparent;
     -fx-highlight-fill: #00ffff44;
+}
+.upload-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #00ffff;
+    -fx-text-fill: #00ffff;
+    -fx-font-size: 14px;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+.upload-button:hover {
+    -fx-background-color: #00ffff22;
 }

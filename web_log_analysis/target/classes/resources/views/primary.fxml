@@ -68,11 +68,13 @@
                     <TableColumn fx:id="referrerColumn" sortable="false" prefWidth="120.0" text="Referrer"/>
                     <TableColumn fx:id="agentColumn" sortable="false" prefWidth="220.0" text="Agent"/>
                     <TableColumn fx:id="methodColumn" sortable="false" prefWidth="90.0" text="Method"/>
-                    <TableColumn fx:id="locationColumn" sortable="false" prefWidth="200.0" text="Location"/>
+                    <TableColumn fx:id="countryColumn" sortable="false" prefWidth="200.0" text="Location"/>
+                    <TableColumn fx:id="regionColumn" sortable="false" prefWidth="200.0" text="Region"/>
+                    <TableColumn fx:id="cityColumn" sortable="false" prefWidth="200.0" text="City"/>
                   </columns>
                 </TableView>
                 <!-- Status Table: fixed width -->
-                <VBox prefWidth="200" spacing="10">
+                <!-- <VBox prefWidth="200" spacing="10">
                   <children>
                     <Label text="#Total visitors: 0"/>
                     <Label text="#Unique visitor: 0"/>
@@ -83,7 +85,7 @@
                       </columns>
                     </TableView>
                   </children>
-                </VBox>
+                </VBox> -->
               </children>
             </HBox>
           </children>
@@ -91,7 +93,8 @@
         <!-- Placeholder for chart area -->
         <HBox spacing="20" prefHeight="300" style="-fx-border-color: #444444;">
           <children>
-            <PieChart fx:id="pieChart" prefWidth="600"/>
+            <PieChart fx:id="pieChartCountry" prefWidth="650"/>
+            <PieChart fx:id="pieChartResponseStatus" prefWidth="600"/>
             <LineChart fx:id="lineChart" prefWidth="600">
               <xAxis>
                 <CategoryAxis label="Time (Hourly)"/>
