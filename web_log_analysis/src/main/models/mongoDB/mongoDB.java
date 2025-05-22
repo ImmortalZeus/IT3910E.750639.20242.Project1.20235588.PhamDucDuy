@@ -62,12 +62,62 @@ public class mongoDB {
         collection.insertOne(doc);
     }
 
+    public void insertMany(List<logData> list) {
+        collection.insertMany(list);
+    }
+
     public FindIterable<logData> filter(HashMap<String, Object> filter_rules) {
         ArrayList<Bson> filtersList = createFiltersList(filter_rules);
 
         Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
-        FindIterable<logData> res = collection.find(query).sort(Sorts.ascending("index"));
+        FindIterable<logData> res = collection.find(query)/*.sort(Sorts.ascending("index"))*/;
+        return res;
+    }
+
+    public FindIterable<logData> filterWithLimit(HashMap<String, Object> filter_rules, Integer limit) {
+        if(limit == null || limit < 0)
+        {
+            limit = 0;
+        }
+
+        ArrayList<Bson> filtersList = createFiltersList(filter_rules);
+
+        Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
+
+        FindIterable<logData> res = collection.find(query).limit(limit)/*.sort(Sorts.ascending("index"))*/;
+        return res;
+    }
+
+    public FindIterable<logData> filterWithSkip(HashMap<String, Object> filter_rules, Integer skip) {
+        if(skip == null || skip < 0)
+        {
+            skip = 0;
+        }
+
+        ArrayList<Bson> filtersList = createFiltersList(filter_rules);
+
+        Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
+
+        FindIterable<logData> res = collection.find(query).skip(skip)/*.sort(Sorts.ascending("index"))*/;
+        return res;
+    }
+
+    public FindIterable<logData> filterWithSkipAndLimit(HashMap<String, Object> filter_rules, Integer skip, Integer limit) {
+        if(limit == null || limit < 0)
+        {
+            limit = 0;
+        }
+        if(skip == null || skip < 0)
+        {
+            skip = 0;
+        }
+
+        ArrayList<Bson> filtersList = createFiltersList(filter_rules);
+
+        Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
+
+        FindIterable<logData> res = collection.find(query).skip(skip).limit(limit)/*.sort(Sorts.ascending("index"))*/;
         return res;
     }
 

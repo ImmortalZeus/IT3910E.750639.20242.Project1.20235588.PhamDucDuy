@@ -2,6 +2,7 @@ package models.parsers.fileParsers;
 
 import models.exceptions.*;
 import models.logData.logData;
+import models.parsers.ResultAggregator;
 import models.parsers.lineParsers.*;
 import models.utils.*;
 
@@ -25,7 +26,7 @@ public class nginxFileParser {
             // );
 
             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-
+            ResultAggregator aggregator = new ResultAggregator();
 
             File file = null;
             FileReader fr = null;
@@ -48,14 +49,14 @@ public class nginxFileParser {
                             cnt += 1;
                             if (batch.size() >= BATCH_SIZE)
                             {
-                                executor.submit(new nginxLineParser(new ArrayList<>(batch)));
+                                executor.submit(new nginxLineParser(new ArrayList<>(batch), aggregator));
                                 batch.clear();
                             }
                         }
                         line = br.readLine();
                     }
                     if (!batch.isEmpty()) {
-                        executor.submit(new nginxLineParser(new ArrayList<>(batch)));
+                        executor.submit(new nginxLineParser(new ArrayList<>(batch), aggregator));
                     }
                     executor.shutdown();
                     executor.awaitTermination(1, TimeUnit.HOURS);
@@ -65,6 +66,7 @@ public class nginxFileParser {
                     if(br != null) {
                         br.close();
                     }
+                    aggregator.saveToMongodb();
                 }
             } catch (Exception e) {
                 try {
