@@ -46,6 +46,9 @@
               <children>
                 <Button fx:id="filterButton" text="Filter" onAction="#onFilterButtonPressed" styleClass="menu-button"/>
                 <Button fx:id="refreshButton" text="Refresh" onAction="#onRefreshButtonPressed" styleClass="menu-button"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="leftButton" text="Prev" onAction="#onLeftButtonPressed" styleClass="menu-button"/>
+                <Button fx:id="rightButton" text="Next" onAction="#onRightButtonPressed" styleClass="menu-button"/>
               </children>
             </HBox>
           </children>

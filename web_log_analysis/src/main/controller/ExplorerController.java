@@ -8,8 +8,10 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import java.io.File;
+import javafx.application.Platform;
 
 public class ExplorerController {
     @FXML
@@ -51,18 +53,37 @@ public class ExplorerController {
         File selectedFile = fileChooser.showOpenDialog(stage);
 
         if (selectedFile != null) {
-            System.out.println("Selected log file: " + selectedFile.getAbsolutePath());
+            
+            main.App.showLoadingStage(); // Show loading screen
 
-            // TODO: Process and upload the file to backend
-            // Optional: show loading screen while processing
-            main.App.switchToDashboard(); // if you want to show results after upload
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    try {
+                        // Simulate log parsing (replace with real logic)
+                        System.out.println("Selected log file: " + selectedFile.getAbsolutePath());
+                        // Process and upload the file to backend
+                        // Example: BackendService.uploadLogFile(selectedFile);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            };
+
+            task.setOnSucceeded(v -> {
+                Platform.runLater(() -> {
+                    main.App.closeLoadingStage();
+                    Platform.runLater(main.App::switchToDashboard);
+                });
+            });
+
+            Thread thread = new Thread(task);
+            thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+            thread.start();
         }
     }
-
-    @FXML
-    private void onDashboardButtonPressed() {
-        main.App.switchToDashboard();
-    }
+    
 
     @FXML
     private void onStreamButtonPressed() {

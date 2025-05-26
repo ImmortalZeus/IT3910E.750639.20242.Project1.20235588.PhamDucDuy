@@ -305,3 +305,7 @@
 .upload-button:hover {
     -fx-background-color: #00ffff22;
 }
+.loading-label {
+    -fx-text-fill: #00ffff;
+    -fx-font-size: 16px;
+}

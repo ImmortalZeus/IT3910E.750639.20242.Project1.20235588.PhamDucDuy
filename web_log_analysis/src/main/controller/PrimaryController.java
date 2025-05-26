@@ -205,6 +205,14 @@ public class PrimaryController {
         // resetFilterUI();
         System.out.println("Filters cleared. Refreshed.");
     }
+    @FXML
+    private void onLeftButtonPressed() {
+        System.out.println("Left button pressed.");
+    }
+    @FXML
+    private void onRightButtonPressed() {
+        System.out.println("Right button pressed.");
+    }
 
     @FXML
     private PieChart pieChartCountry;
@@ -217,7 +225,7 @@ public class PrimaryController {
 
     @FXML
     public void initialize() {
-        
+
         mongoDB mongodb = new mongoDB();
 
         Map<String, Integer> countryData = new HashMap<String, Integer>();
