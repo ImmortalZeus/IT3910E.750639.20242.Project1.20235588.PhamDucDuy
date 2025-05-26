@@ -74,6 +74,35 @@ public class App extends Application {
             e.printStackTrace();
         }
     }
+
+    public static Stage loadingStage;
+
+    public static void showLoadingStage() {
+        try {
+            FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource("resources/views/loading.fxml"));
+            Parent root = loader.load();
+
+            Stage loadingStage = new Stage();
+            loadingStage.setTitle("Loading...");
+            Scene loadingScene = new Scene(root);
+            loadingScene.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+            loadingStage.setScene(loadingScene);
+            loadingStage.initModality(Modality.WINDOW_MODAL);
+            loadingStage.initOwner(primaryStage); 
+            loadingStage.setResizable(false);
+            loadingStage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static void closeLoadingStage() {
+        if (loadingStage != null) {
+            loadingStage.close();
+        }
+    }
+
     
     // @FXML
     // private void onBackButtonPressed(ActionEvent event) {

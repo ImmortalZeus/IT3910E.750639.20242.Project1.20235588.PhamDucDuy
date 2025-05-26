@@ -55,7 +55,9 @@ public class PrimaryController {
     @FXML private TableColumn<logData, Integer> statusCodeColumn;
     @FXML private TableColumn<logData, Integer> bytesColumn;
     @FXML private TableColumn<logData, String> referrerColumn;
-    @FXML private TableColumn<logData, String> locationColumn;
+    @FXML private TableColumn<logData, String> countryColumn;
+    @FXML private TableColumn<logData, String> regionColumn;
+    @FXML private TableColumn<logData, String> cityColumn;
     @FXML private TableColumn<logData, String> browserColumn;
     @FXML private TableColumn<logData, String> osColumn;
     @FXML private TableColumn<logData, String> deviceColumn;
@@ -203,18 +205,30 @@ public class PrimaryController {
         // resetFilterUI();
         System.out.println("Filters cleared. Refreshed.");
     }
+    @FXML
+    private void onLeftButtonPressed() {
+        System.out.println("Left button pressed.");
+    }
+    @FXML
+    private void onRightButtonPressed() {
+        System.out.println("Right button pressed.");
+    }
 
     @FXML
-    private PieChart pieChart;
+    private PieChart pieChartCountry;
+
+    @FXML
+    private PieChart pieChartResponseStatus;
 
     @FXML
     private LineChart<String, Number> lineChart;
 
     @FXML
     public void initialize() {
-        Map<String, Integer> countryData = new HashMap<String, Integer>();
 
         mongoDB mongodb = new mongoDB();
+
+        Map<String, Integer> countryData = new HashMap<String, Integer>();
         ArrayList<Document> tmp = mongodb.aggregate("countryShort");
         for (Document doc : tmp) {
             Object key = doc.get("_id");
@@ -236,9 +250,9 @@ public class PrimaryController {
             pieChartData.add(new PieChart.Data(label, requests));
         }
 
-        pieChart.setData(pieChartData);
+        pieChartCountry.setData(pieChartData);
 
-        for (PieChart.Data data : pieChart.getData()) {
+        for (PieChart.Data data : pieChartCountry.getData()) {
             String country = data.getName();
             double percent = (data.getPieValue() / totalRequests) * 100;
             int actualCount = (int) data.getPieValue();
@@ -266,6 +280,55 @@ public class PrimaryController {
             data.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
         }
 
+        Map<Integer, Integer> responseData = new HashMap<Integer, Integer>();
+        ArrayList<Document> responseAgg = mongodb.aggregate("responseStatusCode");
+        for (Document doc : responseAgg) {
+            Object key = doc.get("_id");
+            int count = doc.getInteger("count", 0);
+            responseData.put((Integer)key, count);
+        }
+        if (responseData == null || responseData.isEmpty()) return;
+        
+        int totalResponses = responseData.values().stream().mapToInt(Integer::intValue).sum();
+        
+        ObservableList<PieChart.Data> responsePieChartData = FXCollections.observableArrayList();
+
+        for (Map.Entry<Integer, Integer> entry : responseData.entrySet()) {
+            int status = entry.getKey();
+            int count = entry.getValue();
+            double percentage = (count * 100.0) / totalResponses;
+
+            String label = status + " (" + String.format("%.1f", percentage) + "%)";
+            responsePieChartData.add(new PieChart.Data(label, count));
+        }
+
+        pieChartResponseStatus.setData(responsePieChartData);
+
+        for (PieChart.Data data : pieChartResponseStatus.getData()) {
+            String status = data.getName();
+            double percent = (data.getPieValue() / totalResponses) * 100;
+            int actualCount = (int) data.getPieValue();
+
+            Label restooltipLabel = new Label(String.format("Status: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
+            restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+            restooltipLabel.getStyleClass().add("piechart-tooltip");
+            Popup popup = new Popup();
+            popup.getContent().add(restooltipLabel);
+            popup.setAutoHide(true);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), restooltipLabel);
+            fadeIn.setFromValue(0);
+            fadeIn.setToValue(1);
+
+            data.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                restooltipLabel.setOpacity(0);
+                popup.show(data.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                fadeIn.playFromStart();
+            });
+
+            data.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+        }
+    
         indexColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getIndex()).asObject());
         dateColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
         timeColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
@@ -276,7 +339,9 @@ public class PrimaryController {
         statusCodeColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getResponseStatusCode()).asObject());
         bytesColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getBytes()).asObject());
         referrerColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getReferrer()));
-        locationColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getCountryLong()));
+        countryColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getCountryLong()));
+        regionColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRegion()));
+        cityColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getCity()));
         browserColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getBrowser()));
         osColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getOS()));
         deviceColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDevice()));
@@ -300,7 +365,17 @@ public class PrimaryController {
         long stopTime3 = System.nanoTime();
         System.out.println(stopTime3 - startTime3);
 
+        logTable.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+        logTable.getStyleClass().add("log-table");
         logTable.setItems(x);
+
+        lineChart.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+        lineChart.getStyleClass().add("custom-line-chart");
+
+
+        lineChart.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+        lineChart.getStyleClass().add("custom-line-chart");
+
 
         // logTable.skinProperty().addListener((obs, oldSkin, newSkin) -> {
         //     ScrollBar verticalBar = findVerticalScrollBar(logTable);
