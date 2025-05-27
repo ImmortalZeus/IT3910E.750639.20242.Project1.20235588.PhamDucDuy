@@ -19,12 +19,11 @@ import java.util.concurrent.TimeUnit;
 public class apacheFileParser {
     private static final int BATCH_SIZE = 100;
 
-    public void parse(String filepath) throws fileParserException {
+    public ResultAggregator parse(String filepath) throws fileParserException {
         try {
             // ExecutorService executor = Executors.newFixedThreadPool(
             //     Runtime.getRuntime().availableProcessors()
             // );
-
             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
             ResultAggregator aggregator = new ResultAggregator();
 
@@ -67,6 +66,7 @@ public class apacheFileParser {
                         br.close();
                     }
                     aggregator.saveToMongodb();
+                    return aggregator;
                 }
             } catch (Exception e) {
                 try {

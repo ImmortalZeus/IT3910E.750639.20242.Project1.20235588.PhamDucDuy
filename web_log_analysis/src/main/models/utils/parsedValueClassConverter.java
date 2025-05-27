@@ -40,21 +40,22 @@ public class parsedValueClassConverter {
             }
         }
 
-        // if(map.containsKey("time")) {
-        //     try {
-        //         if (map.get("time") instanceof String) {
-        //             // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
-        //             // OffsetDateTime dateTime = OffsetDateTime.parse((String) map.get("time"), formatter);
-        //             SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
-        //             Date date = sdf.parse((String) map.get("time"));
-        //             map.put("time", date);
-        //         } else {
-        //             map.put("time", null);
-        //         }
-        //     } catch (Exception e) {
-        //         map.put("time", null);
-        //     }
-        // }
+        if(map.containsKey("time")) {
+            try {
+                if (map.get("time") instanceof String) {
+                    // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+                    // OffsetDateTime dateTime = OffsetDateTime.parse((String) map.get("time"), formatter);
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+                    Date date = sdf.parse((String) map.get("time"));
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss");
+                    map.put("time", formatter.format(date));
+                } else {
+                    map.put("time", "-");
+                }
+            } catch (Exception e) {
+                map.put("time", "-");
+            }
+        }
         return map;
     }
 }

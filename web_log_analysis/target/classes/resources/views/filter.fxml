@@ -42,22 +42,25 @@
                 <StackPane GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="filter-box">
                     <VBox spacing="5">
                         <Label text="IP Address" />
-                        <TextField fx:id="ipField" promptText="Search IP..." styleClass="neon-input"/>
+                        <TextField fx:id="ipAddressField" promptText="Search IP..." styleClass="neon-input"/>
                     </VBox>
                 </StackPane>
 
                 <StackPane GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="filter-box">
                     <VBox spacing="5">
                     <Label text="Timestamp" />
+                        <Label text="From" />
                         <VBox spacing="5" alignment="CENTER_LEFT">
-                            <DatePicker fx:id="timestampFromDate" promptText="From..." styleClass="neon-input"/>
-                            <TextField fx:id="timestampFromTime" promptText="HH:mm:ss" styleClass="neon-input"/>
+                            <DatePicker fx:id="timestampFromDate" promptText="dd/mm/yyyy" styleClass="neon-input"/>
+                            <TextField fx:id="timestampFromTime" disable="true" promptText="HH:mm:ss" styleClass="neon-input"/>
+                            <Label fx:id="timestampFromTimeErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
                         </VBox>
-                        
-                        <!-- To Date & Time -->
+
+                        <Label text="To" />
                         <VBox spacing="5" alignment="CENTER_LEFT">
-                            <DatePicker fx:id="timestampToDate" promptText="To..." styleClass="neon-input"/>
-                            <TextField fx:id="timestampToTime" promptText="HH:mm:ss" styleClass="neon-input"/>
+                            <DatePicker fx:id="timestampToDate" promptText="dd/mm/yyyy" styleClass="neon-input"/>
+                            <TextField fx:id="timestampToTime" disable="true" promptText="HH:mm:ss" styleClass="neon-input"/>
+                            <Label fx:id="timestampToTimeErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
                         </VBox>
                     </VBox>
                 </StackPane>
@@ -65,16 +68,16 @@
                 <StackPane GridPane.rowIndex="0" GridPane.columnIndex="2" styleClass="filter-box">
                     <VBox spacing="5">
                         <Label text="Location" />
-                        <TextField fx:id="CountryField" promptText="Country..." styleClass="neon-input"/>
-                        <TextField fx:id="RegionField" promptText="Region..." styleClass="neon-input"/>
-                        <TextField fx:id="CityField" promptText="City..." styleClass="neon-input"/>
+                        <TextField fx:id="countryField" promptText="Country..." styleClass="neon-input"/>
+                        <TextField fx:id="regionField" promptText="Region..." styleClass="neon-input"/>
+                        <TextField fx:id="cityField" promptText="City..." styleClass="neon-input"/>
                     </VBox>
                 </StackPane>
 
                 <StackPane GridPane.rowIndex="0" GridPane.columnIndex="3" styleClass="filter-box">
                     <VBox spacing="5">
-                        <Label text="Request" />
-                        <FlowPane hgap="8" vgap="8" alignment="TOP_LEFT"> 
+                        <Label text="Request Method" />
+                        <FlowPane fx:id="requestMethodFlowPane" hgap="8" vgap="8" alignment="TOP_LEFT"> 
                             <ToggleButton text="GET" styleClass="method-button"/>
                             <ToggleButton text="POST" styleClass="method-button"/>
                             <ToggleButton text="PUT" styleClass="method-button"/>
@@ -87,42 +90,48 @@
                         </FlowPane>
                     </VBox>
                 </StackPane>
+                <StackPane GridPane.rowIndex="0" GridPane.columnIndex="4" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="User" />
+                        <TextField fx:id="userField" promptText="Search User..." styleClass="neon-input"/>
+                    </VBox>
+                </StackPane>
 
                 <!-- Row 2 -->
                 <StackPane GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="filter-box">
                     <VBox spacing="5">
-                        <Label text="Response Code" />
-                        <VBox fx:id="responseCodeBox" spacing="5"/>
-                        <Button text="+" fx:id="addResponseCodeBtn" onAction="#onAddResponseCodeBox" />
+                        <Label text="Response Status Code" />
+                        <VBox fx:id="responseStatusCodeVBox" spacing="5"/>
+                        <Button text="+" fx:id="addResponseStatusCodeButton" onAction="#onAddResponseStatusCodeBox" />
                     </VBox>
                 </StackPane>
 
-                <StackPane fx:id="sizeSliderStack" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="filter-box">
+                <StackPane GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="filter-box">
                     <VBox spacing="5">
-                        <Label text="Size (Bytes)" />
+                        <Label text="Bytes Size" />
                             
                             <VBox spacing="10">
                                 <VBox spacing="2">
-                                    <TextField fx:id="sizeFieldMin" promptText="Min..." styleClass="neon-input"/>
-                                    <Label fx:id="minErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
+                                    <TextField fx:id="bytesSizeMinField" promptText="Min..." styleClass="neon-input"/>
+                                    <Label fx:id="bytesSizeMinFieldErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
                                 </VBox>
                                 <VBox spacing="2">
-                                    <TextField fx:id="sizeFieldMax" promptText="Max..." styleClass="neon-input"/>
-                                    <Label fx:id="maxErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
+                                    <TextField fx:id="bytesSizeMaxField" promptText="Max..." styleClass="neon-input"/>
+                                    <Label fx:id="bytesSizeMaxFieldErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
                                 </VBox>
                             </VBox>
 
-                            <StackPane fx:id="sizeSliderStack" styleClass="slider-stack">
-                                <RangeSlider fx:id="sizeRangeSlider" styleClass="range-slider"
-                                    min="0" max="524288"
-                                    lowValue="0" highValue="524288"
+                            <StackPane fx:id="bytesSizeSliderStack" styleClass="slider-stack">
+                                <RangeSlider fx:id="bytesSizeRangeSlider" styleClass="range-slider"
+                                    min="-1" max="524288"
+                                    lowValue="-1" highValue="524288"
                                     showTickMarks="true" showTickLabels="true"
                                     majorTickUnit="131072"
                                     minorTickCount="8" />
                                 
                                 <HBox spacing="20" alignment="CENTER" mouseTransparent="true">
-                                    <Label fx:id="minSizeLabel" text="0 B" styleClass="floating-label" opacity="0" />
-                                    <Label fx:id="maxSizeLabel" text="524,288 B" styleClass="floating-label" opacity="0" />
+                                    <Label fx:id="minBytesSizeRangeSliderLabel" text="-1" styleClass="floating-label" opacity="0" />
+                                    <Label fx:id="maxBytesSizeRangeSliderLabel" text="524288" styleClass="floating-label" opacity="0" />
                                 </HBox>
                             </StackPane>
                     </VBox>
@@ -131,25 +140,30 @@
 
                 <StackPane GridPane.rowIndex="1" GridPane.columnIndex="2" styleClass="filter-box">
                     <VBox spacing="5">
-                        <Label text="Referrer" />
-                        <TextField fx:id="referrerField" promptText="Search Referrer..." styleClass="neon-input"/>
+                        <Label text="Request URL" />
+                        <TextField fx:id="requestURLField" promptText="Search Request URL..." styleClass="neon-input"/>
                     </VBox>
                 </StackPane>
 
                 <StackPane GridPane.rowIndex="1" GridPane.columnIndex="3" styleClass="filter-box">
                     <VBox spacing="5">
                         <Label text="User Agent" />
-                        <TextField fx:id="agentField" promptText="OS..." styleClass="neon-input"/>
+                        <TextField fx:id="osField" promptText="OS..." styleClass="neon-input"/>
                         <TextField fx:id="browserField" promptText="Browser..." styleClass="neon-input"/>
                         <TextField fx:id="deviceField" promptText="Device..." styleClass="neon-input"/>
                     </VBox>
                 </StackPane>
-
+                <StackPane GridPane.rowIndex="1" GridPane.columnIndex="4" styleClass="filter-box">
+                    <VBox spacing="5">
+                        <Label text="Referrer" />
+                        <TextField fx:id="referrerField" promptText="Search Referrer..." styleClass="neon-input"/>
+                    </VBox>
+                </StackPane>
             </GridPane>
 
             <!-- Bottom Buttons -->
             <HBox spacing="10" alignment="CENTER_RIGHT">
-                <Button fx:id="clearButton" text="Clear" />
+                <Button fx:id="clearButton" text="Clear" onAction="#onClearButtonPressed"  />
                 <Button fx:id="applyButton" text="Apply" onAction="#onApplyButtonPressed" />
             </HBox>
         </VBox>

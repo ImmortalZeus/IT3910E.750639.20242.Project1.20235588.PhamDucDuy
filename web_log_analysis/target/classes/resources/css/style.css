@@ -58,8 +58,10 @@
     -fx-text-fill: #00ffff;
 }
 
-.log-table .column-header-background {
-    -fx-background-color: #142C38;
+.log-table .column-header {
+    -fx-background-color: #3f4e57;
+    -fx-border-color: #00ffff;
+    -fx-text-fill: #ffffff;
 }
 
 .log-table .table-cell {
@@ -67,8 +69,21 @@
     -fx-text-fill: #00ffff;
 }
 
-.log-table .table-row-cell:selected {
-    -fx-background-color: #004E64;
+.log-table .table-cell:selected {
+    -fx-background-color: #ffff00 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold !important;
+}
+
+.log-table .table-row-cell {
+    -fx-background-color: #0A1C26;
+    -fx-text-fill: #00ffff;
+}
+
+.log-table .table-row-cell:selected .table-cell {
+    -fx-background-color: #ffff00 !important;
+    -fx-text-fill: #000000 !important;
+    -fx-font-weight: bold !important;
 }
 
 /* ========== LineChart Styling ========== */

@@ -77,9 +77,9 @@
             <padding><Insets top="30" bottom="30" left="30" right="30"/></padding>
 
             <!-- Upload Button -->
-            <Button fx:id="uploadApacheButton" text="Upload Apache Log File" onAction="#onUploadButtonPressed"
+            <Button fx:id="uploadApacheButton" text="Upload Apache Log File" onAction="#onUploadApacheButtonPressed"
                     styleClass="upload-button" maxWidth="200" />
-            <Button fx:id="uploadNginxButton" text="Upload Nginx Log File" onAction="#onUploadButtonPressed"
+            <Button fx:id="uploadNginxButton" text="Upload Nginx Log File" onAction="#onUploadNginxButtonPressed"
                     styleClass="upload-button" maxWidth="200" />
         </VBox>
     </center>

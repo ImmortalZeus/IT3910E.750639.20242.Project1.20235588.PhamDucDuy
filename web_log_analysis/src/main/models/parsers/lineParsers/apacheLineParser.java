@@ -121,8 +121,10 @@ public class apacheLineParser implements Runnable {
                 logData res = new logData(map);
                 //mongodb.insertOne(res);
                 this.aggregator.collect(res);
+                this.aggregator.addSucceed();
             }
         } catch (Exception e) {
+            this.aggregator.addFail();
         }
     }
 }

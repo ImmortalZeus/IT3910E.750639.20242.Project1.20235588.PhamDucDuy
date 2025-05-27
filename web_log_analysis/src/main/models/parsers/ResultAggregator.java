@@ -16,6 +16,16 @@ public class ResultAggregator {
     //private final static Queue<logData> dataQueue = new ConcurrentLinkedQueue<>();
     private final static List<logData> dataArrayList = Collections.synchronizedList(new ArrayList<>());
     private final static mongoDB mongodb = new mongoDB();
+    private AtomicInteger succeed = new AtomicInteger(0);
+    private AtomicInteger fail = new AtomicInteger(0);
+
+    public void addSucceed() {
+        succeed.incrementAndGet();
+    }
+
+public void addFail() {
+        fail.incrementAndGet();
+    }
 
     public void collect(logData e) {
         dataArrayList.add(e);
@@ -29,5 +39,13 @@ public class ResultAggregator {
             dataArrayList.clear();
         } 
         //dataQueue.clear();
+    }
+
+    public Integer getSucceed() {
+        return succeed.get();
+    }
+
+    public Integer getFail() {
+        return fail.get();
     }
 }

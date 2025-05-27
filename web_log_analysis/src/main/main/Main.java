@@ -74,7 +74,7 @@ public class Main {
             long startTime3 = System.nanoTime();
             //System.out.println(mongodb.aggregate("time"));
             //System.out.println(mongodb.aggregate("requestMethod"));
-            mongodb.aggregate("time");
+            mongodb.aggregate(null, "time");
             long stopTime3 = System.nanoTime();
             System.out.println(stopTime3 - startTime3);
 

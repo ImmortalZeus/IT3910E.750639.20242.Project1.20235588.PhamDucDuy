@@ -101,6 +101,7 @@ public class nginxLineParser implements Runnable {
                 logData res = new logData(map);
                 //mongodb.insertOne(res);    
                 this.aggregator.collect(res);
+                this.aggregator.addSucceed();
                 // HashMap<String, String> res = new HashMap<String, String>();
                 // for(Map.Entry<String, Object> tmp: map.entrySet())
                 // {
@@ -109,6 +110,7 @@ public class nginxLineParser implements Runnable {
                 // return res;
             }
         } catch (Exception e) {
+            this.aggregator.addFail();
         }
     }
 }

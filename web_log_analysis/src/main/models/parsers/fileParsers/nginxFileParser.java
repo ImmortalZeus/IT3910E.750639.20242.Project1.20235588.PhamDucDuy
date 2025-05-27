@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class nginxFileParser {
     private static final int BATCH_SIZE = 100;
 
-    public void parse(String filepath) throws fileParserException {
+    public ResultAggregator parse(String filepath) throws fileParserException {
         try {
             // ExecutorService executor = Executors.newFixedThreadPool(
             //     Runtime.getRuntime().availableProcessors()
@@ -67,6 +67,7 @@ public class nginxFileParser {
                         br.close();
                     }
                     aggregator.saveToMongodb();
+                    return aggregator;
                 }
             } catch (Exception e) {
                 try {
