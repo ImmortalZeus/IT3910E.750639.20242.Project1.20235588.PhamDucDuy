@@ -15,11 +15,16 @@ import javafx.stage.Stage;
 import models.logData.logData;
 import models.mongoDB.mongoDB;
 
-public class InvalidFilterController {
+public class InvalidFilterController implements DataReceiver<HashMap<String, Object>> {
     @FXML private VBox invalidFilterVbox;
 
     @FXML
     public void initialize() {
         invalidFilterVbox.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+    }
+
+    @Override
+    public void setData(HashMap<String, Object> data) {
+        // do something here
     }
 }

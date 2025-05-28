@@ -40,20 +40,25 @@ public class App extends Application {
         stage.show();
     }
 
+    private static void setData(FXMLLoader loader, HashMap<String, Object> data)
+    {
+        if(data != null)
+        {
+            Object controller = loader.getController(); // ❌ This is null BEFORE load()
+            if (controller instanceof DataReceiver) {
+                @SuppressWarnings("unchecked")
+                DataReceiver<HashMap<String, Object>> dataReceiver = (DataReceiver<HashMap<String, Object>>) controller;
+                dataReceiver.setData(data);
+            }
+        }
+    }
+
     public static void switchScene(String fxmlFile, HashMap<String, Object> data) {
         try {
             FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource(fxmlFile));
             Parent newRoot = loader.load();
 
-            if(data != null)
-            {
-                Object controller = loader.getController(); // ❌ This is null BEFORE load()
-                if (controller instanceof DataReceiver) {
-                    @SuppressWarnings("unchecked")
-                    DataReceiver<HashMap<String, Object>> dataReceiver = (DataReceiver<HashMap<String, Object>>) controller;
-                    dataReceiver.setData(data);
-                }
-            }
+            setData(loader, data);
 
             mainScene.setRoot(newRoot);
             mainScene.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
@@ -82,15 +87,7 @@ public class App extends Application {
             FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource("resources/views/filter.fxml"));
             Parent root = loader.load();
 
-            if(data != null)
-            {
-                Object controller = loader.getController(); // ❌ This is null BEFORE load()
-                if (controller instanceof DataReceiver) {
-                    @SuppressWarnings("unchecked")
-                    DataReceiver<HashMap<String, Object>> dataReceiver = (DataReceiver<HashMap<String, Object>>) controller;
-                    dataReceiver.setData(data);
-                }
-            }
+            setData(loader, data);
 
             filterStage = new Stage();
             filterStage.setTitle("Filter Logs");
@@ -110,7 +107,7 @@ public class App extends Application {
     public static void closeFilterStage() {
         if (filterStage != null && filterStage.isShowing()) {
             Platform.runLater(() -> filterStage.close());
-            // loadingStage.close();
+            // filterStage.close();
         }
     }
 
@@ -121,15 +118,7 @@ public class App extends Application {
             FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource("resources/views/loading.fxml"));
             Parent root = loader.load();
 
-            if(data != null)
-            {
-                Object controller = loader.getController(); // ❌ This is null BEFORE load()
-                if (controller instanceof DataReceiver) {
-                    @SuppressWarnings("unchecked")
-                    DataReceiver<HashMap<String, Object>> dataReceiver = (DataReceiver<HashMap<String, Object>>) controller;
-                    dataReceiver.setData(data);
-                }
-            }
+            setData(loader, data);
 
             loadingStage = new Stage();
             loadingStage.initStyle(StageStyle.UNDECORATED);
@@ -156,10 +145,12 @@ public class App extends Application {
 
     public static Stage invalidFilterStage;
 
-    public static void showInvalidFilterStage() {
+    public static void showInvalidFilterStage(HashMap<String, Object> data) {
         try {
             FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource("resources/views/invalid.fxml"));
             Parent newRoot = loader.load();
+
+            setData(loader, data);
 
             invalidFilterStage = new Stage();
             // invalidFilterStage.initStyle(StageStyle.UNDECORATED);
@@ -173,6 +164,44 @@ public class App extends Application {
             invalidFilterStage.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void closeInvalidFilterStage() {
+        if (invalidFilterStage != null && invalidFilterStage.isShowing()) {
+            Platform.runLater(() -> invalidFilterStage.close());
+            // invalidFilterStage.close();
+        }
+    }
+
+    public static Stage parseResultStage;
+
+    public static void showParseResultStageStage(HashMap<String, Object> data) {
+        try {
+            FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource("resources/views/parseResult.fxml"));
+            Parent newRoot = loader.load();
+
+            setData(loader, data);
+
+            parseResultStage = new Stage();
+            parseResultStage.initStyle(StageStyle.UNDECORATED);
+            parseResultStage.setTitle("Invalid Filter!");
+            Scene parseResultScene = new Scene(newRoot);
+            parseResultScene.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+            parseResultStage.setScene(parseResultScene);
+            parseResultStage.initModality(Modality.WINDOW_MODAL);
+            parseResultStage.initOwner(primaryStage); 
+            parseResultStage.setResizable(false);
+            parseResultStage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void closeParseResultStage() {
+        if (parseResultStage != null && parseResultStage.isShowing()) {
+            Platform.runLater(() -> parseResultStage.close());
+            // parseResultStage.close();
         }
     }
     

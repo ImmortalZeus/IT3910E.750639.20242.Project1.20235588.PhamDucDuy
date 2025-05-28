@@ -39,8 +39,8 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
 
         fetchDataTask.setOnSucceeded(v2 -> {
             HashMap<String, Object> data = fetchDataTask.getValue();
-            main.App.switchToDashboard(data);
             main.App.closeLoadingStage();
+            main.App.switchToDashboard(data);
         });
 
         Thread thread = new Thread(fetchDataTask);

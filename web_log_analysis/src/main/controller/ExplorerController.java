@@ -109,6 +109,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
             };
 
             parseTask.setOnSucceeded(v -> {
+                
                 ResultAggregator parseTaskValue = parseTask.getValue();
 
                 Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
@@ -119,9 +120,14 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                 };
 
                 fetchDataTask.setOnSucceeded(v2 -> {
-                    HashMap<String, Object> data = fetchDataTask.getValue();
-                    main.App.switchToDashboard(data);
+                    HashMap<String, Object> fetchDataTaskValue = fetchDataTask.getValue();
+                    HashMap<String, Object> data = new HashMap<>();
+                    data.put("parseTaskValue", parseTaskValue);
+                    data.put("fetchDataTaskValue", fetchDataTaskValue);
                     main.App.closeLoadingStage();
+                    main.App.showParseResultStageStage(data);
+                    // main.App.switchToDashboard(data);
+                    // main.App.closeParseResultStage();
                 });
 
                 Thread thread = new Thread(fetchDataTask);
