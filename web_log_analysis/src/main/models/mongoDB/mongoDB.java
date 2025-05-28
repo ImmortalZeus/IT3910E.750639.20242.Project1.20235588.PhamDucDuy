@@ -280,7 +280,7 @@ public class mongoDB {
             
             List<Bson> pipeline = Arrays.asList(
                 new Document("$match", query),
-                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId())) : "$" + field)
+                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")) : "$" + field)
                     .append("boundaries", boundaries)
                     .append("default", "Outside Range")
                     .append("output", new Document("count", new Document("$sum", 1)))),
@@ -293,7 +293,7 @@ public class mongoDB {
         else
         {
             List<Bson> pipeline = Arrays.asList(
-                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId())) : "$" + field)
+                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")) : "$" + field)
                     .append("boundaries", boundaries)
                     .append("default", "Outside Range")
                     .append("output", new Document("count", new Document("$sum", 1)))),

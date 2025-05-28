@@ -45,6 +45,8 @@ import java.time.temporal.ChronoUnit;
 
 import models.logData.logData;
 import models.mongoDB.mongoDB;
+import models.utils.dateToUTC;
+
 import org.bson.Document;
 
 import com.mongodb.client.FindIterable;
@@ -269,11 +271,11 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                 Duration period = totalDuration.dividedBy(SEGMENT_COUNT);
 
                 List<Date> checkpoints = new ArrayList<>();
-                checkpoints.add(minDate);
+                checkpoints.add(dateToUTC.convert(minDate));
                 for (int i = 1; i < SEGMENT_COUNT; i++) {
-                    checkpoints.add(Date.from(minDateInstant.plus(period.multipliedBy(i)).truncatedTo(ChronoUnit.SECONDS)));
+                    checkpoints.add(dateToUTC.convert(Date.from(minDateInstant.plus(period.multipliedBy(i)).truncatedTo(ChronoUnit.SECONDS))));
                 }
-                checkpoints.add(maxDate);
+                checkpoints.add(dateToUTC.convert(maxDate));
 
                 ArrayList<Document> bucketRes = PrimaryController.mongodb.bucket(fr, "time", checkpoints);
 
@@ -384,7 +386,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         PrimaryController.currentPage = (PrimaryController.currentPage - 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
         ObservableList<logData> x = PrimaryController.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage * 1000, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
         logTable.setItems(x);
-        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + "entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
     }
     @FXML
     private void onNextButtonPressed() {
@@ -392,7 +394,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         PrimaryController.currentPage = (PrimaryController.currentPage + 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
         ObservableList<logData> x = PrimaryController.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage * 1000, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
         logTable.setItems(x);
-        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + "entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
     }
 
     public void setData(HashMap<String, Object> data) {
@@ -600,7 +602,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             }
         }
 
-        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + "entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
     }
 
     @FXML

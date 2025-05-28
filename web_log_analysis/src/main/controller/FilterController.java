@@ -56,6 +56,7 @@ import models.logData.logData;
 import models.mongoDB.mongoDB;
 import models.parsers.fileParsers.apacheFileParser;
 import models.parsers.fileParsers.nginxFileParser;
+import models.utils.dateToUTC;
 import javafx.scene.control.ComboBox;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -241,8 +242,8 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 LocalDateTime fromDateTime = timestampFromDateValue != null ? LocalDateTime.of(timestampFromDateValue, timestampFromTimeValue == null ? LocalTime.of(0, 0, 0) : timestampFromTimeValue) : null;
                 LocalDateTime toDateTime = timestampToDateValue != null ? LocalDateTime.of(timestampToDateValue, timestampToTimeValue == null ? LocalTime.of(23, 59, 59) : timestampToTimeValue) : null;
 
-                if(fromDateTime != null) byPeriodValueHashMap.put("byPeriodStartValue", Date.from(fromDateTime.atZone(ZoneId.systemDefault()).toInstant()));
-                if(toDateTime != null) byPeriodValueHashMap.put("byPeriodEndValue", Date.from(toDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+                if(fromDateTime != null) byPeriodValueHashMap.put("byPeriodStartValue", dateToUTC.convert(Date.from(fromDateTime.atZone(ZoneId.systemDefault()).toInstant())));
+                if(toDateTime != null) byPeriodValueHashMap.put("byPeriodEndValue", dateToUTC.convert(Date.from(toDateTime.atZone(ZoneId.systemDefault()).toInstant())));
                 
                 filter_rules.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
             }

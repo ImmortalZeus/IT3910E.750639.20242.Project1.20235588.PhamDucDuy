@@ -9,6 +9,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 
@@ -131,6 +132,7 @@ public class App extends Application {
             }
 
             loadingStage = new Stage();
+            loadingStage.initStyle(StageStyle.UNDECORATED);
             loadingStage.setTitle("Loading...");
             Scene loadingScene = new Scene(root);
             loadingScene.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());

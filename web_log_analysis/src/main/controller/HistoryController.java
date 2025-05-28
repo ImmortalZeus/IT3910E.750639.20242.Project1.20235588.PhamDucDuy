@@ -63,28 +63,28 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
 
     private HBox createLogEntry(String fileName, int index) {
     
-    HBox entryBox = new HBox(10);
-    entryBox.getStyleClass().add("log-entry");
-    entryBox.setAlignment(Pos.CENTER_LEFT);
-    entryBox.setPadding(new Insets(10));
-    
-    Label indexLabel = new Label(String.valueOf(index));
-    indexLabel.getStyleClass().add("log-index");
+        HBox entryBox = new HBox(10);
+        entryBox.getStyleClass().add("log-entry");
+        entryBox.setAlignment(Pos.CENTER_LEFT);
+        entryBox.setPadding(new Insets(10));
+        
+        Label indexLabel = new Label(String.valueOf(index));
+        indexLabel.getStyleClass().add("log-index");
 
-    Label nameLabel = new Label(fileName);
-    nameLabel.getStyleClass().add("log-filename");
-    HBox.setHgrow(nameLabel, Priority.ALWAYS);
+        Label nameLabel = new Label(fileName);
+        nameLabel.getStyleClass().add("log-filename");
+        HBox.setHgrow(nameLabel, Priority.ALWAYS);
 
-    Button loadButton = new Button("Load");
-    // loadButton.getStyleClass().add("load-button");
-    // loadButton.setOnAction(e -> loadLogFile(fileName)); //Replace with loading logic
+        Button loadButton = new Button("Load");
+        // loadButton.getStyleClass().add("load-button");
+        // loadButton.setOnAction(e -> loadLogFile(fileName)); //Replace with loading logic
 
-    Button deleteButton = new Button("🗑"); // Unicode trash can
-    // deleteButton.getStyleClass().add("delete-button");
-    // deleteButton.setOnAction(e -> deleteLogEntry(fileName, entryBox)); //Replace with deletion logic
+        Button deleteButton = new Button("🗑"); // Unicode trash can
+        // deleteButton.getStyleClass().add("delete-button");
+        // deleteButton.setOnAction(e -> deleteLogEntry(fileName, entryBox)); //Replace with deletion logic
 
-    entryBox.getChildren().addAll(indexLabel, nameLabel, loadButton, deleteButton);
-    return entryBox;
-}
+        entryBox.getChildren().addAll(indexLabel, nameLabel, loadButton, deleteButton);
+        return entryBox;
+    }
 
 }

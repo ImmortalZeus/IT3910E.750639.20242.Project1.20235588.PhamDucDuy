@@ -62,7 +62,7 @@
                 <TableView fx:id="logTable" prefHeight="301.0" prefWidth="1000.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                   <columns>
                     <TableColumn fx:id="indexColumn" sortable="false" prefWidth="70.0" text="Index"/>
-                    <TableColumn fx:id="dateTimeColumn" sortable="false" prefWidth="140.0" text="Date Time"/>
+                    <TableColumn fx:id="dateTimeColumn" sortable="false" prefWidth="150.0" text="Date Time"/>
                     <TableColumn fx:id="ipColumn" sortable="false" prefWidth="110.0" text="IP"/>
                     <TableColumn fx:id="userColumn" sortable="false" prefWidth="90.0" text="User"/>
                     <TableColumn fx:id="methodColumn" sortable="false" prefWidth="70.0" text="Method"/>
