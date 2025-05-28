@@ -39,8 +39,7 @@
             <TableView fx:id="logTable" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
                     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
                 <columns>
-                    <TableColumn fx:id="dateColumn" prefWidth="100.0" text="Date" />
-                    <TableColumn fx:id="timeColumn" prefWidth="90.0" text="Time" />
+                    <TableColumn fx:id="dateTimeColumn" prefWidth="100.0" text="Date" />
                     <TableColumn fx:id="ipColumn" prefWidth="110.0" text="IP" />
                     <TableColumn fx:id="userColumn" prefWidth="70.0" text="User" />
                     <TableColumn fx:id="requestColumn" prefWidth="160.0" text="Request" />

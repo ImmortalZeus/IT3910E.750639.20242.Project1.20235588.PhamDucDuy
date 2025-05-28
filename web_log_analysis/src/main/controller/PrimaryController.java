@@ -1,5 +1,7 @@
 package controller;
 
+import static com.mongodb.client.model.Filters.empty;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -7,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -16,9 +19,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Orientation;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -26,11 +32,17 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.Node;
 
 import javafx.animation.FadeTransition;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Popup;
-import javafx.util.Duration;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+
 import models.logData.logData;
 import models.mongoDB.mongoDB;
 import org.bson.Document;
@@ -41,13 +53,17 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class PrimaryController {
+public class PrimaryController implements DataReceiver<HashMap<String, Object>> {
+    protected static Integer currentPage = -1;
+    protected static Integer maxPage = -1;
+    protected static Integer rowsPerPage = 1000;
+    protected static HashMap<String, Object> filter_rules = new HashMap<>();
+    private mongoDB mongodb = new mongoDB();
 
     @FXML private TableView<logData> logTable;
     @FXML private TableView<?> statusTable;
     @FXML private TableColumn<logData, Integer> indexColumn;
-    @FXML private TableColumn<logData, String> dateColumn;
-    @FXML private TableColumn<logData, String> timeColumn;
+    @FXML private TableColumn<logData, String> dateTimeColumn;
     @FXML private TableColumn<logData, String> ipColumn;
     @FXML private TableColumn<logData, String> userColumn;
     @FXML private TableColumn<logData, String> methodColumn;
@@ -62,6 +78,13 @@ public class PrimaryController {
     @FXML private TableColumn<logData, String> osColumn;
     @FXML private TableColumn<logData, String> deviceColumn;
     @FXML private TableColumn<logData, String> agentColumn;
+
+    @FXML private CategoryAxis xAxis;
+    @FXML private NumberAxis yAxis;
+    
+    @FXML private Label pageNumText;
+    @FXML private Button prevButton;
+    @FXML private Button nextButton;
 
     @FXML private HBox tableSection;
     // @FXML private TextField searchField;
@@ -183,22 +206,124 @@ public class PrimaryController {
     // Placeholder until filtering is wired to backend
     @FXML
     private void onDashboardButtonPressed() {
-        main.App.switchToDashboard();
+        main.App.showLoadingStage(null);
+        Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
+            @Override
+            protected HashMap<String, Object> call() throws Exception {
+                try {
+                    // Simulate log parsing (replace with real logic)
+                    HashMap<String, Object> data = new HashMap<String, Object>();
+                    
+                    if(PrimaryController.currentPage.equals(-1)) PrimaryController.currentPage = 0;
+                    if(PrimaryController.maxPage.equals(-1)) PrimaryController.maxPage = Double.valueOf(Math.floor(Double.valueOf(PrimaryController.this.mongodb.count(PrimaryController.filter_rules)) / Double.valueOf(PrimaryController.rowsPerPage))).intValue();
+                    
+                    ObservableList<logData> logTableData = PrimaryController.this.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
+                    data.put("logTableData", logTableData);
+
+
+                    Map<String, Integer> countryData = new HashMap<String, Integer>();
+                    ArrayList<Document> countryAgg = PrimaryController.this.mongodb.aggregate(PrimaryController.filter_rules, "countryShort");
+                    for (Document doc : countryAgg) {
+                        Object key = doc.get("_id");
+                        int count = doc.getInteger("count", 0);
+                        countryData.put(key != null ? key.toString() : "-", count);
+                    }
+
+                    data.put("countryData", countryData);
+                    
+                    
+                    Map<Integer, Integer> responseStatusData = new HashMap<Integer, Integer>();
+                    ArrayList<Document> responseStatusAgg = PrimaryController.this.mongodb.aggregate(PrimaryController.filter_rules, "responseStatusCode");
+                    for (Document doc : responseStatusAgg) {
+                        Object key = doc.get("_id");
+                        int count = doc.getInteger("count", 0);
+                        responseStatusData.put((Integer)key, count);
+                    }
+
+                    data.put("responseStatusData", responseStatusData);
+                    
+                    try {
+                        Map<String, Integer> lineChartData = new HashMap<String, Integer>();
+                        final Integer SEGMENT_COUNT = 8;
+                        
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.ENGLISH);
+                        Date minDate = sdf.parse((String) PrimaryController.this.mongodb.getMin(PrimaryController.filter_rules, "time").get("min"));
+                        Date maxDate = sdf.parse((String) PrimaryController.this.mongodb.getMax(PrimaryController.filter_rules, "time").get("max"));;
+                        
+                        Instant minDateInstant = minDate.toInstant();
+                        Instant maxDateInstant = maxDate.toInstant();
+                        
+                        Duration totalDuration = Duration.between(minDateInstant, maxDateInstant);
+                        Duration period = totalDuration.dividedBy(SEGMENT_COUNT);
+
+                        List<Date> checkpoints = new ArrayList<>();
+                        checkpoints.add(minDate);
+                        for (int i = 1; i < SEGMENT_COUNT; i++) {
+                            checkpoints.add(Date.from(minDateInstant.plus(period.multipliedBy(i))));
+                        }
+                        checkpoints.add(maxDate);
+
+                        for (int i = 0; i < SEGMENT_COUNT; i++) {
+                            int j = i + 1;
+                            Date start = checkpoints.get(i);
+                            Date end = checkpoints.get(j);
+                            HashMap<String, Object> filter_rules2 = new HashMap<>(PrimaryController.filter_rules);
+
+                            filter_rules2.put("byPeriod", true);
+                            HashMap<String, Date> byPeriodValueHashMap = new HashMap<>();
+
+                            byPeriodValueHashMap.put("byPeriodStartValue", start);
+                            byPeriodValueHashMap.put("byPeriodEndValue", end);
+                            
+                            filter_rules2.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
+                            Integer cnt = PrimaryController.this.mongodb.count(filter_rules2);
+                            lineChartData.put("Dur " + String.valueOf(j), cnt);
+
+                            data.put("lineChartData", lineChartData);
+                        }
+                    } catch (Exception e) {
+                    }
+
+                    data.put("filter_rules", PrimaryController.filter_rules);
+
+                    data.put("currentPage", PrimaryController.currentPage);
+                    data.put("maxPage", PrimaryController.maxPage);
+                    data.put("rowsPerPage", PrimaryController.rowsPerPage);
+
+                    return data;
+                    // Process and upload the file to backend
+                    // Example: BackendService.uploadLogFile(selectedFile);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        };
+
+        fetchDataTask.setOnSucceeded(v2 -> {
+            HashMap<String, Object> data = fetchDataTask.getValue();
+            main.App.switchToDashboard(data);
+            main.App.closeLoadingStage();
+        });
+
+        Thread thread = new Thread(fetchDataTask);
+        thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+        thread.start();
     }
 
     @FXML
     private void onStreamButtonPressed() {
-        main.App.switchToStream();
+        main.App.switchToStream(null);
     }
     
     @FXML
     private void onExplorerButtonPressed() {
-        main.App.switchToExplorer();
+        main.App.switchToExplorer(null);
     }
 
     @FXML
     private void onFilterButtonPressed() {
-        main.App.openFilterStage();
+        main.App.openFilterStage(null);
     }
     @FXML
     private void onRefreshButtonPressed() {
@@ -206,12 +331,219 @@ public class PrimaryController {
         System.out.println("Filters cleared. Refreshed.");
     }
     @FXML
-    private void onLeftButtonPressed() {
-        System.out.println("Left button pressed.");
+    private void onPrevButtonPressed() {
+        // System.out.println("Prev button pressed.");
+        this.currentPage = (this.currentPage - 1 + this.maxPage) % this.maxPage;
+        ObservableList<logData> x = this.mongodb.filterWithSkipAndLimit(this.filter_rules, this.currentPage * 1000, this.rowsPerPage).into(FXCollections.observableArrayList());
+        logTable.setItems(x);
+        pageNumText.setText(String.format("Page : " + String.valueOf(this.currentPage + 1) + "/" + String.valueOf(this.maxPage)));
     }
     @FXML
-    private void onRightButtonPressed() {
-        System.out.println("Right button pressed.");
+    private void onNextButtonPressed() {
+        // System.out.println("Next button pressed.");
+        this.currentPage = (this.currentPage + 1 + this.maxPage) % this.maxPage;
+        ObservableList<logData> x = this.mongodb.filterWithSkipAndLimit(this.filter_rules, this.currentPage * 1000, this.rowsPerPage).into(FXCollections.observableArrayList());
+        logTable.setItems(x);
+        pageNumText.setText(String.format("Page : " + String.valueOf(this.currentPage + 1) + "/" + String.valueOf(this.maxPage)));
+    }
+
+    public void setData(HashMap<String, Object> data) {
+        Object tmp_filter_rules = data.get("filter_rules");
+        if(tmp_filter_rules != null && tmp_filter_rules instanceof HashMap<?, ?> map)
+        {
+            if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Object))
+            {
+                @SuppressWarnings("unchecked")
+                HashMap<String, Object> filter_rules = (HashMap<String, Object>) tmp_filter_rules;
+                
+                this.filter_rules = filter_rules;
+            }
+        }
+
+        Object tmp_currentPage = data.get("currentPage");
+        if(tmp_currentPage != null && tmp_currentPage instanceof Integer)
+        {
+            this.currentPage = (Integer) tmp_currentPage;
+        }
+
+        Object tmp_maxPage = data.get("maxPage");
+        if(tmp_maxPage != null && tmp_maxPage instanceof Integer)
+        {
+            this.maxPage = (Integer) tmp_maxPage;
+        }
+
+        Object tmp_rowsPerPage = data.get("rowsPerPage");
+        if(tmp_rowsPerPage != null && tmp_rowsPerPage instanceof Integer)
+        {
+            this.rowsPerPage = (Integer) tmp_rowsPerPage;
+        }
+
+        Object tmp_logTableData = data.get("logTableData");
+        if(tmp_logTableData != null && tmp_logTableData instanceof ObservableList<?>)
+        {
+            ObservableList<?> tmp_logTableData2 = (ObservableList<?>) tmp_logTableData;
+
+            if(!tmp_logTableData2.isEmpty() && tmp_logTableData2.stream().allMatch(item -> item instanceof logData))
+            {
+                @SuppressWarnings("unchecked")
+                ObservableList<logData> logTableData = (ObservableList<logData>) tmp_logTableData2;
+                logTable.setItems(logTableData);
+            }
+        }
+
+        Object tmp_countryData = data.get("countryData");
+        if(tmp_countryData != null && tmp_countryData instanceof HashMap<?, ?> map)
+        {
+            if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Integer))
+            {
+                @SuppressWarnings("unchecked")
+                Map<String, Integer> countryData = (Map<String, Integer>) tmp_countryData;
+
+                int totalRequests = countryData.values().stream().mapToInt(Integer::intValue).sum();
+
+                ObservableList<PieChart.Data> pieChartCountryData = FXCollections.observableArrayList();
+
+                for (Map.Entry<String, Integer> entry : countryData.entrySet()) {
+                    String country = entry.getKey();
+                    int requests = entry.getValue();
+                    double percentage = (requests * 100.0) / totalRequests;
+
+                    String label = (country.equals("-") ? "Undefined" : country) + " (" + String.format("%.1f", percentage) + "%)";
+                    pieChartCountryData.add(new PieChart.Data(label, requests));
+                }
+
+                pieChartCountry.setData(pieChartCountryData);
+
+                for (PieChart.Data piedata : pieChartCountryData) {
+                    String country = piedata.getName();
+                    double percent = (piedata.getPieValue() / totalRequests) * 100;
+                    int actualCount = (int) piedata.getPieValue();
+
+                    // Create a styled label as a tooltip
+                    Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
+                    tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                    tooltipLabel.getStyleClass().add("piechart-tooltip");
+                    Popup popup = new Popup();
+                    popup.getContent().add(tooltipLabel);
+                    popup.setAutoHide(true);
+
+                    FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), tooltipLabel);
+                    fadeIn.setFromValue(0);
+                    fadeIn.setToValue(1);
+
+                    // Show tooltip on hover
+                    piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                        tooltipLabel.setOpacity(0);
+                        popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                        fadeIn.playFromStart();
+                    });
+
+                    // Hide tooltip on exit
+                    piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                }
+
+            }
+        }
+
+        Object tmp_responseStatusData = data.get("responseStatusData");
+        if(tmp_responseStatusData != null && tmp_responseStatusData instanceof HashMap<?, ?> map)
+        {
+            if(map.keySet().stream().allMatch(key -> key instanceof Integer) && map.values().stream().allMatch(value -> value instanceof Integer))
+            {
+                @SuppressWarnings("unchecked")
+                Map<Integer, Integer> responseStatusData = (Map<Integer, Integer>) tmp_responseStatusData;
+
+                int totalResponses = responseStatusData.values().stream().mapToInt(Integer::intValue).sum();
+        
+                ObservableList<PieChart.Data> pieChartResponseStatusData = FXCollections.observableArrayList();
+
+                for (Map.Entry<Integer, Integer> entry : responseStatusData.entrySet()) {
+                    int status = entry.getKey();
+                    int count = entry.getValue();
+                    double percentage = (count * 100.0) / totalResponses;
+
+                    String label = status + " (" + String.format("%.1f", percentage) + "%)";
+                    pieChartResponseStatusData.add(new PieChart.Data(label, count));
+                }
+
+                pieChartResponseStatus.setData(pieChartResponseStatusData);
+
+                for (PieChart.Data piedata : pieChartResponseStatus.getData()) {
+                    String status = piedata.getName();
+                    double percent = (piedata.getPieValue() / totalResponses) * 100;
+                    int actualCount = (int) piedata.getPieValue();
+
+                    Label restooltipLabel = new Label(String.format("Status Code: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
+                    restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                    restooltipLabel.getStyleClass().add("piechart-tooltip");
+                    Popup popup = new Popup();
+                    popup.getContent().add(restooltipLabel);
+                    popup.setAutoHide(true);
+
+                    FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), restooltipLabel);
+                    fadeIn.setFromValue(0);
+                    fadeIn.setToValue(1);
+
+                    piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                        restooltipLabel.setOpacity(0);
+                        popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                        fadeIn.playFromStart();
+                    });
+
+                    piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                }
+            }
+        }
+
+        Object tmp_lineChartData = data.get("lineChartData");
+        if(tmp_lineChartData != null && tmp_lineChartData instanceof HashMap<?, ?> map)
+        {
+            if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Integer))
+            {
+                @SuppressWarnings("unchecked")
+                Map<String, Integer> lineChartData = (Map<String, Integer>) tmp_lineChartData;
+
+                XYChart.Series<String, Number> series = new XYChart.Series<>();
+                Integer minCnt = -1;
+                Integer maxCnt = -1;
+                for (Map.Entry<String, Integer> entry : lineChartData.entrySet()) {
+                    String label = entry.getKey();
+                    Integer cnt = entry.getValue();
+
+                    minCnt = minCnt == -1 ? cnt : Math.min(minCnt, cnt);
+                    maxCnt = minCnt == -1 ? cnt : Math.max(maxCnt, cnt);
+
+                    series.getData().add(new XYChart.Data<>(label, cnt));
+                }
+
+                yAxis.setAutoRanging(false);
+                Integer delta = maxCnt - minCnt;
+                if(delta > 1000)
+                {
+                    delta = 1000;
+                }
+                else if (delta > 500)
+                {
+                    delta = 500;
+                }
+                else if (delta > 100)
+                {
+                    delta = 100;
+                }
+                else
+                {
+                    delta = 20;
+                }
+                yAxis.setLowerBound(minCnt - delta);
+                yAxis.setUpperBound(maxCnt + delta);
+                yAxis.setTickUnit(Math.max(((maxCnt + delta) - (minCnt - delta)) / 15, 10));
+
+                lineChart.getData().add(series);
+            }
+        }
+
+
+        pageNumText.setText(String.format("Page : " + String.valueOf(this.currentPage + 1) + "/" + String.valueOf(this.maxPage)));
     }
 
     @FXML
@@ -225,113 +557,24 @@ public class PrimaryController {
 
     @FXML
     public void initialize() {
-
-        mongoDB mongodb = new mongoDB();
-
-        Map<String, Integer> countryData = new HashMap<String, Integer>();
-        ArrayList<Document> tmp = mongodb.aggregate("countryShort");
-        for (Document doc : tmp) {
-            Object key = doc.get("_id");
-            int count = doc.getInteger("count", 0);
-            countryData.put(key != null ? key.toString() : "-", count);
-        }
-        if (countryData == null || countryData.isEmpty()) return;
-
-        int totalRequests = countryData.values().stream().mapToInt(Integer::intValue).sum();
-
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
-
-        for (Map.Entry<String, Integer> entry : countryData.entrySet()) {
-            String country = entry.getKey();
-            int requests = entry.getValue();
-            double percentage = (requests * 100.0) / totalRequests;
-
-            String label = (country.equals("-") ? "Undefined" : country) + " (" + String.format("%.1f", percentage) + "%)";
-            pieChartData.add(new PieChart.Data(label, requests));
-        }
-
-        pieChartCountry.setData(pieChartData);
-
-        for (PieChart.Data data : pieChartCountry.getData()) {
-            String country = data.getName();
-            double percent = (data.getPieValue() / totalRequests) * 100;
-            int actualCount = (int) data.getPieValue();
-
-            // Create a styled label as a tooltip
-            Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
-            tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-            tooltipLabel.getStyleClass().add("piechart-tooltip");
-            Popup popup = new Popup();
-            popup.getContent().add(tooltipLabel);
-            popup.setAutoHide(true);
-
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), tooltipLabel);
-            fadeIn.setFromValue(0);
-            fadeIn.setToValue(1);
-
-            // Show tooltip on hover
-            data.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
-                tooltipLabel.setOpacity(0);
-                popup.show(data.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
-                fadeIn.playFromStart();
-            });
-
-            // Hide tooltip on exit
-            data.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
-        }
-
-        Map<Integer, Integer> responseData = new HashMap<Integer, Integer>();
-        ArrayList<Document> responseAgg = mongodb.aggregate("responseStatusCode");
-        for (Document doc : responseAgg) {
-            Object key = doc.get("_id");
-            int count = doc.getInteger("count", 0);
-            responseData.put((Integer)key, count);
-        }
-        if (responseData == null || responseData.isEmpty()) return;
+        pieChartCountry.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
         
-        int totalResponses = responseData.values().stream().mapToInt(Integer::intValue).sum();
-        
-        ObservableList<PieChart.Data> responsePieChartData = FXCollections.observableArrayList();
+        pieChartResponseStatus.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
 
-        for (Map.Entry<Integer, Integer> entry : responseData.entrySet()) {
-            int status = entry.getKey();
-            int count = entry.getValue();
-            double percentage = (count * 100.0) / totalResponses;
+        lineChart.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+        lineChart.getStyleClass().add("custom-line-chart");
 
-            String label = status + " (" + String.format("%.1f", percentage) + "%)";
-            responsePieChartData.add(new PieChart.Data(label, count));
-        }
+        pieChartCountry.setLegendVisible(false);
+        pieChartResponseStatus.setLegendVisible(false);
+        lineChart.setLegendVisible(false);
 
-        pieChartResponseStatus.setData(responsePieChartData);
+        // logTable.getSelectionModel().setCellSelectionEnabled(true);
+        logTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        logTable.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+        logTable.getStyleClass().add("log-table");
 
-        for (PieChart.Data data : pieChartResponseStatus.getData()) {
-            String status = data.getName();
-            double percent = (data.getPieValue() / totalResponses) * 100;
-            int actualCount = (int) data.getPieValue();
-
-            Label restooltipLabel = new Label(String.format("Status: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
-            restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-            restooltipLabel.getStyleClass().add("piechart-tooltip");
-            Popup popup = new Popup();
-            popup.getContent().add(restooltipLabel);
-            popup.setAutoHide(true);
-
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), restooltipLabel);
-            fadeIn.setFromValue(0);
-            fadeIn.setToValue(1);
-
-            data.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
-                restooltipLabel.setOpacity(0);
-                popup.show(data.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
-                fadeIn.playFromStart();
-            });
-
-            data.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
-        }
-    
         indexColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getIndex()).asObject());
-        dateColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
-        timeColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
+        dateTimeColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
         ipColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRemoteIp()));
         userColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRemoteUser()));
         methodColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequestMethod()));
@@ -347,119 +590,16 @@ public class PrimaryController {
         deviceColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDevice()));
         agentColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getAgent()));
 
-        HashMap<String, Object> filter_rules = new HashMap<String, Object>();
+        pageNumText.setText(String.format("Page : " + String.valueOf(PrimaryController.currentPage) + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+    }
 
-        filter_rules.put("byIndex", true);
-        Map<String, Integer> filterIndexMap = new HashMap<String, Integer>()
-        {
-            {
-                put("byIndexStartValue", 1);
-                put("byIndexEndValue", 500);
+    private void printAllNodes(Parent parent) {
+        for (Node node : parent.getChildrenUnmodifiable()) {
+            System.out.println(node.getClass().getSimpleName() + ": " + node);
+            if (node instanceof Parent p) {
+                printAllNodes(p);
             }
-        };
-        List<Map<String, Integer>> arr = List.of(filterIndexMap);
-        filter_rules.put("byIndexValue", arr);
-        
-        ObservableList<logData> x = mongodb.filter(filter_rules).into(FXCollections.observableArrayList());
-
-        logTable.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-        logTable.getStyleClass().add("log-table");
-        logTable.setItems(x);
-
-        lineChart.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-        lineChart.getStyleClass().add("custom-line-chart");
-
-
-        logTable.skinProperty().addListener((obs, oldSkin, newSkin) -> {
-            ScrollBar verticalBar = findVerticalScrollBar(logTable);
-            if (verticalBar != null) {
-                final Integer dataMinIndex = 1;
-                final Integer dataMaxIndex = Math.toIntExact(mongodb.count(new HashMap<>()));
-                final ObservableList<logData> logTableItems = logTable.getItems();
-                final AtomicReference<Integer> firstLogTableIndex = new AtomicReference<>(logTableItems.get(0).getIndex());
-                final AtomicReference<Integer> lastLogTableIndex = new AtomicReference<>(logTableItems.get(logTableItems.size() - 1).getIndex());
-                verticalBar.valueProperty().addListener((obs2, oldVal, newVal) -> {
-                    final Integer estimateNewVal = Long.valueOf(Math.round(newVal.doubleValue() / verticalBar.getMax() * (lastLogTableIndex.get() - firstLogTableIndex.get()) + firstLogTableIndex.get())).intValue();
-                    final Integer estimateOldVal = Long.valueOf(Math.round(oldVal.doubleValue() / verticalBar.getMax() * (lastLogTableIndex.get() - firstLogTableIndex.get()) + firstLogTableIndex.get())).intValue();
-                    if((newVal.doubleValue() / verticalBar.getMax() * 100 > 80 && estimateNewVal - estimateOldVal > 1) || (newVal.doubleValue() / verticalBar.getMax() * 100 < 20 && estimateOldVal - estimateNewVal > 1)) {
-                        final Integer currentVal = estimateNewVal;
-                        Integer fi = Math.max(dataMinIndex, currentVal - 500);
-                        Integer se = Math.min(dataMaxIndex, currentVal + 500);
-
-                        HashMap<String, Object> filter_rules2 = new HashMap<String, Object>();
-
-                        filter_rules2.put("byIndex", true);
-
-                        Map<String, Integer> filterIndexMap2 = new HashMap<String, Integer>()
-                        {
-                            {
-                                put("byIndexStartValue", fi);
-                                put("byIndexEndValue", se);
-                            }
-                        };
-                        List<Map<String, Integer>> arr2 = List.of(filterIndexMap2);
-                        filter_rules2.put("byIndexValue", arr2);
-                        ObservableList<logData> x2 = mongodb.filter(filter_rules2).into(FXCollections.observableArrayList());
-                        
-                        logTable.setItems(x2);
-                        logTableItems.clear();
-                        logTableItems.addAll(x2);
-                        firstLogTableIndex.set(logTableItems.get(0).getIndex());
-                        lastLogTableIndex.set(logTableItems.get(logTableItems.size() - 1).getIndex());
-                        
-                        logTable.scrollTo((currentVal - fi));
-                    }
-                    // final Integer fi = Math.max(Double.valueOf(Math.floor(currentval/1000)).intValue() + 1, dataMinIndex);
-                    // final Integer se = Math.min(Double.valueOf(Math.floor(currentval/1000)).intValue() + 1, dataMaxIndex);
-                    // if (oldVal.doubleValue() < newVal.doubleValue() && newVal.doubleValue() == verticalBar.getMax()) {
-                    //     System.out.println("Scrolled to bottom. Loading more...");
-                        
-                    //     final Integer currentIndex = logTable.getItems().get(0).getIndex();
-
-                    //     HashMap<String, Object> filter_rules2 = new HashMap<String, Object>();
-
-                    //     filter_rules2.put("byIndex", true);
-
-                    //     final Integer se = Math.min(currentIndex - 1 + 1000 + 1000, dataMaxIndex);
-                    //     Map<String, Integer> filterIndexMap2 = new HashMap<String, Integer>()
-                    //     {
-                    //         {
-                    //             put("byIndexStartValue", Math.max(se + 1 - 1000, dataMinIndex));
-                    //             put("byIndexEndValue", se);
-                    //         }
-                    //     };
-                    //     List<Map<String, Integer>> arr2 = List.of(filterIndexMap2);
-                    //     filter_rules2.put("byIndexValue", arr2);
-                    //     ObservableList<logData> x2 = mongodb.filter(filter_rules2).into(FXCollections.observableArrayList());
-                    //     logTable.setItems(x2);
-                    //     logTable.scrollTo(0);
-                    // }
-                    // else if (oldVal.doubleValue() > newVal.doubleValue() && newVal.doubleValue() == verticalBar.getMin()) {
-                    //     System.out.println("Scrolled to top. Loading more...");
-                        
-                    //     final Integer currentIndex = logTable.getItems().get(0).getIndex();
-
-                    //     HashMap<String, Object> filter_rules2 = new HashMap<String, Object>();
-
-                    //     filter_rules2.put("byIndex", true);
-
-                    //     final Integer fi = Math.max(currentIndex - 1000, dataMinIndex);
-                    //     Map<String, Integer> filterIndexMap2 = new HashMap<String, Integer>()
-                    //     {
-                    //         {
-                    //             put("byIndexStartValue", Math.max(currentIndex - 1000, dataMinIndex));
-                    //             put("byIndexEndValue", Math.min(fi - 1 + 1000, dataMaxIndex));
-                    //         }
-                    //     };
-                    //     List<Map<String, Integer>> arr2 = List.of(filterIndexMap2);
-                    //     filter_rules2.put("byIndexValue", arr2);
-                    //     ObservableList<logData> x2 = mongodb.filter(filter_rules2).into(FXCollections.observableArrayList());
-                    //     logTable.setItems(x2);
-                    //     logTable.scrollTo(logTable.getItems().size() - 1);
-                    // }
-                });
-            }
-        });
+        }
     }
 
     private ScrollBar findVerticalScrollBar(TableView<?> table) {

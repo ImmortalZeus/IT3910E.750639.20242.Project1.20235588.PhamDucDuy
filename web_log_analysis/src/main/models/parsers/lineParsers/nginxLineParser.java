@@ -16,6 +16,7 @@ import com.ip2location.IPResult;
 
 import models.logData.logData;
 import models.mongoDB.mongoDB;
+import models.parsers.ResultAggregator;
 import models.exceptions.*;
 import models.utils.ip2Location;
 import models.utils.parsedValueClassConverter;
@@ -32,9 +33,11 @@ public class nginxLineParser implements Runnable {
     private static final String regex = "((?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))";
     private static final Pattern pattern = Pattern.compile(regex);
     private static final userAgentParser useragentParser = new userAgentParser();
+    private ResultAggregator aggregator;
     private List<SimpleEntry<Integer, String>> lines;
-    public nginxLineParser(List<SimpleEntry<Integer, String>> lines) {
+    public nginxLineParser(List<SimpleEntry<Integer, String>> lines, ResultAggregator agg) {
         this.lines = lines;
+        this.aggregator = agg;
         // mapper.disable(MapperFeature.AUTO_DETECT_CREATORS);
         // mapper.disable(MapperFeature.AUTO_DETECT_FIELDS);
         // mapper.disable(MapperFeature.AUTO_DETECT_GETTERS);
@@ -96,7 +99,9 @@ public class nginxLineParser implements Runnable {
                 map = pVCC.fix(map);
                 
                 logData res = new logData(map);
-                mongodb.insertOne(res);    
+                //mongodb.insertOne(res);    
+                this.aggregator.collect(res);
+                this.aggregator.addSucceed();
                 // HashMap<String, String> res = new HashMap<String, String>();
                 // for(Map.Entry<String, Object> tmp: map.entrySet())
                 // {
@@ -105,6 +110,7 @@ public class nginxLineParser implements Runnable {
                 // return res;
             }
         } catch (Exception e) {
+            this.aggregator.addFail();
         }
     }
 }

@@ -2,8 +2,30 @@ package controller;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.stage.Stage;
+
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import org.apache.commons.lang3.Range;
+import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,26 +34,81 @@ import org.controlsfx.control.RangeSlider;
 import org.controlsfx.control.action.Action;
 
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import org.controlsfx.control.RangeSlider;
-import javafx.util.Duration;
+import java.time.Duration;
+import models.logData.logData;
+import models.mongoDB.mongoDB;
+import models.parsers.fileParsers.apacheFileParser;
+import models.parsers.fileParsers.nginxFileParser;
 import javafx.scene.control.ComboBox;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 
-public class FilterController {
+public class FilterController implements DataReceiver<HashMap<String, Object>> {    
+    private mongoDB mongodb = new mongoDB();
+
+    @FXML private Button backButton;
+
+    @FXML private TextField ipAddressField;
+
+    @FXML private DatePicker timestampFromDate;
+    @FXML private TextField timestampFromTime;
+    @FXML private Label timestampFromTimeErrorLabel;
+
+    @FXML private DatePicker timestampToDate;
+    @FXML private TextField timestampToTime;
+    @FXML private Label timestampToTimeErrorLabel;
+
+    @FXML private TextField countryField;
+    @FXML private TextField regionField;
+    @FXML private TextField cityField;
+
+    @FXML private FlowPane requestMethodFlowPane;
+
+    @FXML private TextField userField;
+
+    @FXML private VBox responseStatusCodeVBox;
+    @FXML private Button addResponseStatusCodeButton;
+
+    @FXML private TextField bytesSizeMinField;
+    @FXML private Label bytesSizeMinFieldErrorLabel;
+    @FXML private TextField bytesSizeMaxField;
+    @FXML private Label bytesSizeMaxFieldErrorLabel;
+    @FXML private StackPane bytesSizeSliderStack;
+    @FXML private RangeSlider bytesSizeRangeSlider;
+    @FXML private Label minBytesSizeRangeSliderLabel;
+    @FXML private Label maxBytesSizeRangeSliderLabel;
+    
+    @FXML private TextField requestURLField;
+
+    @FXML private TextField osField;
+    @FXML private TextField browserField;
+    @FXML private TextField deviceField;
+
+    @FXML private TextField referrerField;
+
+    @FXML private Button clearButton;
+    @FXML private Button applyButton;
 
     // Closes the filter window (discarding any uncommitted changes)
     @FXML
@@ -40,123 +117,482 @@ public class FilterController {
         stage.close();
     }
 
+    // Clear the filter window (clear any uncommitted changes)
+    @FXML
+    private void onClearButtonPressed(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource("resources/views/filter.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.getScene().setRoot(root);
+        } catch (Exception e) {
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.close();
+        }
+    }
+
     // Closes the filter window (intended to apply selected filters later)
     @FXML
     private void onApplyButtonPressed(ActionEvent event) {
         // TODO: Pass selected filter values to the dashboard controller or data layer
+        if(!validateBytesSizeAndApplyMin() || !validateBytesSizeAndApplyMax() || !validateTimestampFromTime() || !validateTimestampToTime())
+        {
+            main.App.callInvalid();
+        }
+        else
+        {
+            String ipAddressValue = ipAddressField.getText().length() > 0 ? ipAddressField.getText() : null;
+    
+            LocalDate timestampFromDateValue = timestampFromDate.getValue();
+            LocalTime timestampFromTimeValue;
+            try {
+                timestampFromTimeValue = timestampFromTime.isDisable() ? null : LocalTime.parse(timestampFromTime.getText(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+            } catch (Exception e) {
+                timestampFromTimeValue = null;
+            }
+    
+            LocalDate timestampToDateValue = timestampToDate.getValue();
+            LocalTime timestampToTimeValue;
+            try {
+                timestampToTimeValue = timestampToTime.isDisable() ? null : LocalTime.parse(timestampToTime.getText(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+            } catch (Exception e) {
+                timestampToTimeValue = null;
+            }
+    
+            String countryValue = countryField.getText().length() > 0 ? countryField.getText() : null;
+            String regionValue = regionField.getText().length() > 0 ? regionField.getText() : null;
+            String cityValue = cityField.getText().length() > 0 ? cityField.getText() : null;
+    
+            ArrayList<String> requestMethodValue = new ArrayList<>();
+            for (Node node : requestMethodFlowPane.getChildren()) {
+                if (node instanceof ToggleButton) {
+                    ToggleButton toggle = (ToggleButton) node;
+                    if(toggle.isSelected())
+                    {
+                        requestMethodValue.add(toggle.getText());
+                    }
+                }
+            }
+    
+            ArrayList<Integer> responseStatusCodeValue = new ArrayList<>();
+            for (Node node : responseStatusCodeVBox.getChildren()) {
+                if (node instanceof ComboBox<?>) {
+                    ComboBox<?> combo = (ComboBox<?>) node;
+                    // Check if the ComboBox contains Integer values
+                    if (!combo.getItems().isEmpty() && combo.getItems().get(0) instanceof Integer) {
+                        @SuppressWarnings("unchecked")
+                        ComboBox<Integer> intCombo = (ComboBox<Integer>) combo;
+                        Integer value = intCombo.getValue();
+                        if (value != null) {
+                            responseStatusCodeValue.add(value);
+                        }
+                    }
+                }
+            }
 
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        stage.close();
+            String userValue = userField.getText().length() > 0 ? userField.getText() : null;
+    
+            Integer minBytesSizeValue = Double.valueOf(bytesSizeRangeSlider.getLowValue()).intValue();
+            Integer maxBytesSizeValue = Double.valueOf(bytesSizeRangeSlider.getHighValue()).intValue();
+    
+            String requestURLValue = requestURLField.getText().length() > 0 ? requestURLField.getText() : null;
+    
+            String osValue = osField.getText().length() > 0 ? osField.getText() : null;
+            String browseValue = browserField.getText().length() > 0 ? browserField.getText() : null;
+            String deviceValue = deviceField.getText().length() > 0 ? deviceField.getText() : null;
+    
+            String referrerValue = referrerField.getText().length() > 0 ? referrerField.getText() : null;
+
+            // System.out.println(ipAddressValue);
+    
+            // System.out.println(timestampFromDateValue);
+            // System.out.println(timestampFromTimeValue);
+            
+            // System.out.println(timestampToDateValue);
+            // System.out.println(timestampToTimeValue);
+    
+            // System.out.println(countryValue);
+            // System.out.println(regionValue);
+            // System.out.println(cityValue);
+    
+            // System.out.println(requestMethodValue);
+    
+            // System.out.println(responseStatusCodeValue);
+
+            // System.out.println(userValue);
+    
+            // System.out.println(minBytesSizeValue);
+            // System.out.println(maxBytesSizeValue);
+    
+            // System.out.println(requestURLValue);
+    
+            // System.out.println(osValue);
+            // System.out.println(browseValue);
+            // System.out.println(deviceValue);
+
+            // System.out.println(referrerValue);
+
+            HashMap<String, Object> filter_rules = new HashMap<>();
+            if(ipAddressValue != null)
+            {
+                filter_rules.put("byRemoteIp", true);
+                filter_rules.put("byRemoteIpValue", Arrays.asList(ipAddressValue));
+            }
+            if(timestampFromDateValue != null || timestampToDateValue != null)
+            {
+                filter_rules.put("byPeriod", true);
+                HashMap<String, Date> byPeriodValueHashMap = new HashMap<>();
+                LocalDateTime fromDateTime = timestampFromDateValue != null ? LocalDateTime.of(timestampFromDateValue, timestampFromTimeValue == null ? LocalTime.of(0, 0, 0) : timestampFromTimeValue) : null;
+                LocalDateTime toDateTime = timestampToDateValue != null ? LocalDateTime.of(timestampToDateValue, timestampToTimeValue == null ? LocalTime.of(23, 59, 59) : timestampToTimeValue) : null;
+
+                if(fromDateTime != null) byPeriodValueHashMap.put("byPeriodStartValue", Date.from(fromDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+                if(toDateTime != null) byPeriodValueHashMap.put("byPeriodEndValue", Date.from(toDateTime.atZone(ZoneId.systemDefault()).toInstant()));
+                
+                filter_rules.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
+            }
+            if(countryValue != null)
+            {
+                filter_rules.put("byCountryLong", true);
+                filter_rules.put("byCountryLongValue", Arrays.asList(countryValue));
+            }
+            if(regionValue != null)
+            {
+                filter_rules.put("byRegion", true);
+                filter_rules.put("byRegionValue", Arrays.asList(regionValue));
+            }
+            if(cityValue != null)
+            {
+                filter_rules.put("byCity", true);
+                filter_rules.put("byCityValue", Arrays.asList(cityValue));
+            }
+            if(requestMethodValue != null && requestMethodValue.size() > 0)
+            {
+                filter_rules.put("byRequestMethod", true);
+                filter_rules.put("byRequestMethodValue", Arrays.asList(requestMethodValue));
+            }
+            if(responseStatusCodeValue != null && responseStatusCodeValue.size() > 0)
+            {
+                filter_rules.put("byResponseStatusCode", true);
+                filter_rules.put("byResponseStatusCodeValue", responseStatusCodeValue);
+            }
+            if(userValue != null)
+            {
+                filter_rules.put("byRemoteUser", true);
+                filter_rules.put("byRemoteUserValue", Arrays.asList(userValue));
+            }
+            if((minBytesSizeValue != null || maxBytesSizeValue != null) && (!(minBytesSizeValue == -1 && maxBytesSizeValue == 524288)))
+            {
+                filter_rules.put("byBytes", true);
+                HashMap<String, Integer> byBytesValueHashMap = new HashMap<>();
+
+                if(minBytesSizeValue != null) byBytesValueHashMap.put("byBytesStartValue", minBytesSizeValue);
+                if(maxBytesSizeValue != null) byBytesValueHashMap.put("byBytesEndValue", maxBytesSizeValue);
+                
+                filter_rules.put("byBytesValue", Arrays.asList(byBytesValueHashMap));
+            }
+            if(requestURLValue != null)
+            {
+                filter_rules.put("byRequest", true);
+                filter_rules.put("byRequestValue", Arrays.asList(requestURLValue));
+            }
+            if(osValue != null)
+            {
+                filter_rules.put("byOS", true);
+                filter_rules.put("byOSValue", Arrays.asList(osValue));
+            }
+            if(browseValue != null)
+            {
+                filter_rules.put("byBrowser", true);
+                filter_rules.put("byBrowserValue", Arrays.asList(browseValue));
+            }
+            if(deviceValue != null)
+            {
+                filter_rules.put("byDevice", true);
+                filter_rules.put("byDeviceValue", Arrays.asList(deviceValue));
+            }
+            if(referrerValue != null)
+            {
+                filter_rules.put("byReferrer", true);
+                filter_rules.put("byReferrerValue", Arrays.asList(referrerValue));
+            }
+
+            Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
+                @Override
+                protected HashMap<String, Object> call() throws Exception {
+                    try {
+                        // Simulate log parsing (replace with real logic)
+                        HashMap<String, Object> data = new HashMap<String, Object>();
+                    
+                        if(PrimaryController.currentPage.equals(-1)) PrimaryController.currentPage = 0;
+                        if(PrimaryController.maxPage.equals(-1)) PrimaryController.maxPage = Double.valueOf(Math.floor(Double.valueOf(FilterController.this.mongodb.count(PrimaryController.filter_rules)) / Double.valueOf(PrimaryController.rowsPerPage))).intValue();
+                        
+                        ObservableList<logData> logTableData = FilterController.this.mongodb.filterWithSkipAndLimit(filter_rules, PrimaryController.currentPage, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
+                        data.put("logTableData", logTableData);
+
+
+                        Map<String, Integer> countryData = new HashMap<String, Integer>();
+                        ArrayList<Document> countryAgg = FilterController.this.mongodb.aggregate(filter_rules, "countryShort");
+                        for (Document doc : countryAgg) {
+                            Object key = doc.get("_id");
+                            int count = doc.getInteger("count", 0);
+                            countryData.put(key != null ? key.toString() : "-", count);
+                        }
+
+                        data.put("countryData", countryData);
+                        
+                        
+                        Map<Integer, Integer> responseStatusData = new HashMap<Integer, Integer>();
+                        ArrayList<Document> responseStatusAgg = FilterController.this.mongodb.aggregate(filter_rules, "responseStatusCode");
+                        for (Document doc : responseStatusAgg) {
+                            Object key = doc.get("_id");
+                            int count = doc.getInteger("count", 0);
+                            responseStatusData.put((Integer)key, count);
+                        }
+
+                        data.put("responseStatusData", responseStatusData);
+                        
+                        try {
+                            Map<String, Integer> lineChartData = new HashMap<String, Integer>();
+                            final Integer SEGMENT_COUNT = 8;
+                            
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.ENGLISH);
+                            Date minDate = sdf.parse((String) FilterController.this.mongodb.getMin(filter_rules, "time").get("min"));
+                            Date maxDate = sdf.parse((String) FilterController.this.mongodb.getMax(filter_rules, "time").get("max"));;
+                            
+                            Instant minDateInstant = minDate.toInstant();
+                            Instant maxDateInstant = maxDate.toInstant();
+                            
+                            Duration totalDuration = Duration.between(minDateInstant, maxDateInstant);
+                            Duration period = totalDuration.dividedBy(SEGMENT_COUNT);
+
+                            List<Date> checkpoints = new ArrayList<>();
+                            checkpoints.add(minDate);
+                            for (int i = 1; i < SEGMENT_COUNT; i++) {
+                                checkpoints.add(Date.from(minDateInstant.plus(period.multipliedBy(i))));
+                            }
+                            checkpoints.add(maxDate);
+
+                            for (int i = 0; i < SEGMENT_COUNT; i++) {
+                                int j = i + 1;
+                                Date start = checkpoints.get(i);
+                                Date end = checkpoints.get(j);
+                                HashMap<String, Object> filter_rules2 = new HashMap<>(filter_rules);
+
+                                filter_rules2.put("byPeriod", true);
+                                HashMap<String, Date> byPeriodValueHashMap = new HashMap<>();
+
+                                byPeriodValueHashMap.put("byPeriodStartValue", start);
+                                byPeriodValueHashMap.put("byPeriodEndValue", end);
+                                
+                                filter_rules2.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
+                                Integer cnt = FilterController.this.mongodb.count(filter_rules2);
+                                lineChartData.put("Dur " + String.valueOf(j), cnt);
+                                
+                                data.put("lineChartData", lineChartData);
+                            }
+                        } catch (Exception e) {
+
+                        }
+
+                        data.put("filter_rules", filter_rules);
+
+                        data.put("currentPage", PrimaryController.currentPage);
+                        data.put("maxPage", PrimaryController.maxPage);
+                        data.put("rowsPerPage", PrimaryController.rowsPerPage);
+
+                        return data;
+                        // Process and upload the file to backend
+                        // Example: BackendService.uploadLogFile(selectedFile);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+            };
+
+            fetchDataTask.setOnSucceeded(v2 -> {
+                HashMap<String, Object> data = fetchDataTask.getValue();
+                main.App.switchToDashboard(data);
+                main.App.closeLoadingStage();
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.close();
+            });
+
+            Thread thread = new Thread(fetchDataTask);
+            thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+            thread.start();
+        }
     }
-
-    // IP
-    @FXML private TextField ipField;
-
-    // Timestamp
-    @FXML private DatePicker timestampFromDate;
-    @FXML private TextField timestampFromTime;
-    @FXML private DatePicker timestampToDate;
-    @FXML private TextField timestampToTime;
-
-    // Location
-    @FXML private TextField CountryField;
-    @FXML private TextField RegionField;
-    @FXML private TextField CityField;
-
-    // Request Methods (ToggleButtons)
-    @FXML private FlowPane requestMethodPane; // Add fx:id to FlowPane if not yet done
-
-    // Response Code
-    @FXML private VBox responseCodeBox;
-    @FXML private Button addResponseCodeBtn;
-
-    // Size Range
-    @FXML private TextField sizeFieldMin;
-    @FXML private TextField sizeFieldMax;
-    @FXML private Label minErrorLabel;
-    @FXML private Label maxErrorLabel;
-    @FXML private RangeSlider sizeRangeSlider;
-    @FXML private StackPane sizeSliderStack;
-    @FXML private Label minSizeLabel;
-    @FXML private Label maxSizeLabel;
-
-    // Referrer
-    @FXML private TextField referrerField;
-
-    // Agent breakdown
-    @FXML private TextField agentField;
-    @FXML private TextField browserField;
-    @FXML private TextField deviceField;
-
-    private String ipFi;
-    private String referrerFilter;
-    private String countryFilter;
-    private String regionFilter;
-    private String cityFilter;
-    private String agentOS;
-    private String agentBrowser;
-    private String agentDevice;
-
-    private List<String> requestMethods = new ArrayList<>();
-    private List<Integer> selectedResponseCodes = new ArrayList<>();
-
-    private Long sizeMin;
-    private Long sizeMax;
-
-    private String timestampFromDateStr;
-    private String timestampFromTimeStr;
-    private String timestampToDateStr;
-    private String timestampToTimeStr;
-
 
     private final int MAX_COMBOBOXES = 3;
     private final ObservableList<Integer> httpCodes = FXCollections.observableArrayList(
+        -1,
         100, 101, 102, 103,
         200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
-        300, 301, 302, 303, 304, 305, 307, 308,
-        400, 401, 402, 403, 404, 405, 406, 407, 408, 409,
-        410, 411, 412, 413, 414, 415, 416, 417, 418, 422,
-        426, 428, 429, 431, 451,
+        300, 301, 302, 303, 304, 305, 306, 307, 308,
+        400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 421, 422, 423, 424, 425, 426, 428, 429, 431, 451,
         500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511
     );
     
     @FXML
     public void initialize() {
+        timestampFromTime.setDisable(true);
+        timestampToTime.setDisable(true);
+        // startDatePicker.getEditor().setDisable(true);
+        // endDatePicker.getEditor().setDisable(true);
 
-        sizeRangeSlider.lowValueProperty().addListener((obs, oldVal, newVal) -> updateSizeTextFieldsFromSlider());
-        sizeRangeSlider.highValueProperty().addListener((obs, oldVal, newVal) -> updateSizeTextFieldsFromSlider());
+        bytesSizeRangeSlider.lowValueProperty().addListener((obs, oldVal, newVal) -> updateSizeTextFieldsFromSlider());
+        bytesSizeRangeSlider.highValueProperty().addListener((obs, oldVal, newVal) -> updateSizeTextFieldsFromSlider());
 
         // Show/hide on hover
         // sizeSliderStack.setOnMouseEntered(e -> fadeLabels(true));
         // sizeSliderStack.setOnMouseExited(e -> fadeLabels(false));
+
+        bytesSizeMinField.textProperty().addListener((obs, oldText, newText) -> validateBytesSizeAndApplyMin());
+        bytesSizeMaxField.textProperty().addListener((obs, oldText, newText) -> validateBytesSizeAndApplyMax());
+
+        timestampFromTime.textProperty().addListener((obs, oldText, newText) -> validateTimestampFromTime());
+        timestampToTime.textProperty().addListener((obs, oldText, newText) -> validateTimestampToTime());
+
+        timestampFromDate.valueProperty().addListener((obs, oldDate, newDate) -> {
+            if (newDate != null && timestampToDate.getValue() != null && newDate.isAfter(timestampToDate.getValue())) {
+                timestampFromDate.setValue(oldDate);
+                return;
+            }
+            if(newDate != null && newDate.toString().length() > 0)
+            {
+                timestampFromTime.setDisable(false);
+            }
+            else
+            {
+                timestampFromTime.setDisable(true);
+            }
+            timestampToDate.setDayCellFactory(picker -> new DateCell() {
+                @Override
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    if (empty || (newDate != null && date.isBefore(newDate))) {
+                        setDisable(true);
+                        setStyle("-fx-background-color:rgb(155, 155, 155);"); // Optional: style disabled days
+                    }
+                }
+            });
+        });
+
+        timestampToDate.valueProperty().addListener((obs, oldDate, newDate) -> {
+            if (newDate != null && timestampFromDate.getValue() != null && newDate.isBefore(timestampFromDate.getValue())) {
+                timestampToDate.setValue(oldDate);
+                return;
+            }
+            if(newDate != null && newDate.toString().length() > 0)
+            {
+                timestampToTime.setDisable(false);
+            }
+            else
+            {
+                timestampToTime.setDisable(true);
+            }
+            timestampFromDate.setDayCellFactory(picker -> new DateCell() {
+                @Override
+                public void updateItem(LocalDate date, boolean empty) {
+                    super.updateItem(date, empty);
+                    if (empty || (newDate != null && date.isAfter(newDate))) {
+                        setDisable(true);
+                        setStyle("-fx-background-color:rgb(155, 155, 155);"); // Optional: style disabled days
+                    }
+                }
+            });
+        });
+
+        timestampFromDate.getEditor().textProperty().addListener((obs, oldText, newText) -> {
+            if(newText != null && newText.toString().length() > 0)
+            {
+                try {
+                    LocalDate parsed = timestampFromDate.getConverter().fromString(newText);
+                    timestampFromTime.setDisable(false);
+                } catch (Exception e) {
+                    timestampFromTime.setDisable(true);
+                }
+            }
+            else
+            {
+                timestampFromTime.setDisable(true);
+            }
+        });
         
-        sizeFieldMin.setOnAction(e -> validateAndApplyMin());
-        sizeFieldMax.setOnAction(e -> validateAndApplyMax());
-
-         sizeFieldMin.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!isNowFocused) validateAndApplyMin();
+        timestampToDate.getEditor().textProperty().addListener((obs, oldText, newText) -> {
+            if(newText != null && newText.toString().length() > 0)
+            {
+                try {
+                    LocalDate parsed = timestampToDate.getConverter().fromString(newText);
+                    timestampToTime.setDisable(false);
+                } catch (Exception e) {
+                    timestampToTime.setDisable(true);
+                }
+            }
+            else
+            {
+                timestampToTime.setDisable(true);
+            }
         });
 
-        sizeFieldMax.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
-            if (!isNowFocused) validateAndApplyMax();
-        });
+
+        // final LocalDate[] timestampToDateOriginalValue = new LocalDate[1];
+        // timestampToDate.setOnShowing(e -> {
+        //     // Only if no date is already selected, temporarily set the value.
+        //     if (timestampFromDate.getValue() != null) {
+        //         timestampToDateOriginalValue[0] = timestampToDate.getValue();
+        //         timestampToDate.setValue(timestampFromDate.getValue());
+        //         Platform.runLater(() -> timestampToDate.getEditor().clear());
+        //     }
+        // });
+
+        // timestampToDate.setOnHiding(e -> {
+        //     // Check if the user actually selected a date.
+        //     // For example, if the user never typed or picked a date,
+        //     // the editor text may remain empty.
+        //     if (timestampToDate.getEditor().getText().isEmpty()) {
+        //         // Restore the original value (which is null)
+        //         timestampToDate.setValue(timestampToDateOriginalValue[0]);
+        //     }
+        // });
+
+        // final LocalDate[] timestampFromDateOriginalValue = new LocalDate[1];
+        // timestampFromDate.setOnShowing(e -> {
+        //     // Only if no date is already selected, temporarily set the value.
+        //     if (timestampToDate.getValue() != null) {
+        //         timestampFromDateOriginalValue[0] = timestampFromDate.getValue();
+        //         timestampFromDate.setValue(timestampToDate.getValue());
+        //         Platform.runLater(() -> timestampFromDate.getEditor().clear());
+        //     }
+        // });
+
+        // timestampFromDate.setOnHiding(e -> {
+        //     // Check if the user actually selected a date.
+        //     // For example, if the user never typed or picked a date,
+        //     // the editor text may remain empty.
+        //     if (timestampFromDate.getEditor().getText().isEmpty()) {
+        //         // Restore the original value (which is null)
+        //         timestampFromDate.setValue(timestampFromDateOriginalValue[0]);
+        //     }
+        // });
 
         addResponseCodeBox();
     }
 
-    public void onAddResponseCodeBox() {
-        if (responseCodeBox.getChildren().size() < MAX_COMBOBOXES) {
+    public void onAddResponseStatusCodeBox() {
+        if (responseStatusCodeVBox.getChildren().size() < MAX_COMBOBOXES) {
             addResponseCodeBox();
         }
-        if (responseCodeBox.getChildren().size() >= MAX_COMBOBOXES) {
-            addResponseCodeBtn.setDisable(true);
+        if (responseStatusCodeVBox.getChildren().size() >= MAX_COMBOBOXES) {
+            addResponseStatusCodeButton.setDisable(true);
         }
     }
 
     private void addResponseCodeBox() {
         ComboBox<Integer> comboBox = new ComboBox<>(httpCodes);
         comboBox.setPromptText("Select Code...");
-        comboBox.setEditable(true);
+        comboBox.setEditable(false);
         comboBox.getStyleClass().add("combo-box");
 
         // Make sure it displays Integer properly
@@ -176,47 +612,169 @@ public class FilterController {
             }
         });
 
-        responseCodeBox.getChildren().add(comboBox);
+        responseStatusCodeVBox.getChildren().add(comboBox);
     }
 
     
     private void updateSizeTextFieldsFromSlider() {
-        long min = (long) sizeRangeSlider.getLowValue();
-        long max = (long) sizeRangeSlider.getHighValue();
+        long min = (long) bytesSizeRangeSlider.getLowValue();
+        long max = (long) bytesSizeRangeSlider.getHighValue();
 
-        sizeFieldMin.setText(String.valueOf(min));
-        sizeFieldMax.setText(String.valueOf(max));
-        clearError(sizeFieldMin, minErrorLabel);
-        clearError(sizeFieldMax, maxErrorLabel);
+        bytesSizeMinField.setText(String.valueOf(min));
+        bytesSizeMaxField.setText(String.valueOf(max));
+        clearError(bytesSizeMinField, bytesSizeMinFieldErrorLabel);
+        clearError(bytesSizeMaxField, bytesSizeMaxFieldErrorLabel);
     }
 
-    private void validateAndApplyMin() {
+    private boolean validateTimestampFromTime() {
+        if(timestampFromTime.isDisable()) {
+            clearError(timestampFromTime, timestampFromTimeErrorLabel);
+            return true;
+        }
         try {
-            long min = Long.parseLong(sizeFieldMin.getText());
-            long max = (long) sizeRangeSlider.getHighValue();
-            if (min > max) {
-                showError(sizeFieldMin, minErrorLabel);
-            } else {
-                sizeRangeSlider.setLowValue(min);
-                clearError(sizeFieldMin, minErrorLabel);
+            String timeFromStr = timestampFromTime.isDisable() ? null : timestampFromTime.getText();
+            LocalTime timeFrom = null;
+            if(timestampFromTime != null && timeFromStr.length() > 0)
+            {
+                if (timeFromStr.startsWith("24:")) {
+                    throw new Exception();
+                }
+                timeFrom = LocalTime.parse(timeFromStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
             }
-        } catch (NumberFormatException e) {
-            showError(sizeFieldMin, minErrorLabel);
+
+            String timeToStr = timestampToTime.isDisable() ? null : timestampToTime.getText();
+            LocalTime timeTo = null;
+            try {
+                if(timeToStr != null && timeToStr.length() > 0)
+                {
+                    if (timeToStr.startsWith("24:")) {
+                        throw new Exception();
+                    }
+                    timeTo = LocalTime.parse(timeToStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                }
+            } catch (Exception e) {
+                timeTo = null;
+            }
+            LocalDate timestampFromDateValue = timestampFromDate.getValue();
+            LocalDate timestampToDateValue = timestampToDate.getValue();
+            if(timeFrom != null && timeTo != null && timestampFromDateValue != null && timestampToDateValue != null)
+            {
+                LocalDateTime fromDateTime = LocalDateTime.of(timestampFromDateValue, timeFrom);
+                LocalDateTime toDateTime = LocalDateTime.of(timestampToDateValue, timeTo);
+                if(fromDateTime.isAfter(toDateTime) || toDateTime.isBefore(fromDateTime))
+                {
+                    showError(timestampFromTime, timestampFromTimeErrorLabel);
+                    return false;
+                }
+            }
+            clearError(timestampFromTime, timestampFromTimeErrorLabel);
+            return true;
+        } catch (Exception e) {
+            showError(timestampFromTime, timestampFromTimeErrorLabel);
+            return false;
+        }
+    }
+    
+    private boolean validateTimestampToTime() {
+        if(timestampToTime.isDisable()) {
+            clearError(timestampToTime, timestampToTimeErrorLabel);
+            return true;
+        }
+        try {
+            String timeToStr = timestampToTime.isDisable() ? null : timestampToTime.getText();
+            LocalTime timeTo = null;
+            if(timestampToTime != null && timeToStr.length() > 0)
+            {
+                if (timeToStr.startsWith("24:")) {
+                    throw new Exception();
+                }
+                timeTo = LocalTime.parse(timeToStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+            }
+
+            String timeFromStr = timestampFromTime.isDisable() ? null : timestampFromTime.getText();
+            LocalTime timeFrom = null;
+            try {
+                if(timeFromStr != null && timeFromStr.length() > 0)
+                {
+                    if (timeFromStr.startsWith("24:")) {
+                        throw new Exception();
+                    }
+                    timeFrom = LocalTime.parse(timeFromStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                }
+            } catch (Exception e) {
+                timeFrom = null;
+            }
+            LocalDate timestampToDateValue = timestampToDate.getValue();
+            LocalDate timestampFromDateValue = timestampFromDate.getValue();
+            if(timeTo != null && timeFrom != null && timestampToDateValue != null && timestampFromDateValue != null)
+            {
+                LocalDateTime toDateTime = LocalDateTime.of(timestampToDateValue, timeTo);
+                LocalDateTime fromDateTime = LocalDateTime.of(timestampFromDateValue, timeFrom);
+                if(toDateTime.isBefore(fromDateTime) || fromDateTime.isAfter(toDateTime))
+                {
+                    showError(timestampToTime, timestampToTimeErrorLabel);
+                    return false;
+                }
+            }
+            clearError(timestampToTime, timestampToTimeErrorLabel);
+            return true;
+        } catch (Exception e) {
+            showError(timestampToTime, timestampToTimeErrorLabel);
+            return false;
         }
     }
 
-    private void validateAndApplyMax() {
+    private boolean validateBytesSizeAndApplyMin() {
         try {
-            long max = Long.parseLong(sizeFieldMax.getText());
-            long min = (long) sizeRangeSlider.getLowValue();
-            if (max < min) {
-                showError(sizeFieldMax, maxErrorLabel);
+            String minText = bytesSizeMinField.getText();
+            long min;
+            if(minText.length() > 0)
+            {
+                min = Long.parseLong(minText);
+            }
+            else
+            {
+                min = -1;
+            }
+            long max = (long) bytesSizeRangeSlider.getHighValue();
+            if (min > max) {
+                showError(bytesSizeMinField, bytesSizeMinFieldErrorLabel);
+                return false;
             } else {
-                sizeRangeSlider.setHighValue(max);
-                clearError(sizeFieldMax, maxErrorLabel);
+                bytesSizeRangeSlider.setLowValue(min);
+                clearError(bytesSizeMinField, bytesSizeMinFieldErrorLabel);
+                return true;
             }
         } catch (NumberFormatException e) {
-            showError(sizeFieldMax, maxErrorLabel);
+            showError(bytesSizeMinField, bytesSizeMinFieldErrorLabel);
+            return false;
+        }
+    }
+
+    private boolean validateBytesSizeAndApplyMax() {
+        try {
+            String maxText = bytesSizeMaxField.getText();
+            long max;
+            if(maxText.length() > 0)
+            {
+                max = Long.parseLong(maxText);
+            }
+            else
+            {
+                max = 524288;
+            }
+            long min = (long) bytesSizeRangeSlider.getLowValue();
+            if (max < min) {
+                showError(bytesSizeMaxField, bytesSizeMaxFieldErrorLabel);
+                return false;
+            } else {
+                bytesSizeRangeSlider.setHighValue(max);
+                clearError(bytesSizeMaxField, bytesSizeMaxFieldErrorLabel);
+                return true;
+            }
+        } catch (NumberFormatException e) {
+            showError(bytesSizeMaxField, bytesSizeMaxFieldErrorLabel);
+            return false;
         }
     }
 
@@ -230,6 +788,10 @@ public class FilterController {
         errorLabel.setVisible(false);
     }
 
+    @Override
+    public void setData(HashMap<String, Object> data) {
+        // do something here
+    }
     // private void updateSizeLabels() {
     //     long minVal = (long) sizeRangeSlider.getLowValue();
     //     long maxVal = (long) sizeRangeSlider.getHighValue();

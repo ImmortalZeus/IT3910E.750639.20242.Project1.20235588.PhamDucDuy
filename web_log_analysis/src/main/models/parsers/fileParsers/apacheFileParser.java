@@ -2,6 +2,7 @@ package models.parsers.fileParsers;
 
 import models.exceptions.*;
 import models.logData.logData;
+import models.parsers.ResultAggregator;
 import models.parsers.lineParsers.*;
 import models.utils.*;
 
@@ -18,14 +19,13 @@ import java.util.concurrent.TimeUnit;
 public class apacheFileParser {
     private static final int BATCH_SIZE = 100;
 
-    public void parse(String filepath) throws fileParserException {
+    public ResultAggregator parse(String filepath) throws fileParserException {
         try {
             // ExecutorService executor = Executors.newFixedThreadPool(
             //     Runtime.getRuntime().availableProcessors()
             // );
-
             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-
+            ResultAggregator aggregator = new ResultAggregator();
 
             File file = null;
             FileReader fr = null;
@@ -48,14 +48,14 @@ public class apacheFileParser {
                             cnt += 1;
                             if (batch.size() >= BATCH_SIZE)
                             {
-                                executor.submit(new apacheLineParser(new ArrayList<>(batch)));
+                                executor.submit(new apacheLineParser(new ArrayList<>(batch), aggregator));
                                 batch.clear();
                             }
                         }
                         line = br.readLine();
                     }
                     if (!batch.isEmpty()) {
-                        executor.submit(new apacheLineParser(new ArrayList<>(batch)));
+                        executor.submit(new apacheLineParser(new ArrayList<>(batch), aggregator));
                     }
                     executor.shutdown();
                     executor.awaitTermination(1, TimeUnit.HOURS);
@@ -65,6 +65,8 @@ public class apacheFileParser {
                     if(br != null) {
                         br.close();
                     }
+                    aggregator.saveToMongodb();
+                    return aggregator;
                 }
             } catch (Exception e) {
                 try {
