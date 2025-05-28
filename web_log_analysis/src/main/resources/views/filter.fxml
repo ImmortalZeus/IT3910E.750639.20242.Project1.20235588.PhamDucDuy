@@ -74,7 +74,7 @@
                 <StackPane GridPane.rowIndex="0" GridPane.columnIndex="3" styleClass="filter-box">
                     <VBox spacing="5">
                         <Label text="Request" />
-                        <FlowPane hgap="8" vgap="8" alignment="TOP_LEFT"> 
+                        <FlowPane fx:id="requestMethodPane" hgap="8" vgap="8" alignment="TOP_LEFT"> 
                             <ToggleButton text="GET" styleClass="method-button"/>
                             <ToggleButton text="POST" styleClass="method-button"/>
                             <ToggleButton text="PUT" styleClass="method-button"/>

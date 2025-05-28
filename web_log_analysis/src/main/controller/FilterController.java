@@ -4,6 +4,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.stage.Stage;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.controlsfx.control.RangeSlider;
 import org.controlsfx.control.action.Action;
 
@@ -13,9 +17,11 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import org.controlsfx.control.RangeSlider;
 import javafx.util.Duration;
@@ -43,19 +49,65 @@ public class FilterController {
         stage.close();
     }
 
-    @FXML private RangeSlider sizeRangeSlider;
-    @FXML private Label minSizeLabel;
-    @FXML private Label maxSizeLabel;
-    @FXML private StackPane sizeSliderStack;
+    // IP
+    @FXML private TextField ipField;
+
+    // Timestamp
+    @FXML private DatePicker timestampFromDate;
+    @FXML private TextField timestampFromTime;
+    @FXML private DatePicker timestampToDate;
+    @FXML private TextField timestampToTime;
+
+    // Location
+    @FXML private TextField CountryField;
+    @FXML private TextField RegionField;
+    @FXML private TextField CityField;
+
+    // Request Methods (ToggleButtons)
+    @FXML private FlowPane requestMethodPane; // Add fx:id to FlowPane if not yet done
+
+    // Response Code
+    @FXML private VBox responseCodeBox;
+    @FXML private Button addResponseCodeBtn;
+
+    // Size Range
     @FXML private TextField sizeFieldMin;
     @FXML private TextField sizeFieldMax;
     @FXML private Label minErrorLabel;
     @FXML private Label maxErrorLabel;
-    @FXML private ComboBox<Integer> responseCodeCombo;
-    @FXML private VBox responseCodeBox;
+    @FXML private RangeSlider sizeRangeSlider;
+    @FXML private StackPane sizeSliderStack;
+    @FXML private Label minSizeLabel;
+    @FXML private Label maxSizeLabel;
 
-    @FXML
-    private Button addResponseCodeBtn;
+    // Referrer
+    @FXML private TextField referrerField;
+
+    // Agent breakdown
+    @FXML private TextField agentField;
+    @FXML private TextField browserField;
+    @FXML private TextField deviceField;
+
+    private String ipFi;
+    private String referrerFilter;
+    private String countryFilter;
+    private String regionFilter;
+    private String cityFilter;
+    private String agentOS;
+    private String agentBrowser;
+    private String agentDevice;
+
+    private List<String> requestMethods = new ArrayList<>();
+    private List<Integer> selectedResponseCodes = new ArrayList<>();
+
+    private Long sizeMin;
+    private Long sizeMax;
+
+    private String timestampFromDateStr;
+    private String timestampFromTimeStr;
+    private String timestampToDateStr;
+    private String timestampToTimeStr;
+
 
     private final int MAX_COMBOBOXES = 3;
     private final ObservableList<Integer> httpCodes = FXCollections.observableArrayList(
