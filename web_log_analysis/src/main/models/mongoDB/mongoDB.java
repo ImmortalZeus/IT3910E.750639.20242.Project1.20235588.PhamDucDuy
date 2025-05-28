@@ -31,11 +31,13 @@ import static com.mongodb.client.model.Filters.*;
 
 public class mongoDB {
     private static MongoClient mongoClient = null;
-    private static MongoDatabase database;
-    private static MongoCollection<logData> collection;
-    private static final String now = Long.toString(System.nanoTime());
+    private static MongoDatabase database = null;
+    private static MongoCollection<logData> collection = null;
+    private static String now = null;
 
-    public mongoDB() {
+    private void setUp() {
+        mongoDB.now = mongoDB.now == null ? Long.toString(System.nanoTime()) : mongoDB.now;
+
         String mongoUri = System.getProperty("mongodb.uri");
         mongoUri = mongoUri == null ? "mongodb://localhost:27017" : mongoUri;
 
@@ -53,17 +55,32 @@ public class mongoDB {
                             .codecRegistry(codecRegistry)
                             .build();
 
-        mongoClient = MongoClients.create(settings);
-        database = mongoClient.getDatabase(databaseName);
-        collection = database.getCollection(collectionName, logData.class);
+        mongoDB.mongoClient = mongoDB.mongoClient == null ? MongoClients.create(settings) : mongoDB.mongoClient;
+        mongoDB.database = mongoDB.database == null ? mongoDB.mongoClient.getDatabase(databaseName) : mongoDB.database;
+        mongoDB.collection = mongoDB.collection == null ? mongoDB.database.getCollection(collectionName, logData.class) : mongoDB.collection;
+    }
+
+    public mongoDB() {
+        this.setUp();
+    }
+
+    public mongoDB(boolean initNewCollection) {
+        if(initNewCollection == true)
+        {
+            mongoDB.mongoClient = null;
+            mongoDB.database = null;
+            mongoDB.collection = null;
+            mongoDB.now = null;
+        }
+        this.setUp();
     }
 
     public void insertOne(logData doc) {
-        collection.insertOne(doc);
+        mongoDB.collection.insertOne(doc);
     }
 
     public void insertMany(List<logData> list) {
-        collection.insertMany(list);
+        mongoDB.collection.insertMany(list);
     }
 
     public FindIterable<logData> filter(HashMap<String, Object> filter_rules) {
@@ -73,12 +90,12 @@ public class mongoDB {
     
             Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
     
-            FindIterable<logData> res = collection.find(query)/*.sort(Sorts.ascending("index"))*/;
+            FindIterable<logData> res = mongoDB.collection.find(query)/*.sort(Sorts.ascending("index"))*/;
             return res;
         }
         else
         {
-            FindIterable<logData> res = collection.find()/*.sort(Sorts.ascending("index"))*/;
+            FindIterable<logData> res = mongoDB.collection.find()/*.sort(Sorts.ascending("index"))*/;
             return res; 
         }
     }
@@ -95,12 +112,12 @@ public class mongoDB {
     
             Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
     
-            FindIterable<logData> res = collection.find(query).limit(limit)/*.sort(Sorts.ascending("index"))*/;
+            FindIterable<logData> res = mongoDB.collection.find(query).limit(limit)/*.sort(Sorts.ascending("index"))*/;
             return res;
         }
         else
         {
-            FindIterable<logData> res = collection.find().limit(limit)/*.sort(Sorts.ascending("index"))*/;
+            FindIterable<logData> res = mongoDB.collection.find().limit(limit)/*.sort(Sorts.ascending("index"))*/;
             return res;
         }
     }
@@ -117,12 +134,12 @@ public class mongoDB {
 
             Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
-            FindIterable<logData> res = collection.find(query).skip(skip)/*.sort(Sorts.ascending("index"))*/;
+            FindIterable<logData> res = mongoDB.collection.find(query).skip(skip)/*.sort(Sorts.ascending("index"))*/;
             return res;
         }
         else
         {
-            FindIterable<logData> res = collection.find().skip(skip)/*.sort(Sorts.ascending("index"))*/;
+            FindIterable<logData> res = mongoDB.collection.find().skip(skip)/*.sort(Sorts.ascending("index"))*/;
             return res;
         }
     }
@@ -143,12 +160,12 @@ public class mongoDB {
 
             Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
-            FindIterable<logData> res = collection.find(query).skip(skip).limit(limit)/*.sort(Sorts.ascending("index"))*/;
+            FindIterable<logData> res = mongoDB.collection.find(query).skip(skip).limit(limit)/*.sort(Sorts.ascending("index"))*/;
             return res;
         }
         else
         {
-            FindIterable<logData> res = collection.find().skip(skip).limit(limit)/*.sort(Sorts.ascending("index"))*/;
+            FindIterable<logData> res = mongoDB.collection.find().skip(skip).limit(limit)/*.sort(Sorts.ascending("index"))*/;
             return res;
         }
     }
@@ -160,12 +177,12 @@ public class mongoDB {
 
             Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
 
-            Integer res = Long.valueOf(collection.countDocuments(query)).intValue();
+            Integer res = Long.valueOf(mongoDB.collection.countDocuments(query)).intValue();
             return res;
         }
         else
         {
-            Integer res = Long.valueOf(collection.countDocuments()).intValue();
+            Integer res = Long.valueOf(mongoDB.collection.countDocuments()).intValue();
             return res;
         }
     }
@@ -183,7 +200,7 @@ public class mongoDB {
                     .append("count", new Document("$sum", 1)))
             );
 
-            ArrayList<Document> res = collection.aggregate(pipeline, Document.class).into(new ArrayList<>());
+            ArrayList<Document> res = mongoDB.collection.aggregate(pipeline, Document.class).into(new ArrayList<>());
             return res;
         }
         else
@@ -193,7 +210,7 @@ public class mongoDB {
                     .append("count", new Document("$sum", 1)))
             );
 
-            ArrayList<Document> res = collection.aggregate(pipeline, Document.class).into(new ArrayList<>());
+            ArrayList<Document> res = mongoDB.collection.aggregate(pipeline, Document.class).into(new ArrayList<>());
             return res;
         }
     }
@@ -211,7 +228,7 @@ public class mongoDB {
                     .append("max", new Document("$max", "$" + field)))
             );
 
-            Document res = collection.aggregate(pipeline, Document.class).first();
+            Document res = mongoDB.collection.aggregate(pipeline, Document.class).first();
             return res;
         }
         else
@@ -221,7 +238,7 @@ public class mongoDB {
                     .append("max", new Document("$max", "$" + field)))
             );
 
-            Document res = collection.aggregate(pipeline, Document.class).first();
+            Document res = mongoDB.collection.aggregate(pipeline, Document.class).first();
             return res;
         }
     }
@@ -239,7 +256,7 @@ public class mongoDB {
                     .append("min", new Document("$min", "$" + field)))
             );
 
-            Document res = collection.aggregate(pipeline, Document.class).first();
+            Document res = mongoDB.collection.aggregate(pipeline, Document.class).first();
             return res;
         }
         else
@@ -249,7 +266,7 @@ public class mongoDB {
                     .append("min", new Document("$min", "$" + field)))
             );
 
-            Document res = collection.aggregate(pipeline, Document.class).first();
+            Document res = mongoDB.collection.aggregate(pipeline, Document.class).first();
             return res;
         }
     }

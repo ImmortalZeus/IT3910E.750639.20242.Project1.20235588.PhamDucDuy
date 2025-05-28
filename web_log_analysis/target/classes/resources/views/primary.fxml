@@ -41,11 +41,10 @@
         <Insets bottom="15" left="15" right="15" top="15"/>
       </padding>
           <children>
-            <!-- Refresh Button -->
             <HBox alignment="TOP_LEFT" spacing="10">
               <children>
                 <Button fx:id="filterButton" text="Filter" onAction="#onFilterButtonPressed" styleClass="menu-button"/>
-                <Button fx:id="refreshButton" text="Refresh" onAction="#onRefreshButtonPressed" styleClass="menu-button"/>
+                <Button fx:id="clearFilterButton" text="Clear Filter" onAction="#onClearFilterButtonPressed" styleClass="menu-button"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="pageNumText" text=""/>
                 <Button fx:id="prevButton" text="Prev" onAction="#onPrevButtonPressed" styleClass="menu-button"/>

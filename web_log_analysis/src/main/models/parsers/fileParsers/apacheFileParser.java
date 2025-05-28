@@ -25,7 +25,7 @@ public class apacheFileParser {
             //     Runtime.getRuntime().availableProcessors()
             // );
             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-            ResultAggregator aggregator = new ResultAggregator();
+            ResultAggregator aggregator = new ResultAggregator(true);
 
             File file = null;
             FileReader fr = null;
