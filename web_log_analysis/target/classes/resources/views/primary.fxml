@@ -18,7 +18,7 @@
     <children>
         <Label style="-fx-text-fill: white; -fx-font-size: 30px;" text="Menu"/>
         <Button fx:id="dashboardBtn" maxWidth="Infinity" onAction="#onDashboardButtonPressed" styleClass="menu-button" text="Dashboard"/>
-        <Button fx:id="streamBtn" maxWidth="Infinity" onAction="#onStreamButtonPressed" styleClass="menu-button" text="Stream"/>
+        <Button fx:id="historyBtn" maxWidth="Infinity" onAction="#onHistoryButtonPressed" styleClass="menu-button" text="History"/>
         <Button fx:id="explorerBtn" maxWidth="Infinity" onAction="#onExplorerButtonPressed" styleClass="menu-button" text="Explorer"/>
     </children>
     </VBox>
@@ -45,7 +45,7 @@
             <HBox alignment="TOP_LEFT" spacing="10">
               <children>
                 <Button fx:id="filterButton" text="Filter" onAction="#onFilterButtonPressed" styleClass="menu-button"/>
-                <Button fx:id="refreshButton" text="Refresh" onAction="#onRefreshButtonPressed" styleClass="menu-button"/>
+                <Button fx:id="clearButton" text="Refresh" onAction="#onClearFilterButtonPressed" styleClass="menu-button"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Label fx:id="pageNumText" text=""/>
                 <Button fx:id="prevButton" text="Prev" onAction="#onPrevButtonPressed" styleClass="menu-button"/>

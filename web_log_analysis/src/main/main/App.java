@@ -65,8 +65,8 @@ public class App extends Application {
         switchScene("resources/views/primary.fxml", data);
     }
     
-    public static void switchToStream(HashMap<String, Object> data) {
-        switchScene("resources/views/stream.fxml", data);
+    public static void switchToHistory(HashMap<String, Object> data) {
+        switchScene("resources/views/history.fxml", data);
     }
 
     public static void switchToExplorer(HashMap<String, Object> data) {

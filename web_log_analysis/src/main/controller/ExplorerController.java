@@ -20,6 +20,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,11 +38,6 @@ import javafx.collections.ObservableList;
 public class ExplorerController implements DataReceiver<HashMap<String, Object>> {
     private static apacheFileParser aFP = new apacheFileParser();
     private static nginxFileParser nFP = new nginxFileParser();
-    
-    private Integer currentPage = 0;
-    private Integer maxPage = 1;
-    private Integer rowsPerPage = 1000;
-    private mongoDB mongodb = new mongoDB();
 
     @FXML
     private ImageView hgna;
@@ -92,11 +88,13 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                         System.out.println("Selected log file: " + selectedFile.getAbsolutePath());
                         if(parser instanceof apacheFileParser)
                         {
+                            PrimaryController.resetData();
                             ResultAggregator res = aFP.parse(selectedFile.getAbsolutePath());
                             return res;
                         }
                         else if(parser instanceof nginxFileParser)
                         {
+                            PrimaryController.resetData();
                             ResultAggregator res = nFP.parse(selectedFile.getAbsolutePath());
                             return res;
                         }
@@ -116,93 +114,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                 Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                     @Override
                     protected HashMap<String, Object> call() throws Exception {
-                        try {
-                            // Simulate log parsing (replace with real logic)
-                            HashMap<String, Object> data = new HashMap<String, Object>();
-                            
-                            ExplorerController.this.currentPage = 0;
-                            ExplorerController.this.maxPage = Double.valueOf(Math.floor(Double.valueOf(ExplorerController.this.mongodb.count(PrimaryController.filter_rules)) / Double.valueOf(ExplorerController.this.rowsPerPage))).intValue();
-                            
-                            ObservableList<logData> logTableData = ExplorerController.this.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, ExplorerController.this.currentPage, ExplorerController.this.rowsPerPage).into(FXCollections.observableArrayList());
-                            data.put("logTableData", logTableData);
-
-
-                            Map<String, Integer> countryData = new HashMap<String, Integer>();
-                            ArrayList<Document> countryAgg = ExplorerController.this.mongodb.aggregate(PrimaryController.filter_rules, "countryShort");
-                            for (Document doc : countryAgg) {
-                                Object key = doc.get("_id");
-                                int count = doc.getInteger("count", 0);
-                                countryData.put(key != null ? key.toString() : "-", count);
-                            }
-
-                            data.put("countryData", countryData);
-                            
-                            
-                            Map<Integer, Integer> responseStatusData = new HashMap<Integer, Integer>();
-                            ArrayList<Document> responseStatusAgg = ExplorerController.this.mongodb.aggregate(PrimaryController.filter_rules, "responseStatusCode");
-                            for (Document doc : responseStatusAgg) {
-                                Object key = doc.get("_id");
-                                int count = doc.getInteger("count", 0);
-                                responseStatusData.put((Integer)key, count);
-                            }
-
-                            data.put("responseStatusData", responseStatusData);
-                        
-                            try {
-                                Map<String, Integer> lineChartData = new HashMap<String, Integer>();
-                                final Integer SEGMENT_COUNT = 8;
-                                
-                                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.ENGLISH);
-                                Date minDate = sdf.parse((String) ExplorerController.this.mongodb.getMin(PrimaryController.filter_rules, "time").get("min"));
-                                Date maxDate = sdf.parse((String) ExplorerController.this.mongodb.getMax(PrimaryController.filter_rules, "time").get("max"));;
-                                
-                                Instant minDateInstant = minDate.toInstant();
-                                Instant maxDateInstant = maxDate.toInstant();
-                                
-                                Duration totalDuration = Duration.between(minDateInstant, maxDateInstant);
-                                Duration period = totalDuration.dividedBy(SEGMENT_COUNT);
-
-                                List<Date> checkpoints = new ArrayList<>();
-                                checkpoints.add(minDate);
-                                for (int i = 1; i < SEGMENT_COUNT; i++) {
-                                    checkpoints.add(Date.from(minDateInstant.plus(period.multipliedBy(i))));
-                                }
-                                checkpoints.add(maxDate);
-
-                                for (int i = 0; i < SEGMENT_COUNT; i++) {
-                                    int j = i + 1;
-                                    Date start = checkpoints.get(i);
-                                    Date end = checkpoints.get(j);
-                                    HashMap<String, Object> filter_rules2 = new HashMap<>(PrimaryController.filter_rules);
-
-                                    filter_rules2.put("byPeriod", true);
-                                    HashMap<String, Date> byPeriodValueHashMap = new HashMap<>();
-
-                                    byPeriodValueHashMap.put("byPeriodStartValue", start);
-                                    byPeriodValueHashMap.put("byPeriodEndValue", end);
-                                    
-                                    filter_rules2.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
-                                    Integer cnt = ExplorerController.this.mongodb.count(filter_rules2);
-                                    lineChartData.put("Dur " + String.valueOf(j), cnt);
-
-                                    data.put("lineChartData", lineChartData);
-                                }
-                            } catch (Exception e) {
-                            }
-
-                            data.put("filter_rules", PrimaryController.filter_rules);
-
-                            data.put("currentPage", ExplorerController.this.currentPage);
-                            data.put("maxPage", ExplorerController.this.maxPage);
-                            data.put("rowsPerPage", ExplorerController.this.rowsPerPage);
-
-                            return data;
-                            // Process and upload the file to backend
-                            // Example: BackendService.uploadLogFile(selectedFile);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return null;
+                        return PrimaryController.prepareData(PrimaryController.filter_rules);
                     }
                 };
 

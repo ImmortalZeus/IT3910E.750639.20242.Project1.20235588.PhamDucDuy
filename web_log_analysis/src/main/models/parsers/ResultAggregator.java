@@ -2,6 +2,14 @@ package models.parsers;
 
 import java.util.concurrent.atomic.*;
 
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
+
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClients;
+
 import models.logData.logData;
 import models.mongoDB.mongoDB;
 
@@ -14,38 +22,60 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ResultAggregator {
     //private final static Queue<logData> dataQueue = new ConcurrentLinkedQueue<>();
-    private final static List<logData> dataArrayList = Collections.synchronizedList(new ArrayList<>());
-    private final static mongoDB mongodb = new mongoDB();
-    private AtomicInteger succeed = new AtomicInteger(0);
-    private AtomicInteger fail = new AtomicInteger(0);
+    private static List<logData> dataArrayList = null;
+    private static mongoDB mongodb = null;
+    private static AtomicInteger succeed = null;
+    private static AtomicInteger fail = null;
+
+    private void setUp() {
+        ResultAggregator.dataArrayList = ResultAggregator.dataArrayList == null ? Collections.synchronizedList(new ArrayList<>()) : ResultAggregator.dataArrayList;
+        ResultAggregator.mongodb = ResultAggregator.mongodb == null ? new mongoDB(true) : ResultAggregator.mongodb;
+        ResultAggregator.succeed = ResultAggregator.succeed == null ? new AtomicInteger(0) : ResultAggregator.succeed;
+        ResultAggregator.fail = ResultAggregator.fail == null ? new AtomicInteger(0) : ResultAggregator.fail;
+    }
+
+    public ResultAggregator() {
+        this.setUp();
+    }
+
+    public ResultAggregator(boolean initNewResultAggregator) {
+        if(initNewResultAggregator == true)
+        {
+            ResultAggregator.dataArrayList = null;
+            ResultAggregator.mongodb = null;
+            ResultAggregator.succeed = null;
+            ResultAggregator.fail = null;
+        }
+        this.setUp();
+    }
 
     public void addSucceed() {
-        succeed.incrementAndGet();
+        ResultAggregator.succeed.incrementAndGet();
     }
 
     public void addFail() {
-        fail.incrementAndGet();
+        ResultAggregator.fail.incrementAndGet();
     }
 
     public void collect(logData e) {
-        dataArrayList.add(e);
+        ResultAggregator.dataArrayList.add(e);
     }
 
     public void saveToMongodb() {
         //ArrayList<logData> dataArrayList = new ArrayList<>(dataQueue);
-        synchronized (dataArrayList) {
-            dataArrayList.sort((a, b) -> {return a.getIndex().compareTo(b.getIndex());});
-            mongodb.insertMany(dataArrayList);
-            dataArrayList.clear();
+        synchronized (ResultAggregator.dataArrayList) {
+            ResultAggregator.dataArrayList.sort((a, b) -> {return a.getIndex().compareTo(b.getIndex());});
+            ResultAggregator.mongodb.insertMany(ResultAggregator.dataArrayList);
+            ResultAggregator.dataArrayList.clear();
         } 
         //dataQueue.clear();
     }
 
     public Integer getSucceed() {
-        return succeed.get();
+        return ResultAggregator.succeed.get();
     }
 
     public Integer getFail() {
-        return fail.get();
+        return ResultAggregator.fail.get();
     }
 }

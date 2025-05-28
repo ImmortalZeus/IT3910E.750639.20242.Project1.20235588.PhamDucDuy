@@ -17,8 +17,6 @@ import models.logData.logData;
 import models.mongoDB.mongoDB;
 
 public class LoadingController implements DataReceiver<HashMap<String, Object>> {
-    private mongoDB mongodb = new mongoDB();
-
     @FXML private VBox loadingVbox;
 
 

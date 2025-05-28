@@ -1,13 +1,12 @@
 package controller;
 
-import static com.mongodb.client.model.Filters.empty;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -58,7 +57,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     protected static Integer maxPage = -1;
     protected static Integer rowsPerPage = 1000;
     protected static HashMap<String, Object> filter_rules = new HashMap<>();
-    private mongoDB mongodb = new mongoDB();
+    protected static mongoDB mongodb = new mongoDB();
 
     @FXML private TableView<logData> logTable;
     @FXML private TableView<?> statusTable;
@@ -202,101 +201,117 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     //     applyFilterButton.setManaged(true);
     // }
     
+    protected static void resetData() {
+        PrimaryController.currentPage = -1;
+        PrimaryController.maxPage = -1;
+        PrimaryController.rowsPerPage = 1000;
+        PrimaryController.filter_rules = new HashMap<>();
+    }
 
     // Placeholder until filtering is wired to backend
+    protected static HashMap<String, Object> prepareData(HashMap<String, Object> fr /* filter_rules */) {
+        if(fr == null)
+        {
+            fr = PrimaryController.filter_rules;
+        }
+        try {
+            // Simulate log parsing (replace with real logic)
+            HashMap<String, Object> data = new HashMap<String, Object>();
+            
+            if(PrimaryController.currentPage.equals(-1)) PrimaryController.currentPage = 0;
+            if(PrimaryController.maxPage.equals(-1)) PrimaryController.maxPage = Double.valueOf(Math.ceil(Double.valueOf(PrimaryController.mongodb.count(fr)) / Double.valueOf(PrimaryController.rowsPerPage))).intValue();
+            
+            ObservableList<logData> logTableData = PrimaryController.mongodb.filterWithSkipAndLimit(fr, PrimaryController.currentPage, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
+            data.put("logTableData", logTableData);
+
+
+            Map<String, Integer> countryData = new HashMap<String, Integer>();
+            ArrayList<Document> countryAgg = PrimaryController.mongodb.aggregate(fr, "countryShort");
+            for (Document doc : countryAgg) {
+                Object key = doc.get("_id");
+                int count = doc.getInteger("count", 0);
+                countryData.put(key != null ? key.toString() : "-", count);
+            }
+
+            data.put("countryData", countryData);
+            
+            
+            Map<Integer, Integer> responseStatusData = new HashMap<Integer, Integer>();
+            ArrayList<Document> responseStatusAgg = PrimaryController.mongodb.aggregate(fr, "responseStatusCode");
+            for (Document doc : responseStatusAgg) {
+                Object key = doc.get("_id");
+                int count = doc.getInteger("count", 0);
+                responseStatusData.put((Integer)key, count);
+            }
+
+            data.put("responseStatusData", responseStatusData);
+            
+            try {
+                ArrayList<SimpleEntry<String, Integer>> lineChartData = new ArrayList<SimpleEntry<String, Integer>>();
+
+                final Integer SEGMENT_COUNT = 8;
+                
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.ENGLISH);
+                Date minDate = sdf.parse((String) PrimaryController.mongodb.getMin(fr, "time").get("min"));
+                Date maxDate = sdf.parse((String) PrimaryController.mongodb.getMax(fr, "time").get("max"));;
+                
+                Instant minDateInstant = minDate.toInstant();
+                Instant maxDateInstant = maxDate.toInstant();
+                
+                Duration totalDuration = Duration.between(minDateInstant, maxDateInstant);
+                Duration period = totalDuration.dividedBy(SEGMENT_COUNT);
+
+                List<Date> checkpoints = new ArrayList<>();
+                checkpoints.add(minDate);
+                for (int i = 1; i < SEGMENT_COUNT; i++) {
+                    checkpoints.add(Date.from(minDateInstant.plus(period.multipliedBy(i))));
+                }
+                checkpoints.add(maxDate);
+
+                for (int i = 0; i < SEGMENT_COUNT; i++) {
+                    int j = i + 1;
+                    Date start = checkpoints.get(i);
+                    Date end = checkpoints.get(j);
+                    HashMap<String, Object> filter_rules2 = new HashMap<>(fr);
+
+                    filter_rules2.put("byPeriod", true);
+                    HashMap<String, Date> byPeriodValueHashMap = new HashMap<>();
+
+                    byPeriodValueHashMap.put("byPeriodStartValue", start);
+                    byPeriodValueHashMap.put("byPeriodEndValue", end);
+                    
+                    filter_rules2.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
+                    Integer cnt = PrimaryController.mongodb.count(filter_rules2);
+                    
+                    SimpleEntry<String, Integer> entry  = new SimpleEntry<>("Dur " + String.valueOf(j), cnt);
+
+                    lineChartData.add(entry);
+                    
+                    data.put("lineChartData", lineChartData);
+                }
+            } catch (Exception e) {
+
+            }
+
+            data.put("filter_rules", fr);
+
+            data.put("currentPage", PrimaryController.currentPage);
+            data.put("maxPage", PrimaryController.maxPage);
+            data.put("rowsPerPage", PrimaryController.rowsPerPage);
+
+            return data;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     @FXML
     private void onDashboardButtonPressed() {
         main.App.showLoadingStage(null);
         Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
             @Override
             protected HashMap<String, Object> call() throws Exception {
-                try {
-                    // Simulate log parsing (replace with real logic)
-                    HashMap<String, Object> data = new HashMap<String, Object>();
-                    
-                    if(PrimaryController.currentPage.equals(-1)) PrimaryController.currentPage = 0;
-                    if(PrimaryController.maxPage.equals(-1)) PrimaryController.maxPage = Double.valueOf(Math.floor(Double.valueOf(PrimaryController.this.mongodb.count(PrimaryController.filter_rules)) / Double.valueOf(PrimaryController.rowsPerPage))).intValue();
-                    
-                    ObservableList<logData> logTableData = PrimaryController.this.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
-                    data.put("logTableData", logTableData);
-
-
-                    Map<String, Integer> countryData = new HashMap<String, Integer>();
-                    ArrayList<Document> countryAgg = PrimaryController.this.mongodb.aggregate(PrimaryController.filter_rules, "countryShort");
-                    for (Document doc : countryAgg) {
-                        Object key = doc.get("_id");
-                        int count = doc.getInteger("count", 0);
-                        countryData.put(key != null ? key.toString() : "-", count);
-                    }
-
-                    data.put("countryData", countryData);
-                    
-                    
-                    Map<Integer, Integer> responseStatusData = new HashMap<Integer, Integer>();
-                    ArrayList<Document> responseStatusAgg = PrimaryController.this.mongodb.aggregate(PrimaryController.filter_rules, "responseStatusCode");
-                    for (Document doc : responseStatusAgg) {
-                        Object key = doc.get("_id");
-                        int count = doc.getInteger("count", 0);
-                        responseStatusData.put((Integer)key, count);
-                    }
-
-                    data.put("responseStatusData", responseStatusData);
-                    
-                    try {
-                        Map<String, Integer> lineChartData = new HashMap<String, Integer>();
-                        final Integer SEGMENT_COUNT = 8;
-                        
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.ENGLISH);
-                        Date minDate = sdf.parse((String) PrimaryController.this.mongodb.getMin(PrimaryController.filter_rules, "time").get("min"));
-                        Date maxDate = sdf.parse((String) PrimaryController.this.mongodb.getMax(PrimaryController.filter_rules, "time").get("max"));;
-                        
-                        Instant minDateInstant = minDate.toInstant();
-                        Instant maxDateInstant = maxDate.toInstant();
-                        
-                        Duration totalDuration = Duration.between(minDateInstant, maxDateInstant);
-                        Duration period = totalDuration.dividedBy(SEGMENT_COUNT);
-
-                        List<Date> checkpoints = new ArrayList<>();
-                        checkpoints.add(minDate);
-                        for (int i = 1; i < SEGMENT_COUNT; i++) {
-                            checkpoints.add(Date.from(minDateInstant.plus(period.multipliedBy(i))));
-                        }
-                        checkpoints.add(maxDate);
-
-                        for (int i = 0; i < SEGMENT_COUNT; i++) {
-                            int j = i + 1;
-                            Date start = checkpoints.get(i);
-                            Date end = checkpoints.get(j);
-                            HashMap<String, Object> filter_rules2 = new HashMap<>(PrimaryController.filter_rules);
-
-                            filter_rules2.put("byPeriod", true);
-                            HashMap<String, Date> byPeriodValueHashMap = new HashMap<>();
-
-                            byPeriodValueHashMap.put("byPeriodStartValue", start);
-                            byPeriodValueHashMap.put("byPeriodEndValue", end);
-                            
-                            filter_rules2.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
-                            Integer cnt = PrimaryController.this.mongodb.count(filter_rules2);
-                            lineChartData.put("Dur " + String.valueOf(j), cnt);
-
-                            data.put("lineChartData", lineChartData);
-                        }
-                    } catch (Exception e) {
-                    }
-
-                    data.put("filter_rules", PrimaryController.filter_rules);
-
-                    data.put("currentPage", PrimaryController.currentPage);
-                    data.put("maxPage", PrimaryController.maxPage);
-                    data.put("rowsPerPage", PrimaryController.rowsPerPage);
-
-                    return data;
-                    // Process and upload the file to backend
-                    // Example: BackendService.uploadLogFile(selectedFile);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
+                return PrimaryController.prepareData(PrimaryController.filter_rules);
             }
         };
 
@@ -312,8 +327,8 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     }
 
     @FXML
-    private void onStreamButtonPressed() {
-        main.App.switchToStream(null);
+    private void onHistoryButtonPressed() {
+        main.App.switchToHistory(null);
     }
     
     @FXML
@@ -326,25 +341,41 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         main.App.openFilterStage(null);
     }
     @FXML
-    private void onRefreshButtonPressed() {
-        // resetFilterUI();
-        System.out.println("Filters cleared. Refreshed.");
+    private void onClearFilterButtonPressed() {
+        PrimaryController.resetData();
+        main.App.showLoadingStage(null);
+        Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
+            @Override
+            protected HashMap<String, Object> call() throws Exception {
+                return PrimaryController.prepareData(PrimaryController.filter_rules);
+            }
+        };
+
+        fetchDataTask.setOnSucceeded(v2 -> {
+            HashMap<String, Object> data = fetchDataTask.getValue();
+            main.App.switchToDashboard(data);
+            main.App.closeLoadingStage();
+        });
+
+        Thread thread = new Thread(fetchDataTask);
+        thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+        thread.start();
     }
     @FXML
     private void onPrevButtonPressed() {
         // System.out.println("Prev button pressed.");
-        this.currentPage = (this.currentPage - 1 + this.maxPage) % this.maxPage;
-        ObservableList<logData> x = this.mongodb.filterWithSkipAndLimit(this.filter_rules, this.currentPage * 1000, this.rowsPerPage).into(FXCollections.observableArrayList());
+        PrimaryController.currentPage = (PrimaryController.currentPage - 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
+        ObservableList<logData> x = PrimaryController.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage * 1000, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
         logTable.setItems(x);
-        pageNumText.setText(String.format("Page : " + String.valueOf(this.currentPage + 1) + "/" + String.valueOf(this.maxPage)));
+        pageNumText.setText(String.format("Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage)));
     }
     @FXML
     private void onNextButtonPressed() {
         // System.out.println("Next button pressed.");
-        this.currentPage = (this.currentPage + 1 + this.maxPage) % this.maxPage;
-        ObservableList<logData> x = this.mongodb.filterWithSkipAndLimit(this.filter_rules, this.currentPage * 1000, this.rowsPerPage).into(FXCollections.observableArrayList());
+        PrimaryController.currentPage = (PrimaryController.currentPage + 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
+        ObservableList<logData> x = PrimaryController.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage * 1000, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
         logTable.setItems(x);
-        pageNumText.setText(String.format("Page : " + String.valueOf(this.currentPage + 1) + "/" + String.valueOf(this.maxPage)));
+        pageNumText.setText(String.format("Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage)));
     }
 
     public void setData(HashMap<String, Object> data) {
@@ -356,26 +387,26 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                 @SuppressWarnings("unchecked")
                 HashMap<String, Object> filter_rules = (HashMap<String, Object>) tmp_filter_rules;
                 
-                this.filter_rules = filter_rules;
+                PrimaryController.filter_rules = filter_rules;
             }
         }
 
         Object tmp_currentPage = data.get("currentPage");
         if(tmp_currentPage != null && tmp_currentPage instanceof Integer)
         {
-            this.currentPage = (Integer) tmp_currentPage;
+            PrimaryController.currentPage = (Integer) tmp_currentPage;
         }
 
         Object tmp_maxPage = data.get("maxPage");
         if(tmp_maxPage != null && tmp_maxPage instanceof Integer)
         {
-            this.maxPage = (Integer) tmp_maxPage;
+            PrimaryController.maxPage = (Integer) tmp_maxPage;
         }
 
         Object tmp_rowsPerPage = data.get("rowsPerPage");
         if(tmp_rowsPerPage != null && tmp_rowsPerPage instanceof Integer)
         {
-            this.rowsPerPage = (Integer) tmp_rowsPerPage;
+            PrimaryController.rowsPerPage = (Integer) tmp_rowsPerPage;
         }
 
         Object tmp_logTableData = data.get("logTableData");
@@ -496,17 +527,19 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         }
 
         Object tmp_lineChartData = data.get("lineChartData");
-        if(tmp_lineChartData != null && tmp_lineChartData instanceof HashMap<?, ?> map)
+        if(tmp_lineChartData != null && tmp_lineChartData instanceof ArrayList<?> list)
         {
-            if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Integer))
+            if(list.stream().allMatch(item -> item instanceof SimpleEntry<?, ?> &&
+                        ((SimpleEntry<?, ?>) item).getKey() instanceof String &&
+                        ((SimpleEntry<?, ?>) item).getValue() instanceof Integer))
             {
                 @SuppressWarnings("unchecked")
-                Map<String, Integer> lineChartData = (Map<String, Integer>) tmp_lineChartData;
+                ArrayList<SimpleEntry<String, Integer>> lineChartData = (ArrayList<SimpleEntry<String, Integer>>) tmp_lineChartData;
 
                 XYChart.Series<String, Number> series = new XYChart.Series<>();
                 Integer minCnt = -1;
                 Integer maxCnt = -1;
-                for (Map.Entry<String, Integer> entry : lineChartData.entrySet()) {
+                for (SimpleEntry<String, Integer> entry : lineChartData) {
                     String label = entry.getKey();
                     Integer cnt = entry.getValue();
 
@@ -534,16 +567,18 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                 {
                     delta = 20;
                 }
-                yAxis.setLowerBound(minCnt - delta);
-                yAxis.setUpperBound(maxCnt + delta);
-                yAxis.setTickUnit(Math.max(((maxCnt + delta) - (minCnt - delta)) / 15, 10));
+                Integer lowerBound = Math.max(0, minCnt - delta);
+                Integer upperBound = Math.max(0, maxCnt + delta);
+                yAxis.setLowerBound(lowerBound);
+                yAxis.setUpperBound(upperBound);
+                yAxis.setTickUnit(Math.max(((upperBound) - (lowerBound)) / 15, 10));
 
                 lineChart.getData().add(series);
             }
         }
 
 
-        pageNumText.setText(String.format("Page : " + String.valueOf(this.currentPage + 1) + "/" + String.valueOf(this.maxPage)));
+        pageNumText.setText(String.format("Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage)));
     }
 
     @FXML

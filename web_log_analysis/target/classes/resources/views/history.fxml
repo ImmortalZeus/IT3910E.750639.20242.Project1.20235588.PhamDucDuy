@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="controller.HistoryController">
+
+    <!-- Top Header Bar -->
+    <top>
+        <HBox alignment="CENTER_LEFT" prefHeight="48.0" style="-fx-background-color: #3B5B75;">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+            <children>
+                <Label style="-fx-text-fill: white; -fx-font-size: 16px;" text="Service Log Analyzer" />
+            </children>
+        </HBox>
+    </top>
+
+    <!-- Left Sidebar Menu -->
+    <left>
+        <VBox fx:id="menuPane" alignment="TOP_LEFT" prefWidth="194.0" spacing="15" style="-fx-background-color: #2C3E50;">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20" />
+            </padding>
+            <children>
+                <Label style="-fx-text-fill: white; -fx-font-size: 30px;" text="Menu" />
+                <Button fx:id="dashboardBtn" maxWidth="Infinity" onAction="#onDashboardButtonPressed" styleClass="menu-button" text="Dashboard" />
+                <Button fx:id="historyBtn" maxWidth="Infinity" onAction="#onHistoryButtonPressed" styleClass="menu-button" text="History" />
+                <Button fx:id="explorerBtn" maxWidth="Infinity" onAction="#onExplorerButtonPressed" styleClass="menu-button" text="Explorer" />
+            </children>
+        </VBox>
+    </left>
+
+    <!-- Center Table Content -->
+    <center>
+        <VBox spacing="20" alignment="TOP_CENTER" styleClass="content-area">
+            <padding>
+                <Insets top="20" left="20" right="20" bottom="20"/>
+            </padding>
+            <children>
+                <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+                    <content>
+                        <VBox fx:id="logHistoryContainer" spacing="15" fillWidth="true"/>
+                    </content>
+                </ScrollPane>
+            </children>
+        </VBox>
+    </center>
+</BorderPane>
