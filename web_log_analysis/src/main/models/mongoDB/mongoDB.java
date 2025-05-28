@@ -1,7 +1,7 @@
 package models.mongoDB;
 
 import java.lang.reflect.Array;
-
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -271,6 +271,40 @@ public class mongoDB {
         }
     }
 
+    public ArrayList<Document> bucket(HashMap<String, Object> filter_rules, String field, List<?> boundaries) {
+        if(filter_rules != null)
+        {
+            ArrayList<Bson> filtersList = createFiltersList(filter_rules);
+
+            Bson query = filtersList.isEmpty() ? new Document() : and(filtersList);
+            
+            List<Bson> pipeline = Arrays.asList(
+                new Document("$match", query),
+                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId())) : "$" + field)
+                    .append("boundaries", boundaries)
+                    .append("default", "Outside Range")
+                    .append("output", new Document("count", new Document("$sum", 1)))),
+                new Document("$sort", new Document("_id", 1))
+            );
+
+            ArrayList<Document> res = mongoDB.collection.aggregate(pipeline, Document.class).into(new ArrayList<>());
+            return res;
+        }
+        else
+        {
+            List<Bson> pipeline = Arrays.asList(
+                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId())) : "$" + field)
+                    .append("boundaries", boundaries)
+                    .append("default", "Outside Range")
+                    .append("output", new Document("count", new Document("$sum", 1)))),
+                new Document("$sort", new Document("_id", 1))
+            );
+
+            ArrayList<Document> res = mongoDB.collection.aggregate(pipeline, Document.class).into(new ArrayList<>());
+            return res;
+        }
+    }
+
     public ArrayList<Bson> createFiltersList(HashMap<String, Object> filter_rules) {
         /*
         filter_rules {
@@ -447,7 +481,7 @@ public class mongoDB {
                     {
                         //tmpfilterslist.add(gte("time", filter_rules_byPeriodValue[i]));
                         tmpfilterslist.add(new Document("$expr", new Document("$gte", List.of(
-                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")),
+                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId())),
                             filter_rules_byPeriodValue[i].get("byPeriodStartValue")
                         ))));
                     }
@@ -455,7 +489,7 @@ public class mongoDB {
                     {
                         //tmpfilterslist.add(lte("time", filter_rules_byPeriodValue[i]));
                         tmpfilterslist.add(new Document("$expr", new Document("$lte", List.of(
-                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")),
+                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId())),
                             filter_rules_byPeriodValue[i].get("byPeriodEndValue")
                         ))));
                     }

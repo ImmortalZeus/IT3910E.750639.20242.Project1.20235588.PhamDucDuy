@@ -111,8 +111,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     // Closes the filter window (discarding any uncommitted changes)
     @FXML
     private void onBackButtonPressed(ActionEvent event) {
-        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        stage.close();
+        main.App.closeFilterStage();
     }
 
     // Clear the filter window (clear any uncommitted changes)
@@ -124,8 +123,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.getScene().setRoot(root);
         } catch (Exception e) {
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.close();
+            main.App.closeFilterStage();
         }
     }
 
@@ -314,6 +312,8 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 filter_rules.put("byReferrerValue", Arrays.asList(referrerValue));
             }
 
+            main.App.showLoadingStage(null);
+
             Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                 @Override
                 protected HashMap<String, Object> call() throws Exception {
@@ -325,8 +325,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 HashMap<String, Object> data = fetchDataTask.getValue();
                 main.App.switchToDashboard(data);
                 main.App.closeLoadingStage();
-                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-                stage.close();
+                main.App.closeFilterStage();
             });
 
             Thread thread = new Thread(fetchDataTask);

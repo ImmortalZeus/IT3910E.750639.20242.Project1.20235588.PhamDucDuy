@@ -1,6 +1,7 @@
 package models.utils;
 
 import java.text.SimpleDateFormat;
+import java.time.temporal.ChronoUnit;
 // import java.time.OffsetDateTime;
 // import java.time.format.DateTimeFormatter;
 // import java.time.LocalDateTime;
@@ -48,7 +49,7 @@ public class parsedValueClassConverter {
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
                     Date date = sdf.parse((String) map.get("time"));
                     SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss");
-                    map.put("time", formatter.format(date));
+                    map.put("time", formatter.format(Date.from(date.toInstant().truncatedTo(ChronoUnit.SECONDS))));
                 } else {
                     map.put("time", "-");
                 }

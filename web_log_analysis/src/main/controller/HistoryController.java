@@ -33,7 +33,7 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
         Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
             @Override
             protected HashMap<String, Object> call() throws Exception {
-                return PrimaryController.prepareData(PrimaryController.filter_rules);
+                return PrimaryController.prepareData(null);
             }
         };
 

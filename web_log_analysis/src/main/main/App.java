@@ -106,6 +106,13 @@ public class App extends Application {
         }
     }
 
+    public static void closeFilterStage() {
+        if (filterStage != null && filterStage.isShowing()) {
+            Platform.runLater(() -> filterStage.close());
+            // loadingStage.close();
+        }
+    }
+
     public static Stage loadingStage;
 
     public static void showLoadingStage(HashMap<String, Object> data) {
