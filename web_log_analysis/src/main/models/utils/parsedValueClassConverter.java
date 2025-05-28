@@ -10,7 +10,7 @@ import java.util.Locale;
 import java.util.Date;
 
 public class parsedValueClassConverter {
-    public HashMap<String, Object> fix(HashMap<String, Object> map) {
+    public static HashMap<String, Object> fix(HashMap<String, Object> map) {
         if(map.containsKey("response")) {
             try {
                 if (map.get("response") instanceof String) {

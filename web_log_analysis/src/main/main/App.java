@@ -154,22 +154,23 @@ public class App extends Application {
         }
     }
 
-    public static Stage invalidStage;
+    public static Stage invalidFilterStage;
 
-    public static void callInvalid() {
+    public static void showInvalidFilterStage() {
         try {
             FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource("resources/views/invalid.fxml"));
             Parent newRoot = loader.load();
 
-            invalidStage = new Stage();
-            invalidStage.setTitle("Invalid!");
+            invalidFilterStage = new Stage();
+            // invalidFilterStage.initStyle(StageStyle.UNDECORATED);
+            invalidFilterStage.setTitle("Invalid Filter!");
             Scene invalidScene = new Scene(newRoot);
             invalidScene.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-            invalidStage.setScene(invalidScene);
-            invalidStage.initModality(Modality.WINDOW_MODAL);
-            invalidStage.initOwner(filterStage); 
-            invalidStage.setResizable(false);
-            invalidStage.showAndWait();
+            invalidFilterStage.setScene(invalidScene);
+            invalidFilterStage.initModality(Modality.WINDOW_MODAL);
+            invalidFilterStage.initOwner(filterStage); 
+            invalidFilterStage.setResizable(false);
+            invalidFilterStage.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();
         }

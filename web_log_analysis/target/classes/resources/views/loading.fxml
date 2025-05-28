@@ -7,7 +7,8 @@
 <VBox fx:id="loadingVbox"
       alignment="CENTER" spacing="20.0"
       xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml"
-      prefHeight="200.0" prefWidth="300.0">
+      prefHeight="200.0" prefWidth="300.0"
+      fx:controller="controller.LoadingController">
     <children>
         <ProgressIndicator progress="-1.0"/>
         <Label text="Loading, please wait..." styleClass="loading-label"/>

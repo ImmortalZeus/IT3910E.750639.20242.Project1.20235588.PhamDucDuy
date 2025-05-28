@@ -14,7 +14,7 @@ public class ip2Location {
     private static HashMap<String, IPResult> cache = new HashMap<String, IPResult>();
     private static IPTools iptools = new IPTools();
 
-    public IPResult parse(String IP) throws ip2LocationException {
+    public static IPResult parse(String IP) throws ip2LocationException {
         try {
             if(cache.containsKey(IP)) {
                 return cache.get(IP);

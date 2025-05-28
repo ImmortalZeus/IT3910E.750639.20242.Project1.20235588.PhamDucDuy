@@ -15,6 +15,11 @@ import javafx.stage.Stage;
 import models.logData.logData;
 import models.mongoDB.mongoDB;
 
-public class InvalidController {
-    
+public class InvalidFilterController {
+    @FXML private VBox invalidFilterVbox;
+
+    @FXML
+    public void initialize() {
+        invalidFilterVbox.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+    }
 }

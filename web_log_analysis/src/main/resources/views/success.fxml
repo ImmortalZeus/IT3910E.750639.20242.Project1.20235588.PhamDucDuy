@@ -4,10 +4,11 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
 
-<VBox alignment="CENTER" spacing="20.0"
+<VBox fx:id="successVbox"
+      alignment="CENTER" spacing="20.0"
       xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml"
       prefHeight="200.0" prefWidth="300.0"
-      stylesheets="@style.css">
+      fx:controller="controller.SuccessController">
     <children>
         <Label wrapText="true" maxWidth="200.0" text="Upload Successful!" styleClass="loading-label"/>
     </children>

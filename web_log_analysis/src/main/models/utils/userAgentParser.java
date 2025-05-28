@@ -11,7 +11,7 @@ public class userAgentParser {
     private static final Parser useragentParser = new Parser();
     private static HashMap<String, Client> cache = new HashMap<String, Client>();
 
-    public Client parse(String ua) throws userAgentParserException {
+    public static Client parse(String ua) throws userAgentParserException {
         try {
             if(cache.containsKey(ua)) {
                 return cache.get(ua);

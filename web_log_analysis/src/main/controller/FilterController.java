@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -134,7 +135,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         // TODO: Pass selected filter values to the dashboard controller or data layer
         if(!validateBytesSizeAndApplyMin() || !validateBytesSizeAndApplyMax() || !validateTimestampFromTime() || !validateTimestampToTime())
         {
-            main.App.callInvalid();
+            main.App.showInvalidFilterStage();
         }
         else
         {
@@ -351,6 +352,74 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         timestampToTime.setDisable(true);
         // startDatePicker.getEditor().setDisable(true);
         // endDatePicker.getEditor().setDisable(true);
+
+        
+        String displayDatePattern = "dd/MM/yyyy";
+
+        DateTimeFormatter displayDateFormatter = DateTimeFormatter.ofPattern(displayDatePattern);
+
+        timestampFromDate.setPromptText(displayDatePattern);
+        timestampToDate.setPromptText(displayDatePattern);
+        
+        DateTimeFormatter[] inputFormatters = {
+            DateTimeFormatter.ofPattern("dd/MM/yyyy"),
+            DateTimeFormatter.ofPattern("dd-MM-yyyy"),
+            DateTimeFormatter.ofPattern("dd.MM.yyyy"),
+            DateTimeFormatter.ofPattern("d/M/yyyy"),
+            DateTimeFormatter.ofPattern("d-M-yyyy")
+        };
+
+        timestampFromDate.setConverter(new StringConverter<LocalDate>() {
+            @Override
+            public String toString(LocalDate date) {
+                if (date != null) {
+                    return displayDateFormatter.format(date);
+                } else {
+                    return "";
+                }
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                if (string != null && !string.isEmpty()) {
+                    for (DateTimeFormatter formatter : inputFormatters) {
+                        try {
+                            return LocalDate.parse(string, formatter);
+                        } catch (DateTimeParseException e) {
+                        }
+                    }
+                    return null;
+                } else {
+                    return null;
+                }
+            }
+        });
+
+        timestampToDate.setConverter(new StringConverter<LocalDate>() {
+            @Override
+            public String toString(LocalDate date) {
+                if (date != null) {
+                    return displayDateFormatter.format(date);
+                } else {
+                    return "";
+                }
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                if (string != null && !string.isEmpty()) {
+                    for (DateTimeFormatter formatter : inputFormatters) {
+                        try {
+                            return LocalDate.parse(string, formatter);
+                        } catch (DateTimeParseException e) {
+                        }
+                    }
+                    return null;
+                } else {
+                    return null;
+                }
+            }
+        });
 
         bytesSizeRangeSlider.lowValueProperty().addListener((obs, oldVal, newVal) -> updateSizeTextFieldsFromSlider());
         bytesSizeRangeSlider.highValueProperty().addListener((obs, oldVal, newVal) -> updateSizeTextFieldsFromSlider());

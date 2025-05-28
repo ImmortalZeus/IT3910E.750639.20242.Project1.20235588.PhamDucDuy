@@ -51,14 +51,14 @@
                     <Label text="Timestamp" />
                         <Label text="From" />
                         <VBox spacing="5" alignment="CENTER_LEFT">
-                            <DatePicker fx:id="timestampFromDate" promptText="dd/mm/yyyy" styleClass="neon-input"/>
+                            <DatePicker fx:id="timestampFromDate" styleClass="neon-input"/>
                             <TextField fx:id="timestampFromTime" disable="true" promptText="HH:mm:ss" styleClass="neon-input"/>
                             <Label fx:id="timestampFromTimeErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
                         </VBox>
 
                         <Label text="To" />
                         <VBox spacing="5" alignment="CENTER_LEFT">
-                            <DatePicker fx:id="timestampToDate" promptText="dd/mm/yyyy" styleClass="neon-input"/>
+                            <DatePicker fx:id="timestampToDate" styleClass="neon-input"/>
                             <TextField fx:id="timestampToTime" disable="true" promptText="HH:mm:ss" styleClass="neon-input"/>
                             <Label fx:id="timestampToTimeErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
                         </VBox>
