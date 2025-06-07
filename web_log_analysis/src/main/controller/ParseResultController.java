@@ -2,6 +2,7 @@ package controller;
 
 import java.util.HashMap;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -23,8 +24,12 @@ public class ParseResultController implements DataReceiver<HashMap<String, Objec
     }
     @FXML
     public void onContinueButtonPressed() {
-        main.App.closeParseResultStage();
-        main.App.switchToDashboard(ParseResultController.fetchDataTaskValue);
+        Platform.runLater(() -> {
+            main.App.closeParseResultStage();
+            Platform.runLater(() -> {
+                main.App.switchToDashboard(ParseResultController.fetchDataTaskValue);
+            });
+        });
     }
     protected static void resetData() {
         ParseResultController.parseTaskValue = null;

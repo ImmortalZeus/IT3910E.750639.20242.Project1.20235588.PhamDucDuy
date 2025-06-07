@@ -106,7 +106,7 @@ public class App extends Application {
 
     public static void closeFilterStage() {
         if (filterStage != null && filterStage.isShowing()) {
-            Platform.runLater(() -> filterStage.close());
+            filterStage.close();
             // filterStage.close();
         }
     }
@@ -138,7 +138,7 @@ public class App extends Application {
 
     public static void closeLoadingStage() {
         if (loadingStage != null && loadingStage.isShowing()) {
-            Platform.runLater(() -> loadingStage.close());
+            loadingStage.close();
             // loadingStage.close();
         }
     }
@@ -169,7 +169,7 @@ public class App extends Application {
 
     public static void closeInvalidFilterStage() {
         if (invalidFilterStage != null && invalidFilterStage.isShowing()) {
-            Platform.runLater(() -> invalidFilterStage.close());
+            invalidFilterStage.close();
             // invalidFilterStage.close();
         }
     }
@@ -200,7 +200,7 @@ public class App extends Application {
 
     public static void closeParseResultStage() {
         if (parseResultStage != null && parseResultStage.isShowing()) {
-            Platform.runLater(() -> parseResultStage.close());
+            parseResultStage.close();
             // parseResultStage.close();
         }
     }

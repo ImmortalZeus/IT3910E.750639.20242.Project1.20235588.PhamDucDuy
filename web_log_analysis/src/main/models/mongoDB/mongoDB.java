@@ -280,7 +280,7 @@ public class mongoDB {
             
             List<Bson> pipeline = Arrays.asList(
                 new Document("$match", query),
-                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")) : "$" + field)
+                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null)) : "$" + field)
                     .append("boundaries", boundaries)
                     .append("default", "Outside Range")
                     .append("output", new Document("count", new Document("$sum", 1)))),
@@ -293,7 +293,7 @@ public class mongoDB {
         else
         {
             List<Bson> pipeline = Arrays.asList(
-                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")) : "$" + field)
+                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")).append("timezone", ZoneId.systemDefault().getId()).append("onError", null) : "$" + field)
                     .append("boundaries", boundaries)
                     .append("default", "Outside Range")
                     .append("output", new Document("count", new Document("$sum", 1)))),
@@ -481,7 +481,7 @@ public class mongoDB {
                     {
                         //tmpfilterslist.add(gte("time", filter_rules_byPeriodValue[i]));
                         tmpfilterslist.add(new Document("$expr", new Document("$gte", List.of(
-                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId())),
+                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null)),
                             filter_rules_byPeriodValue[i].get("byPeriodStartValue")
                         ))));
                     }
@@ -489,7 +489,7 @@ public class mongoDB {
                     {
                         //tmpfilterslist.add(lte("time", filter_rules_byPeriodValue[i]));
                         tmpfilterslist.add(new Document("$expr", new Document("$lte", List.of(
-                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId())),
+                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null)),
                             filter_rules_byPeriodValue[i].get("byPeriodEndValue")
                         ))));
                     }

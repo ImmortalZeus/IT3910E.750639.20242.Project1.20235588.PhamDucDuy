@@ -34,6 +34,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.Node;
 
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Popup;
 import java.time.Duration;
@@ -326,23 +327,29 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     }
     @FXML
     private void onDashboardButtonPressed() {
-        main.App.showLoadingStage(null);
-        Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
-            @Override
-            protected HashMap<String, Object> call() throws Exception {
-                return PrimaryController.prepareData(null);
-            }
-        };
-
-        fetchDataTask.setOnSucceeded(v2 -> {
-            HashMap<String, Object> data = fetchDataTask.getValue();
-            main.App.closeLoadingStage();
-            main.App.switchToDashboard(data);
+        Platform.runLater(() -> {
+            main.App.showLoadingStage(null);
+            Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
+                @Override
+                protected HashMap<String, Object> call() throws Exception {
+                    return PrimaryController.prepareData(null);
+                }
+            };
+    
+            fetchDataTask.setOnSucceeded(v2 -> {
+                HashMap<String, Object> data = fetchDataTask.getValue();
+                Platform.runLater(() -> {
+                    main.App.closeLoadingStage();
+                    Platform.runLater(() -> {
+                        main.App.switchToDashboard(data);
+                    });
+                });
+            });
+    
+            Thread thread = new Thread(fetchDataTask);
+            thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+            thread.start();
         });
-
-        Thread thread = new Thread(fetchDataTask);
-        thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
-        thread.start();
     }
 
     @FXML
@@ -361,24 +368,30 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     }
     @FXML
     private void onClearFilterButtonPressed() {
-        PrimaryController.resetData();
-        main.App.showLoadingStage(null);
-        Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
-            @Override
-            protected HashMap<String, Object> call() throws Exception {
-                return PrimaryController.prepareData(null);
-            }
-        };
-
-        fetchDataTask.setOnSucceeded(v2 -> {
-            HashMap<String, Object> data = fetchDataTask.getValue();
-            main.App.closeLoadingStage();
-            main.App.switchToDashboard(data);
+        Platform.runLater(() -> {
+            PrimaryController.resetData();
+            main.App.showLoadingStage(null);
+            Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
+                @Override
+                protected HashMap<String, Object> call() throws Exception {
+                    return PrimaryController.prepareData(null);
+                }
+            };
+    
+            fetchDataTask.setOnSucceeded(v2 -> {
+                HashMap<String, Object> data = fetchDataTask.getValue();
+                Platform.runLater(() -> {
+                    main.App.closeLoadingStage();
+                    Platform.runLater(() -> {
+                        main.App.switchToDashboard(data);
+                    });
+                });
+            });
+    
+            Thread thread = new Thread(fetchDataTask);
+            thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+            thread.start();
         });
-
-        Thread thread = new Thread(fetchDataTask);
-        thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
-        thread.start();
     }
     @FXML
     private void onPrevButtonPressed() {
@@ -398,211 +411,217 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     }
 
     public void setData(HashMap<String, Object> data) {
-        Object tmp_filter_rules = data.get("filter_rules");
-        if(tmp_filter_rules != null && tmp_filter_rules instanceof HashMap<?, ?> map)
-        {
-            if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Object))
+        Platform.runLater(() -> {
+            main.App.showLoadingStage(null);
+            Object tmp_filter_rules = data.get("filter_rules");
+            if(tmp_filter_rules != null && tmp_filter_rules instanceof HashMap<?, ?> map)
             {
-                @SuppressWarnings("unchecked")
-                HashMap<String, Object> filter_rules = (HashMap<String, Object>) tmp_filter_rules;
-                
-                PrimaryController.filter_rules = filter_rules;
-            }
-        }
-
-        Object tmp_currentPage = data.get("currentPage");
-        if(tmp_currentPage != null && tmp_currentPage instanceof Integer)
-        {
-            PrimaryController.currentPage = (Integer) tmp_currentPage;
-        }
-
-        Object tmp_maxPage = data.get("maxPage");
-        if(tmp_maxPage != null && tmp_maxPage instanceof Integer)
-        {
-            PrimaryController.maxPage = (Integer) tmp_maxPage;
-        }
-
-        Object tmp_entriesCount = data.get("entriesCount");
-        if(tmp_entriesCount != null && tmp_entriesCount instanceof Integer)
-        {
-            PrimaryController.entriesCount = (Integer) tmp_entriesCount;
-        }
-       
-        Object tmp_rowsPerPage = data.get("rowsPerPage");
-        if(tmp_rowsPerPage != null && tmp_rowsPerPage instanceof Integer)
-        {
-            PrimaryController.rowsPerPage = (Integer) tmp_rowsPerPage;
-        }
-
-        Object tmp_logTableData = data.get("logTableData");
-        if(tmp_logTableData != null && tmp_logTableData instanceof ObservableList<?>)
-        {
-            ObservableList<?> tmp_logTableData2 = (ObservableList<?>) tmp_logTableData;
-
-            if(!tmp_logTableData2.isEmpty() && tmp_logTableData2.stream().allMatch(item -> item instanceof logData))
-            {
-                @SuppressWarnings("unchecked")
-                ObservableList<logData> logTableData = (ObservableList<logData>) tmp_logTableData2;
-                logTable.setItems(logTableData);
-            }
-        }
-
-        Object tmp_countryData = data.get("countryData");
-        if(tmp_countryData != null && tmp_countryData instanceof HashMap<?, ?> map)
-        {
-            if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Integer))
-            {
-                @SuppressWarnings("unchecked")
-                Map<String, Integer> countryData = (Map<String, Integer>) tmp_countryData;
-
-                int totalRequests = countryData.values().stream().mapToInt(Integer::intValue).sum();
-
-                ObservableList<PieChart.Data> pieChartCountryData = FXCollections.observableArrayList();
-
-                for (Map.Entry<String, Integer> entry : countryData.entrySet()) {
-                    String country = entry.getKey();
-                    int requests = entry.getValue();
-                    double percentage = (requests * 100.0) / totalRequests;
-
-                    String label = (country.equals("-") ? "Undefined" : country) + " (" + String.format("%.1f", percentage) + "%)";
-                    pieChartCountryData.add(new PieChart.Data(label, requests));
+                if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Object))
+                {
+                    @SuppressWarnings("unchecked")
+                    HashMap<String, Object> filter_rules = (HashMap<String, Object>) tmp_filter_rules;
+                    
+                    PrimaryController.filter_rules = filter_rules;
                 }
-
-                pieChartCountry.setData(pieChartCountryData);
-
-                for (PieChart.Data piedata : pieChartCountryData) {
-                    String country = piedata.getName();
-                    double percent = (piedata.getPieValue() / totalRequests) * 100;
-                    int actualCount = (int) piedata.getPieValue();
-
-                    // Create a styled label as a tooltip
-                    Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
-                    tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-                    tooltipLabel.getStyleClass().add("piechart-tooltip");
-                    Popup popup = new Popup();
-                    popup.getContent().add(tooltipLabel);
-                    popup.setAutoHide(true);
-
-                    FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), tooltipLabel);
-                    fadeIn.setFromValue(0);
-                    fadeIn.setToValue(1);
-
-                    // Show tooltip on hover
-                    piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
-                        tooltipLabel.setOpacity(0);
-                        popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
-                        fadeIn.playFromStart();
-                    });
-
-                    // Hide tooltip on exit
-                    piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
-                }
-
             }
-        }
 
-        Object tmp_responseStatusData = data.get("responseStatusData");
-        if(tmp_responseStatusData != null && tmp_responseStatusData instanceof HashMap<?, ?> map)
-        {
-            if(map.keySet().stream().allMatch(key -> key instanceof Integer) && map.values().stream().allMatch(value -> value instanceof Integer))
+            Object tmp_currentPage = data.get("currentPage");
+            if(tmp_currentPage != null && tmp_currentPage instanceof Integer)
             {
-                @SuppressWarnings("unchecked")
-                Map<Integer, Integer> responseStatusData = (Map<Integer, Integer>) tmp_responseStatusData;
+                PrimaryController.currentPage = (Integer) tmp_currentPage;
+            }
 
-                int totalResponses = responseStatusData.values().stream().mapToInt(Integer::intValue).sum();
+            Object tmp_maxPage = data.get("maxPage");
+            if(tmp_maxPage != null && tmp_maxPage instanceof Integer)
+            {
+                PrimaryController.maxPage = (Integer) tmp_maxPage;
+            }
+
+            Object tmp_entriesCount = data.get("entriesCount");
+            if(tmp_entriesCount != null && tmp_entriesCount instanceof Integer)
+            {
+                PrimaryController.entriesCount = (Integer) tmp_entriesCount;
+            }
         
-                ObservableList<PieChart.Data> pieChartResponseStatusData = FXCollections.observableArrayList();
-
-                for (Map.Entry<Integer, Integer> entry : responseStatusData.entrySet()) {
-                    int status = entry.getKey();
-                    int count = entry.getValue();
-                    double percentage = (count * 100.0) / totalResponses;
-
-                    String label = status + " (" + String.format("%.1f", percentage) + "%)";
-                    pieChartResponseStatusData.add(new PieChart.Data(label, count));
-                }
-
-                pieChartResponseStatus.setData(pieChartResponseStatusData);
-
-                for (PieChart.Data piedata : pieChartResponseStatus.getData()) {
-                    String status = piedata.getName();
-                    double percent = (piedata.getPieValue() / totalResponses) * 100;
-                    int actualCount = (int) piedata.getPieValue();
-
-                    Label restooltipLabel = new Label(String.format("Status Code: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
-                    restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-                    restooltipLabel.getStyleClass().add("piechart-tooltip");
-                    Popup popup = new Popup();
-                    popup.getContent().add(restooltipLabel);
-                    popup.setAutoHide(true);
-
-                    FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), restooltipLabel);
-                    fadeIn.setFromValue(0);
-                    fadeIn.setToValue(1);
-
-                    piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
-                        restooltipLabel.setOpacity(0);
-                        popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
-                        fadeIn.playFromStart();
-                    });
-
-                    piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
-                }
-            }
-        }
-
-        Object tmp_lineChartData = data.get("lineChartData");
-        if(tmp_lineChartData != null && tmp_lineChartData instanceof ArrayList<?> list)
-        {
-            if(list.stream().allMatch(item -> item instanceof SimpleEntry<?, ?> &&
-                        ((SimpleEntry<?, ?>) item).getKey() instanceof String &&
-                        ((SimpleEntry<?, ?>) item).getValue() instanceof Integer))
+            Object tmp_rowsPerPage = data.get("rowsPerPage");
+            if(tmp_rowsPerPage != null && tmp_rowsPerPage instanceof Integer)
             {
-                @SuppressWarnings("unchecked")
-                ArrayList<SimpleEntry<String, Integer>> lineChartData = (ArrayList<SimpleEntry<String, Integer>>) tmp_lineChartData;
-
-                XYChart.Series<String, Number> series = new XYChart.Series<>();
-                Integer minCnt = -1;
-                Integer maxCnt = -1;
-                for (SimpleEntry<String, Integer> entry : lineChartData) {
-                    String label = entry.getKey();
-                    Integer cnt = entry.getValue();
-
-                    minCnt = minCnt == -1 ? cnt : Math.min(minCnt, cnt);
-                    maxCnt = minCnt == -1 ? cnt : Math.max(maxCnt, cnt);
-
-                    series.getData().add(new XYChart.Data<>(label, cnt));
-                }
-
-                yAxis.setAutoRanging(false);
-                Integer delta = maxCnt - minCnt;
-                if(delta > 1000)
-                {
-                    delta = 1000;
-                }
-                else if (delta > 500)
-                {
-                    delta = 500;
-                }
-                else if (delta > 100)
-                {
-                    delta = 100;
-                }
-                else
-                {
-                    delta = 20;
-                }
-                Integer lowerBound = Math.max(0, minCnt - delta);
-                Integer upperBound = Math.max(0, maxCnt + delta);
-                yAxis.setLowerBound(lowerBound);
-                yAxis.setUpperBound(upperBound);
-                yAxis.setTickUnit(Math.max(((upperBound) - (lowerBound)) / 15, 10));
-
-                lineChart.getData().add(series);
+                PrimaryController.rowsPerPage = (Integer) tmp_rowsPerPage;
             }
-        }
 
-        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+            Object tmp_logTableData = data.get("logTableData");
+            if(tmp_logTableData != null && tmp_logTableData instanceof ObservableList<?>)
+            {
+                ObservableList<?> tmp_logTableData2 = (ObservableList<?>) tmp_logTableData;
+
+                if(!tmp_logTableData2.isEmpty() && tmp_logTableData2.stream().allMatch(item -> item instanceof logData))
+                {
+                    @SuppressWarnings("unchecked")
+                    ObservableList<logData> logTableData = (ObservableList<logData>) tmp_logTableData2;
+                    logTable.setItems(logTableData);
+                }
+            }
+
+            Object tmp_countryData = data.get("countryData");
+            if(tmp_countryData != null && tmp_countryData instanceof HashMap<?, ?> map)
+            {
+                if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Integer))
+                {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Integer> countryData = (Map<String, Integer>) tmp_countryData;
+
+                    int totalRequests = countryData.values().stream().mapToInt(Integer::intValue).sum();
+
+                    ObservableList<PieChart.Data> pieChartCountryData = FXCollections.observableArrayList();
+
+                    for (Map.Entry<String, Integer> entry : countryData.entrySet()) {
+                        String country = entry.getKey();
+                        int requests = entry.getValue();
+                        double percentage = (requests * 100.0) / totalRequests;
+
+                        String label = (country.equals("-") ? "Undefined" : country) + " (" + String.format("%.1f", percentage) + "%)";
+                        pieChartCountryData.add(new PieChart.Data(label, requests));
+                    }
+
+                    pieChartCountry.setData(pieChartCountryData);
+
+                    for (PieChart.Data piedata : pieChartCountryData) {
+                        String country = piedata.getName();
+                        double percent = (piedata.getPieValue() / totalRequests) * 100;
+                        int actualCount = (int) piedata.getPieValue();
+
+                        // Create a styled label as a tooltip
+                        Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
+                        tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                        tooltipLabel.getStyleClass().add("piechart-tooltip");
+                        Popup popup = new Popup();
+                        popup.getContent().add(tooltipLabel);
+                        popup.setAutoHide(true);
+
+                        FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), tooltipLabel);
+                        fadeIn.setFromValue(0);
+                        fadeIn.setToValue(1);
+
+                        // Show tooltip on hover
+                        piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                            tooltipLabel.setOpacity(0);
+                            popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                            fadeIn.playFromStart();
+                        });
+
+                        // Hide tooltip on exit
+                        piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                    }
+
+                }
+            }
+
+            Object tmp_responseStatusData = data.get("responseStatusData");
+            if(tmp_responseStatusData != null && tmp_responseStatusData instanceof HashMap<?, ?> map)
+            {
+                if(map.keySet().stream().allMatch(key -> key instanceof Integer) && map.values().stream().allMatch(value -> value instanceof Integer))
+                {
+                    @SuppressWarnings("unchecked")
+                    Map<Integer, Integer> responseStatusData = (Map<Integer, Integer>) tmp_responseStatusData;
+
+                    int totalResponses = responseStatusData.values().stream().mapToInt(Integer::intValue).sum();
+            
+                    ObservableList<PieChart.Data> pieChartResponseStatusData = FXCollections.observableArrayList();
+
+                    for (Map.Entry<Integer, Integer> entry : responseStatusData.entrySet()) {
+                        int status = entry.getKey();
+                        int count = entry.getValue();
+                        double percentage = (count * 100.0) / totalResponses;
+
+                        String label = status + " (" + String.format("%.1f", percentage) + "%)";
+                        pieChartResponseStatusData.add(new PieChart.Data(label, count));
+                    }
+
+                    pieChartResponseStatus.setData(pieChartResponseStatusData);
+
+                    for (PieChart.Data piedata : pieChartResponseStatus.getData()) {
+                        String status = piedata.getName();
+                        double percent = (piedata.getPieValue() / totalResponses) * 100;
+                        int actualCount = (int) piedata.getPieValue();
+
+                        Label restooltipLabel = new Label(String.format("Status Code: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
+                        restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                        restooltipLabel.getStyleClass().add("piechart-tooltip");
+                        Popup popup = new Popup();
+                        popup.getContent().add(restooltipLabel);
+                        popup.setAutoHide(true);
+
+                        FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), restooltipLabel);
+                        fadeIn.setFromValue(0);
+                        fadeIn.setToValue(1);
+
+                        piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                            restooltipLabel.setOpacity(0);
+                            popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                            fadeIn.playFromStart();
+                        });
+
+                        piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                    }
+                }
+            }
+
+            Object tmp_lineChartData = data.get("lineChartData");
+            if(tmp_lineChartData != null && tmp_lineChartData instanceof ArrayList<?> list)
+            {
+                if(list.stream().allMatch(item -> item instanceof SimpleEntry<?, ?> &&
+                            ((SimpleEntry<?, ?>) item).getKey() instanceof String &&
+                            ((SimpleEntry<?, ?>) item).getValue() instanceof Integer))
+                {
+                    @SuppressWarnings("unchecked")
+                    ArrayList<SimpleEntry<String, Integer>> lineChartData = (ArrayList<SimpleEntry<String, Integer>>) tmp_lineChartData;
+
+                    XYChart.Series<String, Number> series = new XYChart.Series<>();
+                    Integer minCnt = -1;
+                    Integer maxCnt = -1;
+                    for (SimpleEntry<String, Integer> entry : lineChartData) {
+                        String label = entry.getKey();
+                        Integer cnt = entry.getValue();
+
+                        minCnt = minCnt == -1 ? cnt : Math.min(minCnt, cnt);
+                        maxCnt = minCnt == -1 ? cnt : Math.max(maxCnt, cnt);
+
+                        series.getData().add(new XYChart.Data<>(label, cnt));
+                    }
+
+                    yAxis.setAutoRanging(false);
+                    Integer delta = maxCnt - minCnt;
+                    if(delta > 1000)
+                    {
+                        delta = 1000;
+                    }
+                    else if (delta > 500)
+                    {
+                        delta = 500;
+                    }
+                    else if (delta > 100)
+                    {
+                        delta = 100;
+                    }
+                    else
+                    {
+                        delta = 20;
+                    }
+                    Integer lowerBound = Math.max(0, minCnt - delta);
+                    Integer upperBound = Math.max(0, maxCnt + delta);
+                    yAxis.setLowerBound(lowerBound);
+                    yAxis.setUpperBound(upperBound);
+                    yAxis.setTickUnit(Math.max(((upperBound) - (lowerBound)) / 15, 10));
+
+                    lineChart.getData().add(series);
+                }
+            }
+
+            pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+            Platform.runLater(() -> {
+                main.App.closeLoadingStage();
+            });
+        });
     }
 
     @FXML

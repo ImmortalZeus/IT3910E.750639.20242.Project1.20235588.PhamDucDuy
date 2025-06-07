@@ -102,7 +102,9 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                         // Example: BackendService.uploadLogFile(selectedFile);
                     } catch (Exception e) {
                         e.printStackTrace();
-                        main.App.closeLoadingStage();
+                        Platform.runLater(() -> {
+                            main.App.closeLoadingStage();
+                        });
                     }
                     return null;
                 }
@@ -124,10 +126,12 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                     HashMap<String, Object> data = new HashMap<>();
                     data.put("parseTaskValue", parseTaskValue);
                     data.put("fetchDataTaskValue", fetchDataTaskValue);
-                    main.App.closeLoadingStage();
-                    main.App.showParseResultStageStage(data);
-                    // main.App.switchToDashboard(data);
-                    // main.App.closeParseResultStage();
+                    Platform.runLater(() -> {
+                        main.App.closeLoadingStage();
+                        Platform.runLater(() -> {
+                            main.App.showParseResultStageStage(data);
+                        });
+                    });
                 });
 
                 Thread thread = new Thread(fetchDataTask);
@@ -140,7 +144,9 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                 System.err.println("Task failed: " + e.getSource().getException());
                 
                 // Ensure the loading stage closes on failure
-                Platform.runLater(() -> main.App.closeLoadingStage());
+                Platform.runLater(() -> {
+                    main.App.closeLoadingStage();
+                });
             });
 
             Thread thread = new Thread(parseTask);

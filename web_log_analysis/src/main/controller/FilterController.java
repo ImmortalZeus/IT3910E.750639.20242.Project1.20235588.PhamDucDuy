@@ -113,7 +113,9 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     // Closes the filter window (discarding any uncommitted changes)
     @FXML
     private void onBackButtonPressed(ActionEvent event) {
-        main.App.closeFilterStage();
+        Platform.runLater(() -> {
+            main.App.closeFilterStage();
+        });
     }
 
     // Clear the filter window (clear any uncommitted changes)
@@ -125,7 +127,9 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.getScene().setRoot(root);
         } catch (Exception e) {
-            main.App.closeFilterStage();
+            Platform.runLater(() -> {
+                main.App.closeFilterStage();
+            });
         }
     }
 
@@ -135,7 +139,9 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         // TODO: Pass selected filter values to the dashboard controller or data layer
         if(!validateBytesSizeAndApplyMin() || !validateBytesSizeAndApplyMax() || !validateTimestampFromTime() || !validateTimestampToTime())
         {
-            main.App.showInvalidFilterStage(null);
+            Platform.runLater(() -> {
+                main.App.showInvalidFilterStage(null);
+            });
         }
         else
         {
@@ -314,25 +320,33 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 filter_rules.put("byReferrerValue", Arrays.asList(referrerValue));
             }
 
-            main.App.showLoadingStage(null);
-
-            Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
-                @Override
-                protected HashMap<String, Object> call() throws Exception {
-                    return PrimaryController.prepareData(filter_rules);
-                }
-            };
-
-            fetchDataTask.setOnSucceeded(v2 -> {
-                HashMap<String, Object> data = fetchDataTask.getValue();
-                main.App.closeLoadingStage();
-                main.App.closeFilterStage();
-                main.App.switchToDashboard(data);
+            Platform.runLater(() -> {
+                main.App.showLoadingStage(null);
+                
+                Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
+                    @Override
+                    protected HashMap<String, Object> call() throws Exception {
+                        return PrimaryController.prepareData(filter_rules);
+                    }
+                };
+    
+                fetchDataTask.setOnSucceeded(v2 -> {
+                    HashMap<String, Object> data = fetchDataTask.getValue();
+                    Platform.runLater(() -> {
+                        main.App.closeLoadingStage();
+                        Platform.runLater(() -> {
+                            main.App.closeFilterStage();
+                            Platform.runLater(() -> {
+                                main.App.switchToDashboard(data);
+                            });
+                        });
+                    });
+                });
+    
+                Thread thread = new Thread(fetchDataTask);
+                thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+                thread.start();
             });
-
-            Thread thread = new Thread(fetchDataTask);
-            thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
-            thread.start();
         }
     }
 

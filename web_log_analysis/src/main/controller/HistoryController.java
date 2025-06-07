@@ -14,6 +14,7 @@ import java.util.Map;
 
 import org.bson.Document;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -29,23 +30,29 @@ import javafx.scene.control.Label;
 
 public class HistoryController implements DataReceiver<HashMap<String, Object>> {
     @FXML private void onDashboardButtonPressed() {
-        main.App.showLoadingStage(null);
-        Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
-            @Override
-            protected HashMap<String, Object> call() throws Exception {
-                return PrimaryController.prepareData(null);
-            }
-        };
-
-        fetchDataTask.setOnSucceeded(v2 -> {
-            HashMap<String, Object> data = fetchDataTask.getValue();
-            main.App.closeLoadingStage();
-            main.App.switchToDashboard(data);
+        Platform.runLater(() -> {
+            main.App.showLoadingStage(null);
+            Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
+                @Override
+                protected HashMap<String, Object> call() throws Exception {
+                    return PrimaryController.prepareData(null);
+                }
+            };
+    
+            fetchDataTask.setOnSucceeded(v2 -> {
+                HashMap<String, Object> data = fetchDataTask.getValue();
+                Platform.runLater(() -> {
+                    main.App.closeLoadingStage();
+                    Platform.runLater(() -> {
+                        main.App.switchToDashboard(data);
+                    });
+                });
+            });
+    
+            Thread thread = new Thread(fetchDataTask);
+            thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+            thread.start();
         });
-
-        Thread thread = new Thread(fetchDataTask);
-        thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
-        thread.start();
     }
 
     @FXML private void onHistoryButtonPressed() {
