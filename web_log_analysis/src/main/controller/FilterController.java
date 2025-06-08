@@ -27,9 +27,6 @@ import java.util.Map;
 
 import org.bson.Document;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.controlsfx.control.RangeSlider;
 import org.controlsfx.control.action.Action;
 
@@ -136,7 +133,6 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     // Closes the filter window (intended to apply selected filters later)
     @FXML
     private void onApplyButtonPressed(ActionEvent event) {
-        // TODO: Pass selected filter values to the dashboard controller or data layer
         if(!validateBytesSizeAndApplyMin() || !validateBytesSizeAndApplyMax() || !validateTimestampFromTime() || !validateTimestampToTime())
         {
             Platform.runLater(() -> {
@@ -269,12 +265,12 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 filter_rules.put("byCity", true);
                 filter_rules.put("byCityValue", Arrays.asList(cityValue));
             }
-            if(requestMethodValue != null && requestMethodValue.size() > 0)
+            if(requestMethodValue != null && !requestMethodValue.isEmpty())
             {
                 filter_rules.put("byRequestMethod", true);
                 filter_rules.put("byRequestMethodValue", Arrays.asList(requestMethodValue));
             }
-            if(responseStatusCodeValue != null && responseStatusCodeValue.size() > 0)
+            if(responseStatusCodeValue != null && !responseStatusCodeValue.isEmpty())
             {
                 filter_rules.put("byResponseStatusCode", true);
                 filter_rules.put("byResponseStatusCodeValue", responseStatusCodeValue);
@@ -351,7 +347,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     }
 
     private final int MAX_COMBOBOXES = 3;
-    private final ObservableList<Integer> httpCodes = FXCollections.observableArrayList(
+    private static final ObservableList<Integer> httpCodes = FXCollections.observableArrayList(
         -1,
         100, 101, 102, 103,
         200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
@@ -584,7 +580,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     }
 
     private void addResponseCodeBox() {
-        ComboBox<Integer> comboBox = new ComboBox<>(httpCodes);
+        ComboBox<Integer> comboBox = new ComboBox<>(FilterController.httpCodes);
         comboBox.setPromptText("Select Code...");
         comboBox.setEditable(false);
         comboBox.getStyleClass().add("combo-box");
@@ -626,14 +622,21 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             return true;
         }
         try {
-            String timeFromStr = timestampFromTime.isDisable() ? null : timestampFromTime.getText();
+            String timeFromStr = timestampFromTime.getText();
+            timeFromStr = timeFromStr == null ? "" : timeFromStr;
             LocalTime timeFrom = null;
-            if(timestampFromTime != null && timeFromStr.length() > 0)
-            {
-                if (timeFromStr.startsWith("24:")) {
-                    throw new Exception();
+            try {
+                if(timestampFromTime != null && timeFromStr.length() > 0)
+                {
+                    if (timeFromStr.startsWith("24:")) {
+                    }
+                    else
+                    {
+                        timeFrom = LocalTime.parse(timeFromStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    }
                 }
-                timeFrom = LocalTime.parse(timeFromStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+            } catch (Exception e) {
+                timeFrom = null;
             }
 
             String timeToStr = timestampToTime.isDisable() ? null : timestampToTime.getText();
@@ -642,9 +645,11 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 if(timeToStr != null && timeToStr.length() > 0)
                 {
                     if (timeToStr.startsWith("24:")) {
-                        throw new Exception();
                     }
-                    timeTo = LocalTime.parse(timeToStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    else
+                    {
+                        timeTo = LocalTime.parse(timeToStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    }
                 }
             } catch (Exception e) {
                 timeTo = null;
@@ -675,14 +680,21 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             return true;
         }
         try {
-            String timeToStr = timestampToTime.isDisable() ? null : timestampToTime.getText();
+            String timeToStr = timestampToTime.getText();
+            timeToStr = timeToStr == null ? "" : timeToStr;
             LocalTime timeTo = null;
-            if(timestampToTime != null && timeToStr.length() > 0)
-            {
-                if (timeToStr.startsWith("24:")) {
-                    throw new Exception();
+            try {
+                if(timestampToTime != null && timeToStr.length() > 0)
+                {
+                    if (timeToStr.startsWith("24:")) {
+                    }
+                    else
+                    {
+                        timeTo = LocalTime.parse(timeToStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    }
                 }
-                timeTo = LocalTime.parse(timeToStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+            } catch (Exception e) {
+                timeTo = null;
             }
 
             String timeFromStr = timestampFromTime.isDisable() ? null : timestampFromTime.getText();
@@ -691,9 +703,11 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 if(timeFromStr != null && timeFromStr.length() > 0)
                 {
                     if (timeFromStr.startsWith("24:")) {
-                        throw new Exception();
                     }
-                    timeFrom = LocalTime.parse(timeFromStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    else
+                    {
+                        timeFrom = LocalTime.parse(timeFromStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                    }
                 }
             } catch (Exception e) {
                 timeFrom = null;

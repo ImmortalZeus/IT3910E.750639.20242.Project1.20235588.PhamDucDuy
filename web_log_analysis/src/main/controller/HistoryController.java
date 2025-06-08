@@ -33,7 +33,7 @@ import models.utils.dateToUTC;
 import javafx.scene.control.Label;
 
 public class HistoryController implements DataReceiver<HashMap<String, Object>> {
-    protected static List<mongoDBParseHistory> collectionHistory = new ArrayList<mongoDBParseHistory>();
+    protected static List<mongoDBParseHistory> collectionHistory = new ArrayList<>();
 
     @FXML private VBox logHistoryContainer;
 
@@ -64,14 +64,13 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
     }
 
     @FXML private void onHistoryButtonPressed() {
-        HashMap<String, Object> historyData = new HashMap<>() {{
-            put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
-        }};
+        HashMap<String, Object> historyData = new HashMap<>();
+        historyData.put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
         main.App.switchToHistory(historyData);
     }
     
     @FXML private void onExplorerButtonPressed() {
-        main.App.switchToExplorer(null);;
+        main.App.switchToExplorer(null);
     }
 
     @Override
@@ -84,8 +83,8 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
             if(tmp_collectionHistory2.stream().allMatch(item -> item instanceof mongoDBParseHistory))
             {
                 @SuppressWarnings("unchecked")
-                ArrayList<mongoDBParseHistory> collectionHistory = (ArrayList<mongoDBParseHistory>) tmp_collectionHistory2;
-                HistoryController.collectionHistory = collectionHistory;
+                ArrayList<mongoDBParseHistory> collectionHistory2 = (ArrayList<mongoDBParseHistory>) tmp_collectionHistory2;
+                HistoryController.collectionHistory = collectionHistory2;
             }
         }
 

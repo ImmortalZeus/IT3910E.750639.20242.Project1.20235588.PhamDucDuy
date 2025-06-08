@@ -44,12 +44,8 @@ public class Main {
             Date date = sdf.parse("17/May/2015:08:05:32 +0000");
 
             filter_rules.put("byPeriod", true);
-            Map<String, Date> filterdatemap = new HashMap<String, Date>()
-            {
-                {
-                    put("byPeriodStartValue", date);
-                }
-            };
+            Map<String, Date> filterdatemap = new HashMap<String, Date>();
+            filterdatemap.put("byPeriodStartValue", date);
             List<Map<String, Date>> arr = List.of(filterdatemap);
             filter_rules.put("byPeriodValue", arr);
 

@@ -69,7 +69,6 @@ public class apacheFileParser {
                     return aggregator;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 try {
                     if(fr != null) {
                         fr.close();
@@ -80,6 +79,16 @@ public class apacheFileParser {
                 } catch(Exception e2) {
                 }
                 throw new fileReaderException();
+            } finally {
+                try {
+                    if(fr != null) {
+                        fr.close();
+                    }
+                    if(br != null) {
+                        br.close();
+                    }
+                } catch(Exception e2) {
+                }
             }
         } catch (Exception e) {
             throw new fileParserException();

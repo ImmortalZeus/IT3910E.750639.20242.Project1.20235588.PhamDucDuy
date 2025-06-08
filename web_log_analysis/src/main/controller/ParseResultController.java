@@ -41,9 +41,9 @@ public class ParseResultController implements DataReceiver<HashMap<String, Objec
         if(tmp_parseTaskValue != null && tmp_parseTaskValue instanceof ResultAggregator)
         {
             @SuppressWarnings("unchecked")
-            ResultAggregator parseTaskValue = (ResultAggregator) tmp_parseTaskValue;
+            ResultAggregator parseTaskValue2 = (ResultAggregator) tmp_parseTaskValue;
             
-            ParseResultController.parseTaskValue = parseTaskValue;
+            ParseResultController.parseTaskValue = parseTaskValue2;
 
             parseResultContentLabel.setText("Parsed File!" + '\n' + 
                                             "✅ Succeed : " + String.valueOf(ParseResultController.parseTaskValue.getSucceed()) + " lines" + '\n' + 

@@ -73,7 +73,7 @@ public class nginxLineParser implements Runnable {
                     }
                     try {
                         String ua = map.get("agent").toString().trim();
-                        if(ua != null && ua != "-")
+                        if(ua != null && !ua.equals("-"))
                         {
                             Client useragentParsed = userAgentParser.parse(ua);
                             map.put("browser", useragentParsed.userAgent.family);

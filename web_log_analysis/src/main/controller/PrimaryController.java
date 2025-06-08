@@ -224,19 +224,19 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         }
         try {
             // Simulate log parsing (replace with real logic)
-            HashMap<String, Object> data = new HashMap<String, Object>();
+            HashMap<String, Object> data = new HashMap<>();
             
             if(!isFrEqualNull || PrimaryController.currentPage.equals(-1)) PrimaryController.currentPage = 0;
             if(!isFrEqualNull || PrimaryController.entriesCount.equals(-1)) PrimaryController.entriesCount = PrimaryController.mongodb.count(fr);
-            if(!isFrEqualNull || PrimaryController.maxPage.equals(-1)) PrimaryController.maxPage = Double.valueOf(Math.ceil(Double.valueOf(PrimaryController.entriesCount) / Double.valueOf(PrimaryController.rowsPerPage))).intValue();
+            if(!isFrEqualNull || PrimaryController.maxPage.equals(-1)) PrimaryController.maxPage = (int) (Math.ceil(((double)(PrimaryController.entriesCount)) / ((double)(PrimaryController.rowsPerPage))));
             
-            if(entriesCount <= 0) return null;
+            if(entriesCount <= 0) return (new HashMap<String, Object>());
 
             ObservableList<logData> logTableData = PrimaryController.mongodb.filterWithSkipAndLimit(fr, PrimaryController.currentPage, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
             data.put("logTableData", logTableData);
 
 
-            Map<String, Integer> countryData = new HashMap<String, Integer>();
+            Map<String, Integer> countryData = new HashMap<>();
             ArrayList<Document> countryAgg = PrimaryController.mongodb.aggregate(fr, "countryShort");
             for (Document doc : countryAgg) {
                 Object key = doc.get("_id");
@@ -247,7 +247,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             data.put("countryData", countryData);
             
             
-            Map<Integer, Integer> responseStatusData = new HashMap<Integer, Integer>();
+            Map<Integer, Integer> responseStatusData = new HashMap<>();
             ArrayList<Document> responseStatusAgg = PrimaryController.mongodb.aggregate(fr, "responseStatusCode");
             for (Document doc : responseStatusAgg) {
                 Object key = doc.get("_id");
@@ -258,7 +258,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             data.put("responseStatusData", responseStatusData);
             
             try {
-                ArrayList<SimpleEntry<String, Integer>> lineChartData = new ArrayList<SimpleEntry<String, Integer>>();
+                ArrayList<SimpleEntry<String, Integer>> lineChartData = new ArrayList<>();
 
                 final Integer SEGMENT_COUNT = Math.min(8, PrimaryController.entriesCount);
                 
@@ -295,7 +295,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
                 for(int i = 0; i < checkpoints.size() - 1; i++)
                 {
-                    SimpleEntry<String, Integer> entry  = new SimpleEntry<>("From: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i)) + '\n' + "To: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i + 1)), (Integer) bucketCountsMap.get(checkpoints.get(i)));
+                    SimpleEntry<String, Integer> entry  = new SimpleEntry<>("From: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i)) + '\n' + "To: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i + 1)), bucketCountsMap.get(checkpoints.get(i)));
                     lineChartData.add(entry);
                 }
                 data.put("lineChartData", lineChartData);
@@ -333,9 +333,9 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
             return data;
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
-        return null;
+        return (new HashMap<String, Object>());
     }
     @FXML
     private void onDashboardButtonPressed() {
@@ -366,9 +366,8 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
     @FXML
     private void onHistoryButtonPressed() {
-        HashMap<String, Object> historyData = new HashMap<>() {{
-            put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
-        }};
+        HashMap<String, Object> historyData = new HashMap<>();
+        historyData.put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
         main.App.switchToHistory(historyData);
     }
     

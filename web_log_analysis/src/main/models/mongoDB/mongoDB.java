@@ -842,11 +842,9 @@ public class mongoDB {
         }
         else
         {
-            return new ArrayList<Bson>() {
-                {
-                    add((new Document()));
-                }
-            };
+            ArrayList<Bson> res = new ArrayList<Bson>();
+            res.add((new Document()));
+            return res;
         }
     }
 

@@ -78,14 +78,13 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
     }
 
     @FXML private void onHistoryButtonPressed() {
-        HashMap<String, Object> historyData = new HashMap<>() {{
-            put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
-        }};
+        HashMap<String, Object> historyData = new HashMap<>();
+        historyData.put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
         main.App.switchToHistory(historyData);
     }
     
     @FXML private void onExplorerButtonPressed() {
-        main.App.switchToExplorer(null);;
+        main.App.switchToExplorer(null);
     }
 
     @FXML
@@ -136,8 +135,6 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                             ResultAggregator res = nFP.parse(selectedFile.getAbsolutePath());
                             return res;
                         }
-                        // Process and upload the file to backend
-                        // Example: BackendService.uploadLogFile(selectedFile);
                     } catch (Exception e) {
                         e.printStackTrace();
                         Platform.runLater(() -> {

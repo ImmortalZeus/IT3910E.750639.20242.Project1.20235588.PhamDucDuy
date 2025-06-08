@@ -33,7 +33,7 @@ public class ResultAggregator {
         ResultAggregator.mongodb = ResultAggregator.mongodb == null ? new mongoDB(true) : ResultAggregator.mongodb;
         ResultAggregator.succeed = ResultAggregator.succeed == null ? new AtomicInteger(0) : ResultAggregator.succeed;
         ResultAggregator.fail = ResultAggregator.fail == null ? new AtomicInteger(0) : ResultAggregator.fail;
-        ResultAggregator.filepath = ResultAggregator.filepath == "-" ? filepath : ResultAggregator.filepath;
+        ResultAggregator.filepath = ResultAggregator.filepath.equals("-") ? filepath : ResultAggregator.filepath;
     }
 
     public ResultAggregator(String filepath) {

@@ -63,7 +63,7 @@ public class App extends Application {
             mainScene.setRoot(newRoot);
             mainScene.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
@@ -100,7 +100,7 @@ public class App extends Application {
             filterStage.showAndWait(); // block main window until this one closes
 
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
@@ -131,7 +131,7 @@ public class App extends Application {
             loadingStage.setResizable(false);
             loadingStage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
@@ -163,7 +163,7 @@ public class App extends Application {
             invalidFilterStage.setResizable(false);
             invalidFilterStage.showAndWait();
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
@@ -194,7 +194,7 @@ public class App extends Application {
             parseResultStage.setResizable(false);
             parseResultStage.showAndWait();
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
         }
     }
 
