@@ -31,10 +31,10 @@ public class Main {
         try {
             loadProperties(Thread.currentThread().getContextClassLoader().getResource("mongodb_config.properties").getPath());
 
-            long startTime = System.nanoTime();
+            long startTime = System.currentTimeMillis();
             aFP.parse(Thread.currentThread().getContextClassLoader().getResource("resources/logs_sample/large/apache_logs_large.log").getPath());
             //ResultAggregator log_data = nFP.parse("./web_log_analysis/src/main/resources/logs_sample/full/nginx_json_logs_full.log");
-            long stopTime = System.nanoTime();
+            long stopTime = System.currentTimeMillis();
             System.out.println(stopTime - startTime);
 
             // =============================================
@@ -65,17 +65,17 @@ public class Main {
             System.out.println(cnt);
 
             // ================= Count =====================
-            long startTime2 = System.nanoTime();
+            long startTime2 = System.currentTimeMillis();
             System.out.println(mongodb.count(filter_rules));
-            long stopTime2 = System.nanoTime();
+            long stopTime2 = System.currentTimeMillis();
             System.out.println(stopTime2 - startTime2);
 
             // ================= Aggregation =====================
-            long startTime3 = System.nanoTime();
+            long startTime3 = System.currentTimeMillis();
             //System.out.println(mongodb.aggregate("time"));
             //System.out.println(mongodb.aggregate("requestMethod"));
             mongodb.aggregate(null, "time");
-            long stopTime3 = System.nanoTime();
+            long stopTime3 = System.currentTimeMillis();
             System.out.println(stopTime3 - startTime3);
 
             // for(logData obj : log_data.getAllLogData()) {

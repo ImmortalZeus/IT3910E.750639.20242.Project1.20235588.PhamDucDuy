@@ -16,7 +16,7 @@ import org.bson.Document;
 import org.bson.json.JsonWriterSettings;
 
 public class Test {
-    private static final String now = Long.toString(System.nanoTime());
+    private static final String now = Long.toString(System.currentTimeMillis());
     public static void main(String[] args) throws Exception {
         String rootPath = Thread.currentThread().getContextClassLoader().getResource("mongodb_config.properties").getPath();
         System.out.println(rootPath);

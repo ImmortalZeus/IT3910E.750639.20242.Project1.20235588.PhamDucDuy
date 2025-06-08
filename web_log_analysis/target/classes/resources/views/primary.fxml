@@ -24,16 +24,16 @@
     </VBox>
   </left>
   <!-- Top Bar -->
-  <top>
-    <HBox alignment="CENTER_LEFT" prefHeight="48.0" prefWidth="1225.0" style="-fx-background-color: #3B5B75;">
-      <padding>
-        <Insets bottom="10" left="10" right="10" top="10"/>
-      </padding>
-      <children>
-        <Label style="-fx-text-fill: white; -fx-font-size: 16px;" text="Service Log Analyzer"/>
-      </children>
-    </HBox>
-  </top>
+    <top>
+        <HBox alignment="CENTER_LEFT" prefHeight="48.0" styleClass="header-bar">
+            <padding>
+                <Insets bottom="10" left="10" right="10" top="10" />
+            </padding>
+            <children>
+                <Label text="Service Log Analyzer" styleClass="header-title" />
+            </children>
+        </HBox>
+    </top>
   <!-- Main Center Content -->
   <center>
     <VBox spacing="10">
@@ -103,7 +103,7 @@
             <PieChart fx:id="pieChartResponseStatus" prefWidth="600"/>
             <LineChart fx:id="lineChart" prefWidth="600">
               <xAxis>
-                <CategoryAxis fx:id="xAxis"/>
+                <CategoryAxis tickLabelsVisible="false" fx:id="xAxis" label="Time"/>
               </xAxis>
               <yAxis>
                 <NumberAxis fx:id="yAxis" label="Requests Count"/>

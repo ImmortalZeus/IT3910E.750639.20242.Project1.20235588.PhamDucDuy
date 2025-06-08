@@ -183,7 +183,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 if (node instanceof ComboBox<?>) {
                     ComboBox<?> combo = (ComboBox<?>) node;
                     // Check if the ComboBox contains Integer values
-                    if (!combo.getItems().isEmpty() && combo.getItems().get(0) instanceof Integer) {
+                    if (combo.getItems().stream().allMatch(item -> item instanceof Integer)) {
                         @SuppressWarnings("unchecked")
                         ComboBox<Integer> intCombo = (ComboBox<Integer>) combo;
                         Integer value = intCombo.getValue();

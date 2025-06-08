@@ -16,11 +16,11 @@ public class Test {
     public static void main(String[] args) {
         try {
             System.out.println("");
-            long startTime = System.nanoTime();
+            long startTime = System.currentTimeMillis();
             Parser parser = new Parser();
             Client client = parser.parse("-");
             System.out.println(client);
-            long stopTime = System.nanoTime();
+            long stopTime = System.currentTimeMillis();
             System.out.println(stopTime - startTime);
         } catch (Exception e) {
             System.out.println(e);

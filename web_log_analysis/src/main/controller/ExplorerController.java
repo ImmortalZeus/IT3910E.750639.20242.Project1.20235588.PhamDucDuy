@@ -8,6 +8,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import models.logData.logData;
 import models.mongoDB.mongoDB;
+import models.mongoDB.mongoDBParseHistory;
 import models.parsers.ResultAggregator;
 import models.parsers.fileParsers.apacheFileParser;
 import models.parsers.fileParsers.nginxFileParser;
@@ -49,6 +50,43 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
 
     @FXML
     private Button uploadNginxButton;
+
+    @FXML private void onDashboardButtonPressed() {
+        Platform.runLater(() -> {
+            main.App.showLoadingStage(null);
+            Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
+                @Override
+                protected HashMap<String, Object> call() throws Exception {
+                    return PrimaryController.prepareData(null);
+                }
+            };
+    
+            fetchDataTask.setOnSucceeded(v2 -> {
+                HashMap<String, Object> data = fetchDataTask.getValue();
+                Platform.runLater(() -> {
+                    main.App.closeLoadingStage();
+                    Platform.runLater(() -> {
+                        main.App.switchToDashboard(data);
+                    });
+                });
+            });
+    
+            Thread thread = new Thread(fetchDataTask);
+            thread.setDaemon(true); // Allow JVM to exit if this is the only thread left
+            thread.start();
+        });
+    }
+
+    @FXML private void onHistoryButtonPressed() {
+        HashMap<String, Object> historyData = new HashMap<>() {{
+            put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
+        }};
+        main.App.switchToHistory(historyData);
+    }
+    
+    @FXML private void onExplorerButtonPressed() {
+        main.App.switchToExplorer(null);;
+    }
 
     @FXML
     public void initialize() {

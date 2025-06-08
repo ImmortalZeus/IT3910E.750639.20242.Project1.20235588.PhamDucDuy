@@ -26,7 +26,7 @@ public class nginxFileParser {
             // );
 
             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-            ResultAggregator aggregator = new ResultAggregator(true);
+            ResultAggregator aggregator = new ResultAggregator(true, filepath);
 
             File file = null;
             FileReader fr = null;

@@ -8,6 +8,20 @@
 <?import javafx.scene.layout.Region?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="controller.ExplorerController">
+    <!-- Left Menu -->
+    <left>
+        <VBox fx:id="menuPane" alignment="TOP_LEFT" prefHeight="655.0" prefWidth="194.0" spacing="15" style="-fx-background-color: #2C3E50;">
+            <padding>
+                <Insets bottom="20" left="20" right="20" top="20"/>
+            </padding>
+            <children>
+                <Label style="-fx-text-fill: white; -fx-font-size: 30px;" text="Menu"/>
+                <Button fx:id="dashboardBtn" maxWidth="Infinity" onAction="#onDashboardButtonPressed" styleClass="menu-button" text="Dashboard"/>
+                <Button fx:id="historyBtn" maxWidth="Infinity" onAction="#onHistoryButtonPressed" styleClass="menu-button" text="History"/>
+                <Button fx:id="explorerBtn" maxWidth="Infinity" onAction="#onExplorerButtonPressed" styleClass="menu-button" text="Explorer"/>
+            </children>
+        </VBox>
+    </left>
 
     <!-- Top Header Bar -->
     <top>
@@ -20,21 +34,6 @@
             </children>
         </HBox>
     </top>
-
-    <!-- Sidebar Menu -->
-    <!-- <left>
-        <VBox fx:id="menuPane" alignment="TOP_LEFT" prefWidth="194.0" spacing="15" styleClass="sidebar">
-            <padding>
-                <Insets bottom="20" left="20" right="20" top="20" />
-            </padding>
-            <children>
-                <Label text="Menu" styleClass="menu-title" />
-                <Button fx:id="dashboardBtn" maxWidth="Infinity" onAction="#onDashboardButtonPressed" styleClass="menu-button" text="Dashboard" />
-                <Button fx:id="streamBtn" maxWidth="Infinity" onAction="#onStreamButtonPressed" styleClass="menu-button" text="Stream" />
-                <Button fx:id="explorerBtn" maxWidth="Infinity" onAction="#onExplorerButtonPressed" styleClass="menu-button" text="Explorer" />
-            </children>
-        </VBox>
-    </left> -->
 
     <!-- Main Content -->
     <center>

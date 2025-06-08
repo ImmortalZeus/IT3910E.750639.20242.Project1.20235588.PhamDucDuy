@@ -26,27 +26,30 @@ public class ResultAggregator {
     private static mongoDB mongodb = null;
     private static AtomicInteger succeed = null;
     private static AtomicInteger fail = null;
+    private static String filepath = "-";
 
-    private void setUp() {
+    private void setUp(String filepath) {
         ResultAggregator.dataArrayList = ResultAggregator.dataArrayList == null ? Collections.synchronizedList(new ArrayList<>()) : ResultAggregator.dataArrayList;
         ResultAggregator.mongodb = ResultAggregator.mongodb == null ? new mongoDB(true) : ResultAggregator.mongodb;
         ResultAggregator.succeed = ResultAggregator.succeed == null ? new AtomicInteger(0) : ResultAggregator.succeed;
         ResultAggregator.fail = ResultAggregator.fail == null ? new AtomicInteger(0) : ResultAggregator.fail;
+        ResultAggregator.filepath = ResultAggregator.filepath == "-" ? filepath : ResultAggregator.filepath;
     }
 
-    public ResultAggregator() {
-        this.setUp();
+    public ResultAggregator(String filepath) {
+        this.setUp(filepath);
     }
 
-    public ResultAggregator(boolean initNewResultAggregator) {
+    public ResultAggregator(boolean initNewResultAggregator, String filepath) {
         if(initNewResultAggregator == true)
         {
             ResultAggregator.dataArrayList = null;
             ResultAggregator.mongodb = null;
             ResultAggregator.succeed = null;
             ResultAggregator.fail = null;
+            ResultAggregator.filepath = "-";
         }
-        this.setUp();
+        this.setUp(filepath);
     }
 
     public void addSucceed() {
@@ -65,7 +68,7 @@ public class ResultAggregator {
         //ArrayList<logData> dataArrayList = new ArrayList<>(dataQueue);
         synchronized (ResultAggregator.dataArrayList) {
             ResultAggregator.dataArrayList.sort((a, b) -> {return a.getIndex().compareTo(b.getIndex());});
-            ResultAggregator.mongodb.insertMany(ResultAggregator.dataArrayList);
+            ResultAggregator.mongodb.saveToMongodb(ResultAggregator.dataArrayList, filepath);
             ResultAggregator.dataArrayList.clear();
         } 
         //dataQueue.clear();

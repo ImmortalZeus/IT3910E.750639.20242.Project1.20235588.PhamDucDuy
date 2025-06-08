@@ -332,24 +332,44 @@
     -fx-padding: 10;
 }
 
-.log-index {
-    -fx-text-fill: white;
+.log-collection-name {
+    -fx-background-color: #101010;
+    -fx-text-fill: #fafafa;
     -fx-font-weight: bold;
-    -fx-background-color: black;
-    -fx-padding: 5 10;
+    -fx-alignment: center;
+    -fx-padding: 10;
 }
 
-.log-filename {
-    -fx-text-fill: #bb86fc;
-    -fx-font-size: 14px;
+.log-created-at {
+    -fx-background-color: #101010;
+    -fx-text-fill: #fafafa;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-padding: 10;
+}
+
+.log-file-path {
+    -fx-background-color: #101010;
+    -fx-text-fill: #fafafa;
+    -fx-font-weight: bold;
+    -fx-padding: 10;
 }
 
 .load-button {
-    -fx-background-color: #00aaff;
+    -fx-background-color: #0099ff;
     -fx-text-fill: white;
 }
 
 .delete-button {
     -fx-background-color: #ff4d4d;
     -fx-text-fill: white;
+}
+
+.collection-history-vbox {
+    -fx-spacing: 20px;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
 }

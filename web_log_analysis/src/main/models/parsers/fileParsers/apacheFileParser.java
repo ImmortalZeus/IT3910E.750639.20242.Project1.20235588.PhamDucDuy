@@ -25,7 +25,7 @@ public class apacheFileParser {
             //     Runtime.getRuntime().availableProcessors()
             // );
             ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-            ResultAggregator aggregator = new ResultAggregator(true);
+            ResultAggregator aggregator = new ResultAggregator(true, filepath);
 
             File file = null;
             FileReader fr = null;
@@ -69,6 +69,7 @@ public class apacheFileParser {
                     return aggregator;
                 }
             } catch (Exception e) {
+                e.printStackTrace();
                 try {
                     if(fr != null) {
                         fr.close();

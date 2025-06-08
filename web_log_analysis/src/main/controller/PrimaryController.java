@@ -46,6 +46,7 @@ import java.time.temporal.ChronoUnit;
 
 import models.logData.logData;
 import models.mongoDB.mongoDB;
+import models.mongoDB.mongoDBParseHistory;
 import models.utils.dateToUTC;
 
 import org.bson.Document;
@@ -206,7 +207,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     //     applyFilterButton.setManaged(true);
     // }
     
-    protected static void resetData() {
+    public static void resetData() {
         PrimaryController.currentPage = -1;
         PrimaryController.maxPage = -1;
         PrimaryController.entriesCount = -1;
@@ -229,6 +230,8 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             if(!isFrEqualNull || PrimaryController.entriesCount.equals(-1)) PrimaryController.entriesCount = PrimaryController.mongodb.count(fr);
             if(!isFrEqualNull || PrimaryController.maxPage.equals(-1)) PrimaryController.maxPage = Double.valueOf(Math.ceil(Double.valueOf(PrimaryController.entriesCount) / Double.valueOf(PrimaryController.rowsPerPage))).intValue();
             
+            if(entriesCount <= 0) return null;
+
             ObservableList<logData> logTableData = PrimaryController.mongodb.filterWithSkipAndLimit(fr, PrimaryController.currentPage, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
             data.put("logTableData", logTableData);
 
@@ -257,7 +260,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             try {
                 ArrayList<SimpleEntry<String, Integer>> lineChartData = new ArrayList<SimpleEntry<String, Integer>>();
 
-                final Integer SEGMENT_COUNT = 8;
+                final Integer SEGMENT_COUNT = Math.min(8, PrimaryController.entriesCount);
                 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.ENGLISH);
                 Date minDate = sdf.parse((String) PrimaryController.mongodb.getMin(fr, "time").get("min"));
@@ -280,9 +283,19 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
                 ArrayList<Document> bucketRes = PrimaryController.mongodb.bucket(fr, "time", checkpoints);
 
-                for(int i = 0; i < bucketRes.size(); i++)
+                Map<Date, Integer> bucketCountsMap = new HashMap<>();
+                for (Document doc : bucketRes) {
+                    bucketCountsMap.put(doc.getDate("_id"), doc.getInteger("count"));
+                }
+
+                for (int i = 0; i < checkpoints.size() - 1; i++) {
+                    Date bucketStart = checkpoints.get(i);
+                    bucketCountsMap.putIfAbsent(bucketStart, 0);
+                }
+
+                for(int i = 0; i < checkpoints.size() - 1; i++)
                 {
-                    SimpleEntry<String, Integer> entry  = new SimpleEntry<>("Dur " + String.valueOf(i + 1), (Integer) bucketRes.get(i).get("count"));
+                    SimpleEntry<String, Integer> entry  = new SimpleEntry<>("From: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i)) + '\n' + "To: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i + 1)), (Integer) bucketCountsMap.get(checkpoints.get(i)));
                     lineChartData.add(entry);
                 }
                 data.put("lineChartData", lineChartData);
@@ -309,7 +322,6 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                 // }
                 // data.put("lineChartData", lineChartData);
             } catch (Exception e) {
-
             }
 
             data.put("filter_rules", fr);
@@ -354,7 +366,10 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
     @FXML
     private void onHistoryButtonPressed() {
-        main.App.switchToHistory(null);
+        HashMap<String, Object> historyData = new HashMap<>() {{
+            put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
+        }};
+        main.App.switchToHistory(historyData);
     }
     
     @FXML
@@ -396,18 +411,18 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     @FXML
     private void onPrevButtonPressed() {
         // System.out.println("Prev button pressed.");
-        PrimaryController.currentPage = (PrimaryController.currentPage - 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
+        PrimaryController.currentPage = PrimaryController.maxPage == 0 ? 0 : (PrimaryController.currentPage - 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
         ObservableList<logData> x = PrimaryController.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage * 1000, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
         logTable.setItems(x);
-        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage == 0 ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
     }
     @FXML
     private void onNextButtonPressed() {
         // System.out.println("Next button pressed.");
-        PrimaryController.currentPage = (PrimaryController.currentPage + 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
+        PrimaryController.currentPage = PrimaryController.maxPage == 0 ? 0 : (PrimaryController.currentPage + 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
         ObservableList<logData> x = PrimaryController.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage * 1000, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
         logTable.setItems(x);
-        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage == 0 ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
     }
 
     public void setData(HashMap<String, Object> data) {
@@ -454,7 +469,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             {
                 ObservableList<?> tmp_logTableData2 = (ObservableList<?>) tmp_logTableData;
 
-                if(!tmp_logTableData2.isEmpty() && tmp_logTableData2.stream().allMatch(item -> item instanceof logData))
+                if(tmp_logTableData2.stream().allMatch(item -> item instanceof logData))
                 {
                     @SuppressWarnings("unchecked")
                     ObservableList<logData> logTableData = (ObservableList<logData>) tmp_logTableData2;
@@ -485,34 +500,35 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
                     pieChartCountry.setData(pieChartCountryData);
 
-                    for (PieChart.Data piedata : pieChartCountryData) {
-                        String country = piedata.getName();
-                        double percent = (piedata.getPieValue() / totalRequests) * 100;
-                        int actualCount = (int) piedata.getPieValue();
-
-                        // Create a styled label as a tooltip
-                        Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
-                        tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-                        tooltipLabel.getStyleClass().add("piechart-tooltip");
-                        Popup popup = new Popup();
-                        popup.getContent().add(tooltipLabel);
-                        popup.setAutoHide(true);
-
-                        FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), tooltipLabel);
-                        fadeIn.setFromValue(0);
-                        fadeIn.setToValue(1);
-
-                        // Show tooltip on hover
-                        piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
-                            tooltipLabel.setOpacity(0);
-                            popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
-                            fadeIn.playFromStart();
-                        });
-
-                        // Hide tooltip on exit
-                        piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
-                    }
-
+                    Platform.runLater(() -> {
+                        for (PieChart.Data piedata : pieChartCountryData) {
+                            String country = piedata.getName();
+                            double percent = (piedata.getPieValue() / totalRequests) * 100;
+                            int actualCount = (int) piedata.getPieValue();
+    
+                            // Create a styled label as a tooltip
+                            Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
+                            tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                            tooltipLabel.getStyleClass().add("piechart-tooltip");
+                            Popup popup = new Popup();
+                            popup.getContent().add(tooltipLabel);
+                            popup.setAutoHide(true);
+    
+                            FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), tooltipLabel);
+                            fadeIn.setFromValue(0);
+                            fadeIn.setToValue(1);
+    
+                            // Show tooltip on hover
+                            piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                                tooltipLabel.setOpacity(0);
+                                popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                                fadeIn.playFromStart();
+                            });
+    
+                            // Hide tooltip on exit
+                            piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                        }
+                    });
                 }
             }
 
@@ -539,30 +555,32 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
                     pieChartResponseStatus.setData(pieChartResponseStatusData);
 
-                    for (PieChart.Data piedata : pieChartResponseStatus.getData()) {
-                        String status = piedata.getName();
-                        double percent = (piedata.getPieValue() / totalResponses) * 100;
-                        int actualCount = (int) piedata.getPieValue();
-
-                        Label restooltipLabel = new Label(String.format("Status Code: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
-                        restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-                        restooltipLabel.getStyleClass().add("piechart-tooltip");
-                        Popup popup = new Popup();
-                        popup.getContent().add(restooltipLabel);
-                        popup.setAutoHide(true);
-
-                        FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), restooltipLabel);
-                        fadeIn.setFromValue(0);
-                        fadeIn.setToValue(1);
-
-                        piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
-                            restooltipLabel.setOpacity(0);
-                            popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
-                            fadeIn.playFromStart();
-                        });
-
-                        piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
-                    }
+                    Platform.runLater(() -> {
+                        for (PieChart.Data piedata : pieChartResponseStatus.getData()) {
+                            String status = piedata.getName();
+                            double percent = (piedata.getPieValue() / totalResponses) * 100;
+                            int actualCount = (int) piedata.getPieValue();
+    
+                            Label restooltipLabel = new Label(String.format("Status Code: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
+                            restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                            restooltipLabel.getStyleClass().add("piechart-tooltip");
+                            Popup popup = new Popup();
+                            popup.getContent().add(restooltipLabel);
+                            popup.setAutoHide(true);
+    
+                            FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), restooltipLabel);
+                            fadeIn.setFromValue(0);
+                            fadeIn.setToValue(1);
+    
+                            piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                                restooltipLabel.setOpacity(0);
+                                popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                                fadeIn.playFromStart();
+                            });
+    
+                            piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                        }
+                    });
                 }
             }
 
@@ -614,10 +632,36 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                     yAxis.setTickUnit(Math.max(((upperBound) - (lowerBound)) / 15, 10));
 
                     lineChart.getData().add(series);
+
+                    Platform.runLater(() -> {
+                        // Loop through each data point
+                        for (XYChart.Series<String, Number> series2 : lineChart.getData()) {
+                            for (XYChart.Data<String, Number> dataPoint : series2.getData()) {
+                                Label linecharttooltipLabel = new Label(dataPoint.getXValue() + "\n" + "Count: " + dataPoint.getYValue().toString());
+                                linecharttooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                                linecharttooltipLabel.getStyleClass().add("piechart-tooltip");
+                                Popup popup = new Popup();
+                                popup.getContent().add(linecharttooltipLabel);
+                                popup.setAutoHide(true);
+
+                                FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), linecharttooltipLabel);
+                                fadeIn.setFromValue(0);
+                                fadeIn.setToValue(1);
+        
+                                dataPoint.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                                    linecharttooltipLabel.setOpacity(0);
+                                    popup.show(dataPoint.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                                    fadeIn.playFromStart();
+                                });
+        
+                                dataPoint.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                            }
+                        }
+                    });
                 }
             }
 
-            pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+            pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage == 0 ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
             Platform.runLater(() -> {
                 main.App.closeLoadingStage();
             });

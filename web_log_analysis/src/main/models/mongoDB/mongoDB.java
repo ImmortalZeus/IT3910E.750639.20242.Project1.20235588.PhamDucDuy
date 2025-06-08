@@ -22,30 +22,37 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
+
+import controller.PrimaryController;
+
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.ListCollectionsIterable;
 
 import models.logData.logData;
 
 import static com.mongodb.client.model.Filters.*;
 
 public class mongoDB {
+    private static MongoClient mongoHistoryClient = null;
+    private static MongoDatabase databaseHistory = null;
+    private static MongoCollection<mongoDBParseHistory> collectionHistory = null;
+    
     private static MongoClient mongoClient = null;
     private static MongoDatabase database = null;
     private static MongoCollection<logData> collection = null;
     private static String now = null;
 
-    private void setUp() {
-        mongoDB.now = mongoDB.now == null ? Long.toString(System.nanoTime()) : mongoDB.now;
-
+    private void setUpHistory() {
         String mongoUri = System.getProperty("mongodb.uri");
         mongoUri = mongoUri == null ? "mongodb://localhost:27017" : mongoUri;
 
-        String databaseName = System.getProperty("database.name");
-        databaseName = databaseName == null ? "project1" : databaseName;
+        String databaseHistoryName = System.getProperty("database_history.name");
+        databaseHistoryName = databaseHistoryName == null ? "database_history" : databaseHistoryName;
         
-        String collectionName = System.getProperty("collection.name");
-        collectionName = collectionName == null ? now : collectionName;
+        String collectionHistoryName = System.getProperty("collection_history.name");
+        collectionHistoryName = collectionHistoryName == null ? "collection_history" : collectionHistoryName;
 
 
         CodecRegistry pojoCodecRegistry = CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build());
@@ -55,13 +62,57 @@ public class mongoDB {
                             .codecRegistry(codecRegistry)
                             .build();
 
-        mongoDB.mongoClient = mongoDB.mongoClient == null ? MongoClients.create(settings) : mongoDB.mongoClient;
-        mongoDB.database = mongoDB.database == null ? mongoDB.mongoClient.getDatabase(databaseName) : mongoDB.database;
-        mongoDB.collection = mongoDB.collection == null ? mongoDB.database.getCollection(collectionName, logData.class) : mongoDB.collection;
+
+        if(mongoDB.mongoHistoryClient == null) {
+            mongoDB.mongoHistoryClient = MongoClients.create(settings);
+        }
+        if(mongoDB.databaseHistory == null) {
+            mongoDB.databaseHistory = mongoDB.mongoClient.getDatabase(databaseHistoryName);
+        }
+        if(mongoDB.collectionHistory == null) {
+            mongoDB.collectionHistory = mongoDB.databaseHistory.getCollection(collectionHistoryName, mongoDBParseHistory.class);
+        }
+    }
+
+    private void setUp(String inputCollectionName) {
+        mongoDB.now = mongoDB.now == null ? Long.toString(System.currentTimeMillis()) : mongoDB.now;
+
+        String mongoUri = System.getProperty("mongodb.uri");
+        mongoUri = mongoUri == null ? "mongodb://localhost:27017" : mongoUri;
+
+        String databaseName = System.getProperty("database.name");
+        databaseName = databaseName == null ? "project1" : databaseName;
+        
+        String collectionName = inputCollectionName == null ? System.getProperty("collection.name") : inputCollectionName;
+        collectionName = collectionName == null ? mongoDB.now : collectionName;
+
+        CodecRegistry pojoCodecRegistry = CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build());
+        CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+        MongoClientSettings settings = MongoClientSettings.builder()
+                            .applyConnectionString(new ConnectionString(mongoUri))
+                            .codecRegistry(codecRegistry)
+                            .build();
+
+
+        if(mongoDB.mongoClient == null) {
+            mongoDB.mongoClient = MongoClients.create(settings);
+        }
+        if(mongoDB.database == null) {
+            mongoDB.database = mongoDB.mongoClient.getDatabase(databaseName);
+            // mongoDB.database.drop();
+        }
+        if(mongoDB.collection == null) {
+            mongoDB.collection = mongoDB.database.getCollection(collectionName, logData.class);
+        }
+
+        // mongoDB.mongoClient = mongoDB.mongoClient == null ? MongoClients.create(settings) : mongoDB.mongoClient;
+        // mongoDB.database = mongoDB.database == null ? mongoDB.mongoClient.getDatabase(databaseName) : mongoDB.database;
+        // mongoDB.collection = mongoDB.collection == null ? mongoDB.database.getCollection(collectionName, logData.class) : mongoDB.collection;
     }
 
     public mongoDB() {
-        this.setUp();
+        this.setUp(null);
+        this.setUpHistory();
     }
 
     public mongoDB(boolean initNewCollection) {
@@ -72,8 +123,16 @@ public class mongoDB {
             mongoDB.collection = null;
             mongoDB.now = null;
         }
-        this.setUp();
+        this.setUp(null);
+        this.setUpHistory();
     }
+
+    public mongoDB(String inputCollectionName) {
+        mongoDB.collection = null;
+        this.setUp(inputCollectionName);
+        this.setUpHistory();
+    }
+
 
     public void insertOne(logData doc) {
         mongoDB.collection.insertOne(doc);
@@ -280,7 +339,7 @@ public class mongoDB {
             
             List<Bson> pipeline = Arrays.asList(
                 new Document("$match", query),
-                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null)) : "$" + field)
+                new Document("$bucket", new Document("groupBy", field.equals("time") ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("onError", null)) : "$" + field)
                     .append("boundaries", boundaries)
                     .append("default", "Outside Range")
                     .append("output", new Document("count", new Document("$sum", 1)))),
@@ -293,7 +352,7 @@ public class mongoDB {
         else
         {
             List<Bson> pipeline = Arrays.asList(
-                new Document("$bucket", new Document("groupBy", field == "time" ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")).append("timezone", ZoneId.systemDefault().getId()).append("onError", null) : "$" + field)
+                new Document("$bucket", new Document("groupBy", field.equals("time") ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")).append("onError", null) : "$" + field)
                     .append("boundaries", boundaries)
                     .append("default", "Outside Range")
                     .append("output", new Document("count", new Document("$sum", 1)))),
@@ -481,7 +540,7 @@ public class mongoDB {
                     {
                         //tmpfilterslist.add(gte("time", filter_rules_byPeriodValue[i]));
                         tmpfilterslist.add(new Document("$expr", new Document("$gte", List.of(
-                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null)),
+                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("onError", null)),
                             filter_rules_byPeriodValue[i].get("byPeriodStartValue")
                         ))));
                     }
@@ -489,7 +548,7 @@ public class mongoDB {
                     {
                         //tmpfilterslist.add(lte("time", filter_rules_byPeriodValue[i]));
                         tmpfilterslist.add(new Document("$expr", new Document("$lte", List.of(
-                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null)),
+                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("onError", null)),
                             filter_rules_byPeriodValue[i].get("byPeriodEndValue")
                         ))));
                     }
@@ -789,6 +848,48 @@ public class mongoDB {
                 }
             };
         }
+    }
+
+    public FindIterable<mongoDBParseHistory> getHistory() {
+        FindIterable<mongoDBParseHistory> res = mongoDB.collectionHistory.find()/*.sort(Sorts.ascending("index"))*/;
+        return res;
+    }
+
+    public void addHistory(String collectionName, String filepath, String createdAt) {
+        mongoDB.collectionHistory.insertOne((new mongoDBParseHistory(collectionName, filepath, createdAt)));
+    }
+
+    public void saveToMongodb(List<logData> dataArrayList, String filepath) {
+        mongoDB.collection.insertMany(dataArrayList);
+        this.addHistory(mongoDB.collection.getNamespace().getCollectionName(), filepath, mongoDB.now);
+    }
+
+    public void deleteCollection(String collectionName) {
+        MongoCollection<logData> collection_tmp = database.getCollection(collectionName, logData.class);
+        collection_tmp.drop();
+        mongoDB.collectionHistory.deleteMany(Filters.eq("collectionName", collectionName));
+        if(collectionName.equals(mongoDB.collection.getNamespace().getCollectionName()))
+        {
+            PrimaryController.resetData();
+            mongoDB.mongoClient = null;
+            mongoDB.database = null;
+            mongoDB.collection = null;
+            mongoDB.now = null;
+            this.setUp(null);
+            this.setUpHistory();
+        }
+    }
+
+    public void deleteCurrentCollection() {
+        mongoDB.collection.drop();
+        mongoDB.collectionHistory.deleteMany(Filters.eq("collectionName", mongoDB.collection.getNamespace().getCollectionName()));
+        PrimaryController.resetData();
+        mongoDB.mongoClient = null;
+        mongoDB.database = null;
+        mongoDB.collection = null;
+        mongoDB.now = null;
+        this.setUp(null);
+        this.setUpHistory();
     }
 
     private <T> T createInstance(Class<T> clazz) throws Exception {
