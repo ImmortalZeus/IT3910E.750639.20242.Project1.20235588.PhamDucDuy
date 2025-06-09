@@ -124,7 +124,9 @@
                                 <RangeSlider fx:id="bytesSizeRangeSlider" styleClass="range-slider"
                                     min="0" max="2147483647"
                                     lowValue="0" highValue="2147483647"
-                                    showTickMarks="false" showTickLabels="false"/>
+                                    showTickMarks="true" showTickLabels="true"
+                                    majorTickUnit="1073741823"
+                                    minorTickCount="1"/>
                                 
                                 <HBox spacing="20" alignment="CENTER" mouseTransparent="true">
                                     <Label fx:id="minBytesSizeRangeSliderLabel" text="0" styleClass="floating-label" opacity="0" />

@@ -373,6 +373,8 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     private void onClearFilterButtonPressed() {
         Platform.runLater(() -> {
             PrimaryController.resetData();
+            FilterController.resetData();
+            
             main.App.showLoadingStage(null);
             Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                 @Override

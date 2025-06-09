@@ -67,42 +67,64 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     @FXML private Button backButton;
 
     @FXML private TextField ipAddressField;
+    private static String ipAddressFieldBackup = null;
 
     @FXML private DatePicker timestampFromDate;
+    private static LocalDate timestampFromDateBackup = null;
     @FXML private TextField timestampFromTime;
+    private static String timestampFromTimeBackup = null;
     @FXML private Label timestampFromTimeErrorLabel;
 
     @FXML private DatePicker timestampToDate;
+    private static LocalDate timestampToDateBackup = null;
     @FXML private TextField timestampToTime;
+    private static String timestampToTimeBackup = null;
     @FXML private Label timestampToTimeErrorLabel;
 
     @FXML private TextField countryField;
+    private static String countryFieldBackup = null;
     @FXML private TextField regionField;
+    private static String regionFieldBackup = null;
     @FXML private TextField cityField;
+    private static String cityFieldBackup = null;
 
     @FXML private FlowPane requestMethodFlowPane;
+    private static ArrayList<String> requestMethodFlowPaneBackup = null;
 
     @FXML private TextField userField;
+    private static String userFieldBackup = null;
 
     @FXML private VBox responseStatusCodeVBox;
+    private static ArrayList<Integer> responseStatusCodeVBoxBackup = null;
+
     @FXML private Button addResponseStatusCodeButton;
 
     @FXML private TextField bytesSizeMinField;
+    private static String bytesSizeMinFieldBackup = null;
     @FXML private Label bytesSizeMinFieldErrorLabel;
+
     @FXML private TextField bytesSizeMaxField;
+    private static String bytesSizeMaxFieldBackup = null;
     @FXML private Label bytesSizeMaxFieldErrorLabel;
+    
     @FXML private StackPane bytesSizeSliderStack;
     @FXML private RangeSlider bytesSizeRangeSlider;
+    private static SimpleEntry<Integer, Integer> bytesSizeRangeSliderBackup = null;
     @FXML private Label minBytesSizeRangeSliderLabel;
     @FXML private Label maxBytesSizeRangeSliderLabel;
     
     @FXML private TextField requestURLField;
+    private static String requestURLFieldBackup = null;
 
     @FXML private TextField osField;
+    private static String osFieldBackup = null;
     @FXML private TextField browserField;
+    private static String browserFieldBackup = null;
     @FXML private TextField deviceField;
+    private static String deviceFieldBackup = null;
 
     @FXML private TextField referrerField;
+    private static String referrerFieldBackup = null;
 
     @FXML private Button clearButton;
     @FXML private Button applyButton;
@@ -119,10 +141,32 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     @FXML
     private void onClearButtonPressed(ActionEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(Thread.currentThread().getContextClassLoader().getResource("resources/views/filter.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            stage.getScene().setRoot(root);
+            ipAddressField.setText("");
+            timestampFromDate.setValue(null);
+            timestampFromTime.setText("");
+            timestampToDate.setValue(null);
+            timestampToTime.setText("");
+            countryField.setText("");
+            regionField.setText("");
+            cityField.setText("");
+            for (Node node : requestMethodFlowPane.getChildren()) {
+                if (node instanceof ToggleButton) {
+                    ToggleButton toggle = (ToggleButton) node;
+                    toggle.setSelected(false);
+                }
+            }
+            userField.setText("");
+            responseStatusCodeVBox.getChildren().clear();
+            this.addResponseCodeBox(null);
+            bytesSizeRangeSlider.setLowValue(Double.valueOf(0));
+            bytesSizeRangeSlider.setHighValue(Double.valueOf(2147483647));
+            bytesSizeMinField.setText("");
+            bytesSizeMaxField.setText("");
+            requestURLField.setText("");
+            osField.setText("");
+            browserField.setText("");
+            deviceField.setText("");
+            referrerField.setText("");
         } catch (Exception e) {
             Platform.runLater(() -> {
                 main.App.closeFilterStage();
@@ -142,27 +186,35 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         else
         {
             String ipAddressValue = ipAddressField.getText().length() > 0 ? ipAddressField.getText() : null;
-    
+            ipAddressFieldBackup = ipAddressValue;
+            
             LocalDate timestampFromDateValue = timestampFromDate.getValue();
+            timestampFromDateBackup = timestampFromDateValue;
             LocalTime timestampFromTimeValue;
             try {
                 timestampFromTimeValue = timestampFromTime.isDisable() ? null : LocalTime.parse(timestampFromTime.getText(), DateTimeFormatter.ofPattern("HH:mm:ss"));
             } catch (Exception e) {
                 timestampFromTimeValue = null;
             }
+            timestampFromTimeBackup = timestampFromTimeValue == null ? null : String.valueOf(timestampFromTimeValue);
     
             LocalDate timestampToDateValue = timestampToDate.getValue();
+            timestampToDateBackup = timestampToDateValue;
             LocalTime timestampToTimeValue;
             try {
                 timestampToTimeValue = timestampToTime.isDisable() ? null : LocalTime.parse(timestampToTime.getText(), DateTimeFormatter.ofPattern("HH:mm:ss"));
             } catch (Exception e) {
                 timestampToTimeValue = null;
             }
-    
+            timestampToTimeBackup = timestampToTimeValue == null ? null : String.valueOf(timestampToTimeValue);
+
             String countryValue = countryField.getText().length() > 0 ? countryField.getText() : null;
+            countryFieldBackup = countryValue;
             String regionValue = regionField.getText().length() > 0 ? regionField.getText() : null;
+            regionFieldBackup = regionValue;
             String cityValue = cityField.getText().length() > 0 ? cityField.getText() : null;
-    
+            cityFieldBackup = cityValue;
+
             ArrayList<String> requestMethodValue = new ArrayList<>();
             for (Node node : requestMethodFlowPane.getChildren()) {
                 if (node instanceof ToggleButton) {
@@ -173,6 +225,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                     }
                 }
             }
+            requestMethodFlowPaneBackup = requestMethodValue.isEmpty() ? null : requestMethodValue;
     
             ArrayList<Integer> responseStatusCodeValue = new ArrayList<>();
             for (Node node : responseStatusCodeVBox.getChildren()) {
@@ -189,19 +242,29 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                     }
                 }
             }
+            responseStatusCodeVBoxBackup = responseStatusCodeValue.isEmpty() ? null : responseStatusCodeValue;
 
             String userValue = userField.getText().length() > 0 ? userField.getText() : null;
-    
+            userFieldBackup = userValue;
+
             Integer minBytesSizeValue = Double.valueOf(bytesSizeRangeSlider.getLowValue()).intValue();
             Integer maxBytesSizeValue = Double.valueOf(bytesSizeRangeSlider.getHighValue()).intValue();
-    
+            bytesSizeRangeSliderBackup = (minBytesSizeValue == 0 && maxBytesSizeValue == 2147483647) ? null : new SimpleEntry<>(minBytesSizeValue, maxBytesSizeValue);
+            bytesSizeMinFieldBackup = minBytesSizeValue == 0 ? null : String.valueOf(minBytesSizeValue);
+            bytesSizeMaxFieldBackup = maxBytesSizeValue == 2147483647 ? null : String.valueOf(maxBytesSizeValue);
+
             String requestURLValue = requestURLField.getText().length() > 0 ? requestURLField.getText() : null;
-    
+            requestURLFieldBackup = requestURLValue;
+            
             String osValue = osField.getText().length() > 0 ? osField.getText() : null;
+            osFieldBackup = osValue;
             String browseValue = browserField.getText().length() > 0 ? browserField.getText() : null;
+            browserFieldBackup = browseValue;
             String deviceValue = deviceField.getText().length() > 0 ? deviceField.getText() : null;
-    
+            deviceFieldBackup = deviceValue;
+
             String referrerValue = referrerField.getText().length() > 0 ? referrerField.getText() : null;
+            referrerFieldBackup = referrerValue;
 
             // System.out.println(ipAddressValue);
     
@@ -315,6 +378,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 filter_rules.put("byReferrer", true);
                 filter_rules.put("byReferrerValue", Arrays.asList(referrerValue));
             }
+
             PrimaryController.resetData();
 
             Platform.runLater(() -> {
@@ -356,6 +420,28 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511
     );
     
+    protected static void resetData() {
+        FilterController.ipAddressFieldBackup = null;
+        FilterController.timestampFromDateBackup = null;
+        FilterController.timestampFromTimeBackup = null;
+        FilterController.timestampToDateBackup = null;
+        FilterController.timestampToTimeBackup = null;
+        FilterController.countryFieldBackup = null;
+        FilterController.regionFieldBackup = null;
+        FilterController.cityFieldBackup = null;
+        FilterController.requestMethodFlowPaneBackup = null;
+        FilterController.userFieldBackup = null;
+        FilterController.responseStatusCodeVBoxBackup = null;
+        FilterController.bytesSizeMinFieldBackup = null;
+        FilterController.bytesSizeMaxFieldBackup = null;
+        FilterController.bytesSizeRangeSliderBackup = null;
+        FilterController.requestURLFieldBackup = null;
+        FilterController.osFieldBackup = null;
+        FilterController.browserFieldBackup = null;
+        FilterController.deviceFieldBackup = null;
+        FilterController.referrerFieldBackup = null;
+    }
+
     @FXML
     public void initialize() {
         timestampFromTime.setDisable(true);
@@ -526,60 +612,59 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             }
         });
 
-
-        // final LocalDate[] timestampToDateOriginalValue = new LocalDate[1];
-        // timestampToDate.setOnShowing(e -> {
-        //     // Only if no date is already selected, temporarily set the value.
-        //     if (timestampFromDate.getValue() != null) {
-        //         timestampToDateOriginalValue[0] = timestampToDate.getValue();
-        //         timestampToDate.setValue(timestampFromDate.getValue());
-        //         Platform.runLater(() -> timestampToDate.getEditor().clear());
-        //     }
-        // });
-
-        // timestampToDate.setOnHiding(e -> {
-        //     // Check if the user actually selected a date.
-        //     // For example, if the user never typed or picked a date,
-        //     // the editor text may remain empty.
-        //     if (timestampToDate.getEditor().getText().isEmpty()) {
-        //         // Restore the original value (which is null)
-        //         timestampToDate.setValue(timestampToDateOriginalValue[0]);
-        //     }
-        // });
-
-        // final LocalDate[] timestampFromDateOriginalValue = new LocalDate[1];
-        // timestampFromDate.setOnShowing(e -> {
-        //     // Only if no date is already selected, temporarily set the value.
-        //     if (timestampToDate.getValue() != null) {
-        //         timestampFromDateOriginalValue[0] = timestampFromDate.getValue();
-        //         timestampFromDate.setValue(timestampToDate.getValue());
-        //         Platform.runLater(() -> timestampFromDate.getEditor().clear());
-        //     }
-        // });
-
-        // timestampFromDate.setOnHiding(e -> {
-        //     // Check if the user actually selected a date.
-        //     // For example, if the user never typed or picked a date,
-        //     // the editor text may remain empty.
-        //     if (timestampFromDate.getEditor().getText().isEmpty()) {
-        //         // Restore the original value (which is null)
-        //         timestampFromDate.setValue(timestampFromDateOriginalValue[0]);
-        //     }
-        // });
-
-        addResponseCodeBox();
+        if(ipAddressFieldBackup != null) ipAddressField.setText(ipAddressFieldBackup);
+        if(timestampFromDateBackup != null) timestampFromDate.setValue(timestampFromDateBackup);
+        if(timestampFromTimeBackup != null) timestampFromTime.setText(timestampFromTimeBackup);
+        if(timestampToDateBackup != null) timestampToDate.setValue(timestampToDateBackup);
+        if(timestampToTimeBackup != null) timestampToTime.setText(timestampToTimeBackup);
+        if(countryFieldBackup != null) countryField.setText(countryFieldBackup);
+        if(regionFieldBackup != null) regionField.setText(regionFieldBackup);
+        if(cityFieldBackup != null) cityField.setText(cityFieldBackup);
+        if(requestMethodFlowPaneBackup != null) {
+            for (Node node : requestMethodFlowPane.getChildren()) {
+                if (node instanceof ToggleButton) {
+                    ToggleButton toggle = (ToggleButton) node;
+                    if(requestMethodFlowPaneBackup.contains(toggle.getText()))
+                    {
+                        toggle.setSelected(true);
+                    }
+                }
+            }
+        }
+        if(userFieldBackup != null) userField.setText(userFieldBackup);
+        if(responseStatusCodeVBoxBackup != null) {
+            for(Integer e: responseStatusCodeVBoxBackup)
+            {
+                this.addResponseCodeBox(e);
+            }
+        }
+        else
+        {
+            this.addResponseCodeBox(null);
+        }
+        if(bytesSizeMinFieldBackup != null) bytesSizeMinField.setText(bytesSizeMinFieldBackup);
+        if(bytesSizeMaxFieldBackup != null) bytesSizeMaxField.setText(bytesSizeMaxFieldBackup);
+        if(bytesSizeRangeSliderBackup != null) {
+            bytesSizeRangeSlider.setLowValue(Double.valueOf(bytesSizeRangeSliderBackup.getKey()));
+            bytesSizeRangeSlider.setHighValue(Double.valueOf(bytesSizeRangeSliderBackup.getValue()));
+        }
+        if(requestURLFieldBackup != null) requestURLField.setText(requestURLFieldBackup);
+        if(osFieldBackup != null) osField.setText(osFieldBackup);
+        if(browserFieldBackup != null) browserField.setText(browserFieldBackup);
+        if(deviceFieldBackup != null) deviceField.setText(deviceFieldBackup);
+        if(referrerFieldBackup != null) referrerField.setText(referrerFieldBackup);
     }
 
     public void onAddResponseStatusCodeBox() {
         if (responseStatusCodeVBox.getChildren().size() < MAX_COMBOBOXES) {
-            addResponseCodeBox();
+            this.addResponseCodeBox(null);
         }
         if (responseStatusCodeVBox.getChildren().size() >= MAX_COMBOBOXES) {
             addResponseStatusCodeButton.setDisable(true);
         }
     }
 
-    private void addResponseCodeBox() {
+    private void addResponseCodeBox(Integer val) {
         ComboBox<Integer> comboBox = new ComboBox<>(FilterController.httpCodes);
         comboBox.setPromptText("Select Code...");
         comboBox.setEditable(false);
@@ -601,6 +686,8 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 setText(empty || item == null ? null : item.toString());
             }
         });
+
+        if(val != null) comboBox.setValue(val);
 
         responseStatusCodeVBox.getChildren().add(comboBox);
     }
