@@ -284,7 +284,7 @@ public class mongoDB {
             List<Bson> pipeline = Arrays.asList(
                 new Document("$match", query),
                 new Document("$group", new Document("_id", null)
-                    .append("max", new Document("$max", field.equals("time") ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null).append("onNull", null)) : "$" + field)))
+                    .append("max", new Document("$max", "$" + field)))
             );
 
             Document res = mongoDB.collection.aggregate(pipeline, Document.class).first();
@@ -294,7 +294,7 @@ public class mongoDB {
         {
             List<Bson> pipeline = Arrays.asList(
                 new Document("$group", new Document("_id", null)
-                    .append("max", new Document("$max", field.equals("time") ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null).append("onNull", null)) : "$" + field)))
+                    .append("max", new Document("$max", "$" + field)))
             );
 
             Document res = mongoDB.collection.aggregate(pipeline, Document.class).first();
@@ -312,7 +312,7 @@ public class mongoDB {
             List<Bson> pipeline = Arrays.asList(
                 new Document("$match", query),
                 new Document("$group", new Document("_id", null)
-                    .append("min", new Document("$min", field.equals("time") ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null).append("onNull", null)) : "$" + field)))
+                    .append("min", new Document("$min", "$" + field)))
             );
 
             Document res = mongoDB.collection.aggregate(pipeline, Document.class).first();
@@ -322,7 +322,7 @@ public class mongoDB {
         {
             List<Bson> pipeline = Arrays.asList(
                 new Document("$group", new Document("_id", null)
-                    .append("min", new Document("$min", field.equals("time") ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null).append("onNull", null)) : "$" + field)))
+                    .append("min", new Document("$min", "$" + field)))
             );
 
             Document res = mongoDB.collection.aggregate(pipeline, Document.class).first();
@@ -339,7 +339,7 @@ public class mongoDB {
             
             List<Bson> pipeline = Arrays.asList(
                 new Document("$match", query),
-                new Document("$bucket", new Document("groupBy", field.equals("time") ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null).append("onNull", null)) : "$" + field)
+                new Document("$bucket", new Document("groupBy", "$" + field)
                     .append("boundaries", boundaries)
                     .append("default", "Outside Range")
                     .append("output", new Document("count", new Document("$sum", 1)))),
@@ -352,7 +352,7 @@ public class mongoDB {
         else
         {
             List<Bson> pipeline = Arrays.asList(
-                new Document("$bucket", new Document("groupBy", field.equals("time") ? new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S")).append("onError", null).append("onNull", null) : "$" + field)
+                new Document("$bucket", new Document("groupBy", "$" + field)
                     .append("boundaries", boundaries)
                     .append("default", "Outside Range")
                     .append("output", new Document("count", new Document("$sum", 1)))),
@@ -540,7 +540,7 @@ public class mongoDB {
                     {
                         //tmpfilterslist.add(gte("time", filter_rules_byPeriodValue[i]));
                         tmpfilterslist.add(new Document("$expr", new Document("$gte", List.of(
-                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null).append("onNull", null)),
+                            "$time",
                             filter_rules_byPeriodValue[i].get("byPeriodStartValue")
                         ))));
                     }
@@ -548,7 +548,7 @@ public class mongoDB {
                     {
                         //tmpfilterslist.add(lte("time", filter_rules_byPeriodValue[i]));
                         tmpfilterslist.add(new Document("$expr", new Document("$lte", List.of(
-                            new Document("$dateFromString", new Document("dateString", "$time").append("format", "%d/%m/%Y  %H:%M:%S").append("timezone", ZoneId.systemDefault().getId()).append("onError", null).append("onNull", null)),
+                            "$time",
                             filter_rules_byPeriodValue[i].get("byPeriodEndValue")
                         ))));
                     }

@@ -67,14 +67,14 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
     @FXML private TableView<logData> logTable;
     @FXML private TableView<?> statusTable;
-    @FXML private TableColumn<logData, Integer> indexColumn;
+    @FXML private TableColumn<logData, String> indexColumn;
     @FXML private TableColumn<logData, String> dateTimeColumn;
     @FXML private TableColumn<logData, String> ipColumn;
     @FXML private TableColumn<logData, String> userColumn;
     @FXML private TableColumn<logData, String> methodColumn;
     @FXML private TableColumn<logData, String> requestURLColumn;
-    @FXML private TableColumn<logData, Integer> statusCodeColumn;
-    @FXML private TableColumn<logData, Integer> bytesColumn;
+    @FXML private TableColumn<logData, String> statusCodeColumn;
+    @FXML private TableColumn<logData, String> bytesColumn;
     @FXML private TableColumn<logData, String> referrerColumn;
     @FXML private TableColumn<logData, String> countryColumn;
     @FXML private TableColumn<logData, String> regionColumn;
@@ -240,7 +240,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             ArrayList<Document> countryAgg = PrimaryController.mongodb.aggregate(fr, "countryShort");
             for (Document doc : countryAgg) {
                 Object key = doc.get("_id");
-                int count = doc.getInteger("count", 0);
+                Integer count = doc.getInteger("count", 0);
                 countryData.put(key != null ? key.toString() : "-", count);
             }
 
@@ -251,7 +251,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             ArrayList<Document> responseStatusAgg = PrimaryController.mongodb.aggregate(fr, "responseStatusCode");
             for (Document doc : responseStatusAgg) {
                 Object key = doc.get("_id");
-                int count = doc.getInteger("count", 0);
+                Integer count = doc.getInteger("count", 0);
                 responseStatusData.put((Integer)key, count);
             }
 
@@ -280,7 +280,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         
                         List<Date> checkpoints = new ArrayList<>();
                         checkpoints.add((minDate));
-                        for (int i = 1; i < SEGMENT_COUNT; i++) {
+                        for (Integer i = 1; i < SEGMENT_COUNT; i++) {
                             checkpoints.add((Date.from(minDateInstant.plus(period.multipliedBy(i)).truncatedTo(ChronoUnit.SECONDS))));
                         }
                         checkpoints.add((maxDate));
@@ -288,17 +288,17 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         
                         ArrayList<Document> bucketRes = PrimaryController.mongodb.bucket(fr, "time", checkpoints);
         
-                        Map<Date, Integer> bucketCountsMap = new HashMap<>();
+                        Map<Object, Integer> bucketCountsMap = new HashMap<>();
                         for (Document doc : bucketRes) {
-                            bucketCountsMap.put(doc.getDate("_id"), doc.getInteger("count"));
+                            bucketCountsMap.put(doc.get("_id"), doc.getInteger("count"));
                         }
         
-                        for (int i = 0; i < checkpoints.size() - 1; i++) {
+                        for (Integer i = 0; i < checkpoints.size() - 1; i++) {
                             Date bucketStart = checkpoints.get(i);
                             bucketCountsMap.putIfAbsent(bucketStart, 0);
                         }
         
-                        for(int i = 0; i < checkpoints.size() - 1; i++)
+                        for(Integer i = 0; i < checkpoints.size() - 1; i++)
                         {
                             SimpleEntry<String, Integer> entry  = new SimpleEntry<>("From: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i)) + '\n' + "To: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i + 1)), bucketCountsMap.get(checkpoints.get(i)));
                             lineChartData.add(entry);
@@ -306,7 +306,6 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                         data.put("lineChartData", lineChartData);
                         break;
                     } catch (Exception e2) {
-
                     }
                     SEGMENT_COUNT -= 1;
                 }
@@ -323,7 +322,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
             return data;
         } catch (Exception e) {
-            // e.printStackTrace();
+            e.printStackTrace();
         }
         return (new HashMap<String, Object>());
     }
@@ -420,7 +419,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             Object tmp_filter_rules = data.get("filter_rules");
             if(tmp_filter_rules != null && tmp_filter_rules instanceof HashMap<?, ?> map)
             {
-                if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Object))
+                if(map.keySet().stream().allMatch(key -> key == null || key instanceof String) && map.values().stream().allMatch(value -> value == null || value instanceof Object))
                 {
                     @SuppressWarnings("unchecked")
                     HashMap<String, Object> filter_rules = (HashMap<String, Object>) tmp_filter_rules;
@@ -458,7 +457,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             {
                 ObservableList<?> tmp_logTableData2 = (ObservableList<?>) tmp_logTableData;
 
-                if(tmp_logTableData2.stream().allMatch(item -> item instanceof logData))
+                if(tmp_logTableData2.stream().allMatch(item -> item == null || item instanceof logData))
                 {
                     @SuppressWarnings("unchecked")
                     ObservableList<logData> logTableData = (ObservableList<logData>) tmp_logTableData2;
@@ -469,21 +468,21 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             Object tmp_countryData = data.get("countryData");
             if(tmp_countryData != null && tmp_countryData instanceof HashMap<?, ?> map)
             {
-                if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Integer))
+                if(map.keySet().stream().allMatch(key -> key == null || key instanceof String) && map.values().stream().allMatch(value -> value == null || value instanceof Integer))
                 {
                     @SuppressWarnings("unchecked")
                     Map<String, Integer> countryData = (Map<String, Integer>) tmp_countryData;
 
-                    int totalRequests = countryData.values().stream().mapToInt(Integer::intValue).sum();
+                    Integer totalRequests = countryData.values().stream().mapToInt(Integer::intValue).sum();
 
                     ObservableList<PieChart.Data> pieChartCountryData = FXCollections.observableArrayList();
 
                     for (Map.Entry<String, Integer> entry : countryData.entrySet()) {
                         String country = entry.getKey();
-                        int requests = entry.getValue();
+                        Integer requests = entry.getValue();
                         double percentage = (requests * 100.0) / totalRequests;
 
-                        String label = (country.equals("-") ? "Undefined" : country) + " (" + String.format("%.1f", percentage) + "%)";
+                        String label = (country == null ? "Undefined" : country) + " (" + String.format("%.1f", percentage) + "%)";
                         pieChartCountryData.add(new PieChart.Data(label, requests));
                     }
 
@@ -493,7 +492,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                         for (PieChart.Data piedata : pieChartCountryData) {
                             String country = piedata.getName();
                             double percent = (piedata.getPieValue() / totalRequests) * 100;
-                            int actualCount = (int) piedata.getPieValue();
+                            Integer actualCount = Double.valueOf(piedata.getPieValue()).intValue();
     
                             // Create a styled label as a tooltip
                             Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
@@ -524,18 +523,18 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             Object tmp_responseStatusData = data.get("responseStatusData");
             if(tmp_responseStatusData != null && tmp_responseStatusData instanceof HashMap<?, ?> map)
             {
-                if(map.keySet().stream().allMatch(key -> key instanceof Integer) && map.values().stream().allMatch(value -> value instanceof Integer))
+                if(map.keySet().stream().allMatch(key -> key == null || key instanceof Integer) && map.values().stream().allMatch(value -> value == null || value instanceof Integer))
                 {
                     @SuppressWarnings("unchecked")
                     Map<Integer, Integer> responseStatusData = (Map<Integer, Integer>) tmp_responseStatusData;
 
-                    int totalResponses = responseStatusData.values().stream().mapToInt(Integer::intValue).sum();
+                    Integer totalResponses = responseStatusData.values().stream().mapToInt(Integer::intValue).sum();
             
                     ObservableList<PieChart.Data> pieChartResponseStatusData = FXCollections.observableArrayList();
 
                     for (Map.Entry<Integer, Integer> entry : responseStatusData.entrySet()) {
-                        int status = entry.getKey();
-                        int count = entry.getValue();
+                        Integer status = entry.getKey();
+                        Integer count = entry.getValue();
                         double percentage = (count * 100.0) / totalResponses;
 
                         String label = status + " (" + String.format("%.1f", percentage) + "%)";
@@ -548,7 +547,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                         for (PieChart.Data piedata : pieChartResponseStatus.getData()) {
                             String status = piedata.getName();
                             double percent = (piedata.getPieValue() / totalResponses) * 100;
-                            int actualCount = (int) piedata.getPieValue();
+                            Integer actualCount = Double.valueOf(piedata.getPieValue()).intValue();
     
                             Label restooltipLabel = new Label(String.format("Status Code: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
                             restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
@@ -577,8 +576,8 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             if(tmp_lineChartData != null && tmp_lineChartData instanceof ArrayList<?> list)
             {
                 if(list.stream().allMatch(item -> item instanceof SimpleEntry<?, ?> &&
-                            ((SimpleEntry<?, ?>) item).getKey() instanceof String &&
-                            ((SimpleEntry<?, ?>) item).getValue() instanceof Integer))
+                            (((SimpleEntry<?, ?>) item).getKey() == null || ((SimpleEntry<?, ?>) item).getKey() instanceof String) &&
+                            (((SimpleEntry<?, ?>) item).getValue() == null || ((SimpleEntry<?, ?>) item).getValue() instanceof Integer)))
                 {
                     @SuppressWarnings("unchecked")
                     ArrayList<SimpleEntry<String, Integer>> lineChartData = (ArrayList<SimpleEntry<String, Integer>>) tmp_lineChartData;
@@ -684,22 +683,22 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         logTable.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
         logTable.getStyleClass().add("log-table");
 
-        indexColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getIndex()).asObject());
-        dateTimeColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getTime()));
-        ipColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRemoteIp()));
-        userColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRemoteUser()));
-        methodColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequestMethod()));
-        requestURLColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRequestUrl()));
-        statusCodeColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getResponseStatusCode()).asObject());
-        bytesColumn.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getBytes()).asObject());
-        referrerColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getReferrer()));
-        countryColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getCountryLong()));
-        regionColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getRegion()));
-        cityColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getCity()));
-        browserColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getBrowser()));
-        osColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getOS()));
-        deviceColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getDevice()));
-        agentColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getAgent()));
+        indexColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getIndex())));
+        dateTimeColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getTime() == null ? "null" : (new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss")).format(cell.getValue().getTime()))));
+        ipColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getRemoteIp())));
+        userColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getRemoteUser())));
+        methodColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getRequestMethod())));
+        requestURLColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf((cell.getValue().getRequestUrl()))));
+        statusCodeColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getResponseStatusCode())));
+        bytesColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getBytes())));
+        referrerColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getReferrer())));
+        countryColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getCountryLong())));
+        regionColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getRegion())));
+        cityColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getCity())));
+        browserColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getBrowser())));
+        osColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getOS())));
+        deviceColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getDevice())));
+        agentColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getAgent())));
     }
 
     private void printAllNodes(Parent parent) {

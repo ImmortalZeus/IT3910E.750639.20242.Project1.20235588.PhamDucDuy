@@ -64,12 +64,12 @@ public class nginxLineParser implements Runnable {
                         map.put("zip_code", ipResult.getZipCode());
                         map.put("time_zone", ipResult.getTimeZone());
                     } catch(Exception e) {
-                        map.put("country_short", "-");
-                        map.put("country_long", "-");
-                        map.put("region", "-");
-                        map.put("city", "-");
-                        map.put("zip_code", "-");
-                        map.put("time_zone", "-");
+                        map.put("country_short", null);
+                        map.put("country_long", null);
+                        map.put("region", null);
+                        map.put("city", null);
+                        map.put("zip_code", null);
+                        map.put("time_zone", null);
                     }
                     try {
                         String ua = map.get("agent").toString().trim();
@@ -82,14 +82,14 @@ public class nginxLineParser implements Runnable {
                         }
                         else
                         {
-                            map.put("browser", "-");
-                            map.put("OS", "-");
-                            map.put("device", "-");
+                            map.put("browser", null);
+                            map.put("OS", null);
+                            map.put("device", null);
                         }
                     } catch(Exception e) {
-                        map.put("browser", "-");
-                        map.put("OS", "-");
-                        map.put("device", "-");
+                        map.put("browser", null);
+                        map.put("OS", null);
+                        map.put("device", null);
                     }
                 }
                 map.put("index", line.getKey());

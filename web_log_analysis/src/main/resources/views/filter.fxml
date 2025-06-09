@@ -122,15 +122,13 @@
 
                             <StackPane fx:id="bytesSizeSliderStack" styleClass="slider-stack">
                                 <RangeSlider fx:id="bytesSizeRangeSlider" styleClass="range-slider"
-                                    min="-1" max="524288"
-                                    lowValue="-1" highValue="524288"
-                                    showTickMarks="true" showTickLabels="true"
-                                    majorTickUnit="131072"
-                                    minorTickCount="8" />
+                                    min="0" max="2147483647"
+                                    lowValue="0" highValue="2147483647"
+                                    showTickMarks="false" showTickLabels="false"/>
                                 
                                 <HBox spacing="20" alignment="CENTER" mouseTransparent="true">
-                                    <Label fx:id="minBytesSizeRangeSliderLabel" text="-1" styleClass="floating-label" opacity="0" />
-                                    <Label fx:id="maxBytesSizeRangeSliderLabel" text="524288" styleClass="floating-label" opacity="0" />
+                                    <Label fx:id="minBytesSizeRangeSliderLabel" text="0" styleClass="floating-label" opacity="0" />
+                                    <Label fx:id="maxBytesSizeRangeSliderLabel" text="2147483647" styleClass="floating-label" opacity="0" />
                                 </HBox>
                             </StackPane>
                     </VBox>

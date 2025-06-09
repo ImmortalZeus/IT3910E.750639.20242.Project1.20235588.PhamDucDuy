@@ -75,22 +75,29 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
 
     @Override
     public void setData(HashMap<String, Object> data) {
-        Object tmp_collectionHistory = data.get("collectionHistory");
-        if(tmp_collectionHistory != null && tmp_collectionHistory instanceof ArrayList<?>)
-        {
-            ArrayList<?> tmp_collectionHistory2 = (ArrayList<?>) tmp_collectionHistory;
-
-            if(tmp_collectionHistory2.stream().allMatch(item -> item instanceof mongoDBParseHistory))
+        Platform.runLater(() -> {
+            main.App.showLoadingStage(null);
+            Object tmp_collectionHistory = data.get("collectionHistory");
+            if(tmp_collectionHistory != null && tmp_collectionHistory instanceof ArrayList<?>)
             {
-                @SuppressWarnings("unchecked")
-                ArrayList<mongoDBParseHistory> collectionHistory2 = (ArrayList<mongoDBParseHistory>) tmp_collectionHistory2;
-                HistoryController.collectionHistory = collectionHistory2;
+                ArrayList<?> tmp_collectionHistory2 = (ArrayList<?>) tmp_collectionHistory;
+    
+                if(tmp_collectionHistory2.stream().allMatch(item -> (item == null || item instanceof mongoDBParseHistory)))
+                {
+                    @SuppressWarnings("unchecked")
+                    ArrayList<mongoDBParseHistory> collectionHistory2 = (ArrayList<mongoDBParseHistory>) tmp_collectionHistory2;
+                    HistoryController.collectionHistory = collectionHistory2;
+                }
             }
-        }
+    
+            for(mongoDBParseHistory e : HistoryController.collectionHistory) {
+                logHistoryContainer.getChildren().add(this.createLogEntry(e.getCollectionName(), Date.from(Instant.ofEpochMilli(Long.parseLong(e.getCreatedAt()))), e.getFilePath()));
+            }
 
-        for(mongoDBParseHistory e : HistoryController.collectionHistory) {
-            logHistoryContainer.getChildren().add(this.createLogEntry(e.getCollectionName(), Date.from(Instant.ofEpochMilli(Long.parseLong(e.getCreatedAt()))), e.getFilePath()));
-        }
+            Platform.runLater(() -> {
+                main.App.closeLoadingStage();
+            });
+        });
     }
 
     private HBox createLogEntry(String collectionName, Date date, String filePath) {

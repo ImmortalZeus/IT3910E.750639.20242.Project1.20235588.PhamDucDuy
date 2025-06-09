@@ -100,7 +100,7 @@ public class App extends Application {
             filterStage.showAndWait(); // block main window until this one closes
 
         } catch (IOException e) {
-            // e.printStackTrace();
+            e.printStackTrace();
         }
     }
 

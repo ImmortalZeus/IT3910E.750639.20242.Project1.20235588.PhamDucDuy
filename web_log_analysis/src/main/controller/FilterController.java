@@ -280,7 +280,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 filter_rules.put("byRemoteUser", true);
                 filter_rules.put("byRemoteUserValue", Arrays.asList(userValue));
             }
-            if((minBytesSizeValue != null || maxBytesSizeValue != null) && (!(minBytesSizeValue == -1 && maxBytesSizeValue == 524288)))
+            if((minBytesSizeValue != null || maxBytesSizeValue != null) && (!(minBytesSizeValue == 0 && maxBytesSizeValue == 2147483647)))
             {
                 filter_rules.put("byBytes", true);
                 HashMap<String, Integer> byBytesValueHashMap = new HashMap<>();
@@ -315,6 +315,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 filter_rules.put("byReferrer", true);
                 filter_rules.put("byReferrerValue", Arrays.asList(referrerValue));
             }
+            PrimaryController.resetData();
 
             Platform.runLater(() -> {
                 main.App.showLoadingStage(null);
@@ -346,9 +347,8 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         }
     }
 
-    private final int MAX_COMBOBOXES = 3;
+    private final Integer MAX_COMBOBOXES = 3;
     private static final ObservableList<Integer> httpCodes = FXCollections.observableArrayList(
-        -1,
         100, 101, 102, 103,
         200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
         300, 301, 302, 303, 304, 305, 306, 307, 308,
@@ -742,7 +742,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             }
             else
             {
-                min = -1;
+                min = 0;
             }
             long max = (long) bytesSizeRangeSlider.getHighValue();
             if (min > max) {
@@ -769,7 +769,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             }
             else
             {
-                max = 524288;
+                max = 2147483647;
             }
             long min = (long) bytesSizeRangeSlider.getLowValue();
             if (max < min) {

@@ -1,183 +1,184 @@
 package models.logData;
 
+import java.util.Date;
 import java.util.HashMap;
 
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
 public class logData {
     @BsonProperty("index")
-    private Integer index = -1;
+    private Integer index = null;
     @BsonProperty("time")
-    private String time = "-";
+    private Date time = null;
     @BsonProperty("remoteIp")
-    private String remoteIp = "-";
+    private String remoteIp = null;
     @BsonProperty("remoteUser")
-    private String remoteUser = "-";
+    private String remoteUser = null;
     @BsonProperty("request")
-    private String request = "-";
+    private String request = null;
     @BsonProperty("responseStatusCode")
-    private Integer responseStatusCode = -1;
+    private Integer responseStatusCode = null;
     @BsonProperty("bytes")
-    private Integer bytes = -1;
+    private Integer bytes = null;
     @BsonProperty("referrer")
-    private String referrer = "-";
+    private String referrer = null;
     @BsonProperty("agent")
-    private String agent = "-";
+    private String agent = null;
     @BsonProperty("requestMethod")
-    private String requestMethod = "-";
+    private String requestMethod = null;
     @BsonProperty("requestUrl")
-    private String requestUrl = "-";
+    private String requestUrl = null;
     @BsonProperty("httpVer")
-    private String httpVer = "-";
+    private String httpVer = null;
     @BsonProperty("countryShort")
-    private String countryShort = "-";
+    private String countryShort = null;
     @BsonProperty("countryLong")
-    private String countryLong = "-";
+    private String countryLong = null;
     @BsonProperty("region")
-    private String region = "-";
+    private String region = null;
     @BsonProperty("city")
-    private String city = "-";
+    private String city = null;
     @BsonProperty("zipCode")
-    private String zipCode = "-";
+    private String zipCode = null;
     @BsonProperty("timeZone")
-    private String timeZone = "-";
+    private String timeZone = null;
     @BsonProperty("browser")
-    private String browser = "-";
+    private String browser = null;
     @BsonProperty("OS")
-    private String OS = "-";
+    private String OS = null;
     @BsonProperty("device")
-    private String device = "-";
+    private String device = null;
     public logData() {}
     public logData(HashMap<String, Object> data) {
         Object tmpindex = data.get("index");
         if(tmpindex instanceof Integer) {
             this.index = (Integer) tmpindex;
         } else {
-            this.index = -1;
+            this.index = null;
         }
         Object tmptime = data.get("time");
-        if(tmptime instanceof String) {
-            this.time = (String) tmptime;
+        if(tmptime instanceof Date) {
+            this.time = (Date) tmptime;
         } else {
-            this.time = "-";
+            this.time = null;
         }
         Object tmpremoteIp = data.get("remote_ip");
         if(tmpremoteIp instanceof String) {
             this.remoteIp = (String) tmpremoteIp;
         } else {
-            this.remoteIp = "-";
+            this.remoteIp = null;
         }
         Object tmpremoteUser = data.get("remote_user");
         if(tmpremoteUser instanceof String) {
             this.remoteUser = (String) tmpremoteUser;
         } else {
-            this.remoteUser = "-";
+            this.remoteUser = null;
         }
         Object tmprequest = data.get("request");
         if(tmprequest instanceof String) {
             this.request = (String) tmprequest;
         } else {
-            this.request = "-";
+            this.request = null;
         }
         Object tmpresponseStatusCode = data.get("response_status_code");
         if(tmpresponseStatusCode instanceof Integer) {
             this.responseStatusCode = (Integer) tmpresponseStatusCode;
         } else {
-            this.responseStatusCode = -1;
+            this.responseStatusCode = null;
         }
         Object tmpbytes = data.get("bytes");
         if(tmpbytes instanceof Integer) {
             this.bytes = (Integer) tmpbytes;
         } else {
-            this.bytes = -1;
+            this.bytes = null;
         }
         Object tmpreferrer = data.get("referrer");
         if(tmpreferrer instanceof String) {
             this.referrer = (String) tmpreferrer;
         } else {
-            this.referrer = "-";
+            this.referrer = null;
         }
         Object tmpagent = data.get("agent");
         if(tmpagent instanceof String) {
             this.agent = (String) tmpagent;
         } else {
-            this.agent = "-";
+            this.agent = null;
         }
         Object tmprequestMethod = data.get("request_method");
         if(tmprequestMethod instanceof String) {
             this.requestMethod = (String) tmprequestMethod;
         } else {
-            this.requestMethod = "-";
+            this.requestMethod = null;
         }
         Object tmprequestUrl = data.get("request_url");
         if(tmprequestUrl instanceof String) {
             this.requestUrl = (String) tmprequestUrl;
         } else {
-            this.requestUrl = "-";
+            this.requestUrl = null;
         }
         Object tmphttpVer = data.get("http_ver");
         if(tmphttpVer instanceof String) {
             this.httpVer = (String) tmphttpVer;
         } else {
-            this.httpVer = "-";
+            this.httpVer = null;
         }
         Object tmpcountryShort = data.get("country_short");
         if(tmpcountryShort instanceof String) {
             this.countryShort = (String) tmpcountryShort;
         } else {
-            this.countryShort = "-";
+            this.countryShort = null;
         }
         Object tmpcountryLong = data.get("country_long");
         if(tmpcountryLong instanceof String) {
             this.countryLong = (String) tmpcountryLong;
         } else {
-            this.countryLong = "-";
+            this.countryLong = null;
         }
         Object tmpregion = data.get("region");
         if(tmpregion instanceof String) {
             this.region = (String) tmpregion;
         } else {
-            this.region = "-";
+            this.region = null;
         }
         Object tmpcity = data.get("city");
         if(tmpcity instanceof String) {
             this.city = (String) tmpcity;
         } else {
-            this.city = "-";
+            this.city = null;
         }
         Object tmpzipCode = data.get("zip_code");
         if(tmpzipCode instanceof String) {
             this.zipCode = (String) tmpzipCode;
         } else {
-            this.zipCode = "-";
+            this.zipCode = null;
         }
         Object tmptimeZone = data.get("time_zone");
         if(tmptimeZone instanceof String) {
             this.timeZone = (String) tmptimeZone;
         } else {
-            this.timeZone = "-";
+            this.timeZone = null;
         }
         Object tmpbrowser = data.get("browser");
         if(tmpbrowser instanceof String) {
             this.browser = (String) tmpbrowser;
         } else {
-            this.browser = "-";
+            this.browser = null;
         }
         Object tmpOS = data.get("OS");
         if(tmpOS instanceof String) {
             this.OS = (String) tmpOS;
         } else {
-            this.OS = "-";
+            this.OS = null;
         }
         Object tmpdevice = data.get("device");
         if(tmpdevice instanceof String) {
             this.device = (String) tmpdevice;
         } else {
-            this.device = "-";
+            this.device = null;
         }
     }
 
-    public logData(Integer index, String time, String remoteIp, String remoteUser, String request, Integer responseStatusCode,
+    public logData(Integer index, Date time, String remoteIp, String remoteUser, String request, Integer responseStatusCode,
             Integer bytes, String referrer, String agent, String requestMethod, String requestUrl, String httpVer,
             String countryShort, String countryLong, String region, String city,
             String zipCode, String timeZone, String browser, String OS, String device) {
@@ -206,7 +207,7 @@ public class logData {
     public Integer getIndex() {
         return this.index;
     }
-    public String getTime() {
+    public Date getTime() {
         return this.time;
     }
     public String getRemoteIp() {
@@ -270,7 +271,7 @@ public class logData {
     public void setIndex(Integer index) {
         this.index = index;
     }
-    public void setTime(String time) {
+    public void setTime(Date time) {
         this.time = time;
     }
     public void setRemoteIp(String remoteIp) {
