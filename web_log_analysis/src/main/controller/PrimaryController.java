@@ -258,13 +258,12 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             data.put("responseStatusData", responseStatusData);
             
             try {
-                ArrayList<SimpleEntry<String, Integer>> lineChartData = new ArrayList<>();
-
-                final Integer SEGMENT_COUNT = Math.min(8, PrimaryController.entriesCount);
+                
+                Integer SEGMENT_COUNT = Math.min(8, PrimaryController.entriesCount);
                 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.ENGLISH);
-                Date minDate = sdf.parse((String) PrimaryController.mongodb.getMin(fr, "time").get("min"));
-                Date maxDate = sdf.parse((String) PrimaryController.mongodb.getMax(fr, "time").get("max"));
+                Date minDate = (Date) PrimaryController.mongodb.getMin(fr, "time").get("min");
+                Date maxDate = (Date) PrimaryController.mongodb.getMax(fr, "time").get("max");
                 minDate = Date.from(minDate.toInstant().truncatedTo(ChronoUnit.SECONDS));
                 maxDate = Date.from(maxDate.toInstant().plusSeconds(1).truncatedTo(ChronoUnit.SECONDS));
                 
@@ -272,56 +271,47 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                 Instant maxDateInstant = maxDate.toInstant();
                 
                 Duration totalDuration = Duration.between(minDateInstant, maxDateInstant);
-                Duration period = totalDuration.dividedBy(SEGMENT_COUNT);
 
-                List<Date> checkpoints = new ArrayList<>();
-                checkpoints.add(dateToUTC.convert(minDate));
-                for (int i = 1; i < SEGMENT_COUNT; i++) {
-                    checkpoints.add(dateToUTC.convert(Date.from(minDateInstant.plus(period.multipliedBy(i)).truncatedTo(ChronoUnit.SECONDS))));
+                while(SEGMENT_COUNT > 0) {
+                    try {
+                        ArrayList<SimpleEntry<String, Integer>> lineChartData = new ArrayList<>();
+                        
+                        Duration period = totalDuration.dividedBy(SEGMENT_COUNT);
+        
+                        List<Date> checkpoints = new ArrayList<>();
+                        checkpoints.add((minDate));
+                        for (int i = 1; i < SEGMENT_COUNT; i++) {
+                            checkpoints.add((Date.from(minDateInstant.plus(period.multipliedBy(i)).truncatedTo(ChronoUnit.SECONDS))));
+                        }
+                        checkpoints.add((maxDate));
+        
+        
+                        ArrayList<Document> bucketRes = PrimaryController.mongodb.bucket(fr, "time", checkpoints);
+        
+                        Map<Date, Integer> bucketCountsMap = new HashMap<>();
+                        for (Document doc : bucketRes) {
+                            bucketCountsMap.put(doc.getDate("_id"), doc.getInteger("count"));
+                        }
+        
+                        for (int i = 0; i < checkpoints.size() - 1; i++) {
+                            Date bucketStart = checkpoints.get(i);
+                            bucketCountsMap.putIfAbsent(bucketStart, 0);
+                        }
+        
+                        for(int i = 0; i < checkpoints.size() - 1; i++)
+                        {
+                            SimpleEntry<String, Integer> entry  = new SimpleEntry<>("From: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i)) + '\n' + "To: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i + 1)), bucketCountsMap.get(checkpoints.get(i)));
+                            lineChartData.add(entry);
+                        }
+                        data.put("lineChartData", lineChartData);
+                        break;
+                    } catch (Exception e2) {
+
+                    }
+                    SEGMENT_COUNT -= 1;
                 }
-                checkpoints.add(dateToUTC.convert(maxDate));
-
-                ArrayList<Document> bucketRes = PrimaryController.mongodb.bucket(fr, "time", checkpoints);
-
-                Map<Date, Integer> bucketCountsMap = new HashMap<>();
-                for (Document doc : bucketRes) {
-                    bucketCountsMap.put(doc.getDate("_id"), doc.getInteger("count"));
-                }
-
-                for (int i = 0; i < checkpoints.size() - 1; i++) {
-                    Date bucketStart = checkpoints.get(i);
-                    bucketCountsMap.putIfAbsent(bucketStart, 0);
-                }
-
-                for(int i = 0; i < checkpoints.size() - 1; i++)
-                {
-                    SimpleEntry<String, Integer> entry  = new SimpleEntry<>("From: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i)) + '\n' + "To: " + new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss").format(checkpoints.get(i + 1)), bucketCountsMap.get(checkpoints.get(i)));
-                    lineChartData.add(entry);
-                }
-                data.put("lineChartData", lineChartData);
-
-                // for (int i = 0; i < SEGMENT_COUNT; i++) {
-                //     int j = i + 1;
-                //     Date start = checkpoints.get(i);
-                //     Date end = checkpoints.get(j);
-                //     HashMap<String, Object> filter_rules2 = new HashMap<>(fr);
-
-                //     filter_rules2.put("byPeriod", true);
-                //     HashMap<String, Date> byPeriodValueHashMap = new HashMap<>();
-
-                //     byPeriodValueHashMap.put("byPeriodStartValue", start);
-                //     byPeriodValueHashMap.put("byPeriodEndValue", end);
-                    
-                //     filter_rules2.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
-                //     Integer cnt = PrimaryController.mongodb.count(filter_rules2);
-                    
-                //     SimpleEntry<String, Integer> entry  = new SimpleEntry<>("Dur " + String.valueOf(j), cnt);
-
-                //     lineChartData.add(entry);
-                    
-                // }
-                // data.put("lineChartData", lineChartData);
             } catch (Exception e) {
+                e.printStackTrace();
             }
 
             data.put("filter_rules", fr);
