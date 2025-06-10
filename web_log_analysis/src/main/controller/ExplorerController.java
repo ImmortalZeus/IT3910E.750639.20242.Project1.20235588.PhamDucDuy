@@ -18,6 +18,8 @@ import javafx.scene.control.Button;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
@@ -37,8 +39,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class ExplorerController implements DataReceiver<HashMap<String, Object>> {
-    private static apacheFileParser aFP = new apacheFileParser();
-    private static nginxFileParser nFP = new nginxFileParser();
+    private static mongoDB mongodb = new mongoDB();
 
     @FXML
     private ImageView hgna;
@@ -79,7 +80,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
 
     @FXML private void onHistoryButtonPressed() {
         HashMap<String, Object> historyData = new HashMap<>();
-        historyData.put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
+        historyData.put("collectionHistory", ExplorerController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
         main.App.switchToHistory(historyData);
     }
     
@@ -101,7 +102,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
         uploadNginxButton.getStyleClass().add("upload-button");
     }
 
-    private void onUploadButtonPressed(ActionEvent event, Object parser) {
+    private void onUploadButtonPressed(ActionEvent event, Class<?> clazz) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Log File");
         fileChooser.getExtensionFilters().addAll(
@@ -112,6 +113,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
         // Get the current window from the event
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
         File selectedFile = fileChooser.showOpenDialog(stage);
+        if(selectedFile == null) return;
 
         if (selectedFile != null) {
             
@@ -122,24 +124,26 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                 protected ResultAggregator call() throws Exception {
                     try {
                         // Simulate log parsing (replace with real logic)
-                        System.out.println("Selected log file: " + selectedFile.getAbsolutePath());
-                        if(parser instanceof apacheFileParser)
+                        System.out.println("Selected log file: " + selectedFile.getCanonicalPath());
+                        if(clazz.equals(apacheFileParser.class))
                         {
+                            ResultAggregator res = apacheFileParser.parse(selectedFile.getCanonicalPath());
                             PrimaryController.resetData();
-                            ResultAggregator res = aFP.parse(selectedFile.getAbsolutePath());
+                            FilterController.resetData();
                             return res;
                         }
-                        else if(parser instanceof nginxFileParser)
+                        else if(clazz.equals(nginxFileParser.class))
                         {
+                            ResultAggregator res = nginxFileParser.parse(selectedFile.getCanonicalPath());
                             PrimaryController.resetData();
-                            ResultAggregator res = nFP.parse(selectedFile.getAbsolutePath());
+                            FilterController.resetData();
                             return res;
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
                         Platform.runLater(() -> {
                             main.App.closeLoadingStage();
                         });
+                    } finally {
                     }
                     return null;
                 }
@@ -159,6 +163,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                 fetchDataTask.setOnSucceeded(v2 -> {
                     HashMap<String, Object> fetchDataTaskValue = fetchDataTask.getValue();
                     HashMap<String, Object> data = new HashMap<>();
+
                     data.put("parseTaskValue", parseTaskValue);
                     data.put("fetchDataTaskValue", fetchDataTaskValue);
                     Platform.runLater(() -> {
@@ -192,11 +197,11 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
 
     @FXML
     private void onUploadApacheButtonPressed(ActionEvent event) {
-        onUploadButtonPressed(event, aFP);
+        onUploadButtonPressed(event, apacheFileParser.class);
     }
     @FXML
     private void onUploadNginxButtonPressed(ActionEvent event) {
-        onUploadButtonPressed(event, nFP);
+        onUploadButtonPressed(event, nginxFileParser.class);
     }
 
     @Override

@@ -8,7 +8,8 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 
 public class dateToUTC {
-    public static Date convert(Date date) {
+    public static final Date convert(Date date) {
+        if(date == null) return null;
         ZoneId zone = ZoneId.systemDefault();
         // Treat the original Date as if it were in GMT+7
         LocalDateTime localTime = LocalDateTime.ofInstant(date.toInstant(), zone);

@@ -28,12 +28,12 @@ public class ResultAggregator {
     private static AtomicInteger fail = null;
     private static String filepath = "-";
 
-    private void setUp(String filepath) {
+    private final void setUp(String filepath) {
         ResultAggregator.dataArrayList = ResultAggregator.dataArrayList == null ? Collections.synchronizedList(new ArrayList<>()) : ResultAggregator.dataArrayList;
         ResultAggregator.mongodb = ResultAggregator.mongodb == null ? new mongoDB(true) : ResultAggregator.mongodb;
         ResultAggregator.succeed = ResultAggregator.succeed == null ? new AtomicInteger(0) : ResultAggregator.succeed;
         ResultAggregator.fail = ResultAggregator.fail == null ? new AtomicInteger(0) : ResultAggregator.fail;
-        ResultAggregator.filepath = ResultAggregator.filepath.equals("-") ? filepath : ResultAggregator.filepath;
+        ResultAggregator.filepath = ResultAggregator.filepath.equals("-") ? (filepath == null ? "-" : filepath) : ResultAggregator.filepath;
     }
 
     public ResultAggregator(String filepath) {
@@ -52,33 +52,34 @@ public class ResultAggregator {
         this.setUp(filepath);
     }
 
-    public void addSucceed() {
+    public final void addSucceed() {
         ResultAggregator.succeed.incrementAndGet();
     }
 
-    public void addFail() {
+    public final void addFail() {
         ResultAggregator.fail.incrementAndGet();
     }
 
-    public void collect(logData e) {
+    public final void collect(logData e) {
+        if(e == null) return;
         ResultAggregator.dataArrayList.add(e);
     }
 
-    public void saveToMongodb() {
+    public final void saveToMongodb() {
         //ArrayList<logData> dataArrayList = new ArrayList<>(dataQueue);
         synchronized (ResultAggregator.dataArrayList) {
             ResultAggregator.dataArrayList.sort((a, b) -> {return a.getIndex().compareTo(b.getIndex());});
-            ResultAggregator.mongodb.saveToMongodb(ResultAggregator.dataArrayList, filepath);
+            ResultAggregator.mongodb.saveToMongodb(new ArrayList<>(ResultAggregator.dataArrayList), filepath);
             ResultAggregator.dataArrayList.clear();
         } 
         //dataQueue.clear();
     }
 
     public Integer getSucceed() {
-        return ResultAggregator.succeed.get();
+        return Integer.valueOf(ResultAggregator.succeed.get());
     }
 
     public Integer getFail() {
-        return ResultAggregator.fail.get();
+        return Integer.valueOf(ResultAggregator.fail.get());
     }
 }

@@ -10,7 +10,7 @@ import java.util.Locale;
 import java.util.Date;
 
 public class parsedValueClassConverter {
-    public static HashMap<String, Object> fix(HashMap<String, Object> map) {
+    public static final HashMap<String, Object> fix(HashMap<String, Object> map) {
         if(map.containsKey("response")) {
             try {
                 if (map.get("response") instanceof String) {
@@ -48,7 +48,7 @@ public class parsedValueClassConverter {
                     // OffsetDateTime dateTime = OffsetDateTime.parse((String) map.get("time"), formatter);
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
                     Date date = sdf.parse((String) map.get("time"));
-                    map.put("time", date);
+                    map.put("time", new Date(date.getTime()));
                     // SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss");
                     // map.put("time", formatter.format(Date.from(date.toInstant().truncatedTo(ChronoUnit.SECONDS))));
                 } else {

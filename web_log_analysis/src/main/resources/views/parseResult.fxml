@@ -8,7 +8,8 @@
       alignment="CENTER" spacing="20.0"
       xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml"
       prefHeight="200.0" prefWidth="300.0"
-      fx:controller="controller.ParseResultController">
+      fx:controller="controller.ParseResultController"
+      style="-fx-border-color: #00ffff; -fx-border-width: 1px; -fx-border-radius: 15; -fx-background-color: #5c0099">
     <children>
         <Label fx:id="parseResultContentLabel" wrapText="true" maxWidth="200.0" text="Parsed File!" styleClass="loading-label"/>
     </children>

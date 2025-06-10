@@ -44,7 +44,7 @@ public class logData {
     private String timeZone = null;
     @BsonProperty("browser")
     private String browser = null;
-    @BsonProperty("OS")
+    @BsonProperty("os")
     private String OS = null;
     @BsonProperty("device")
     private String device = null;
@@ -58,7 +58,7 @@ public class logData {
         }
         Object tmptime = data.get("time");
         if(tmptime instanceof Date) {
-            this.time = (Date) tmptime;
+            this.time = new Date(((Date) tmptime).getTime());
         } else {
             this.time = null;
         }
@@ -183,7 +183,7 @@ public class logData {
             String countryShort, String countryLong, String region, String city,
             String zipCode, String timeZone, String browser, String OS, String device) {
         this.index = index;
-        this.time = time;
+        this.time = time == null ? time : new Date(time.getTime());
         this.remoteIp = remoteIp;
         this.remoteUser = remoteUser;
         this.request = request;
@@ -208,7 +208,7 @@ public class logData {
         return this.index;
     }
     public Date getTime() {
-        return this.time;
+        return this.time == null ? this.time : new Date(this.time.getTime());
     }
     public String getRemoteIp() {
         return this.remoteIp;
@@ -272,7 +272,7 @@ public class logData {
         this.index = index;
     }
     public void setTime(Date time) {
-        this.time = time;
+        this.time = time == null ? time : new Date(time.getTime());
     }
     public void setRemoteIp(String remoteIp) {
         this.remoteIp = remoteIp;
@@ -325,8 +325,8 @@ public class logData {
     public void setBrowser(String browser) {
         this.browser = browser;
     }
-    public void setOS(String oS) {
-        OS = oS;
+    public void setOS(String OS) {
+        this.OS = OS;
     }
     public void setDevice(String device) {
         this.device = device;

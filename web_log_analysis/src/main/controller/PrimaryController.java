@@ -48,6 +48,7 @@ import models.logData.logData;
 import models.mongoDB.mongoDB;
 import models.mongoDB.mongoDBParseHistory;
 import models.utils.dateToUTC;
+import models.utils.hashMapCloner;
 
 import org.bson.Document;
 
@@ -58,12 +59,12 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class PrimaryController implements DataReceiver<HashMap<String, Object>> {
-    protected static Integer currentPage = -1;
-    protected static Integer maxPage = -1;
-    protected static Integer entriesCount = -1;
-    protected static Integer rowsPerPage = 1000;
-    protected static HashMap<String, Object> filter_rules = new HashMap<>();
-    protected static mongoDB mongodb = new mongoDB();
+    private static Integer currentPage = -1;
+    private static Integer maxPage = -1;
+    private static Integer entriesCount = -1;
+    private static Integer rowsPerPage = 1000;
+    private static HashMap<String, Object> filter_rules = new HashMap<>();
+    private static mongoDB mongodb = new mongoDB();
 
     @FXML private TableView<logData> logTable;
     @FXML private TableView<?> statusTable;
@@ -207,7 +208,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     //     applyFilterButton.setManaged(true);
     // }
     
-    public static void resetData() {
+    public static final void resetData() {
         PrimaryController.currentPage = -1;
         PrimaryController.maxPage = -1;
         PrimaryController.entriesCount = -1;
@@ -220,7 +221,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         boolean isFrEqualNull = fr == null;
         if(isFrEqualNull)
         {
-            fr = PrimaryController.filter_rules;
+            fr = hashMapCloner.deepCopy(PrimaryController.filter_rules);
         }
         try {
             // Simulate log parsing (replace with real logic)
@@ -258,7 +259,6 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             data.put("responseStatusData", responseStatusData);
             
             try {
-                
                 Integer SEGMENT_COUNT = Math.min(8, PrimaryController.entriesCount);
                 
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy  HH:mm:ss", Locale.ENGLISH);
@@ -310,7 +310,6 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                     SEGMENT_COUNT -= 1;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
             }
 
             data.put("filter_rules", fr);
@@ -322,7 +321,6 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
             return data;
         } catch (Exception e) {
-            e.printStackTrace();
         }
         return (new HashMap<String, Object>());
     }
@@ -401,18 +399,18 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     @FXML
     private void onPrevButtonPressed() {
         // System.out.println("Prev button pressed.");
-        PrimaryController.currentPage = PrimaryController.maxPage == 0 ? 0 : (PrimaryController.currentPage - 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
+        PrimaryController.currentPage = PrimaryController.maxPage.equals(0) ? 0 : (PrimaryController.currentPage - 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
         ObservableList<logData> x = PrimaryController.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage * 1000, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
         logTable.setItems(x);
-        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage == 0 ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage.equals(0) ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
     }
     @FXML
     private void onNextButtonPressed() {
         // System.out.println("Next button pressed.");
-        PrimaryController.currentPage = PrimaryController.maxPage == 0 ? 0 : (PrimaryController.currentPage + 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
+        PrimaryController.currentPage = PrimaryController.maxPage.equals(0) ? 0 : (PrimaryController.currentPage + 1 + PrimaryController.maxPage) % PrimaryController.maxPage;
         ObservableList<logData> x = PrimaryController.mongodb.filterWithSkipAndLimit(PrimaryController.filter_rules, PrimaryController.currentPage * 1000, PrimaryController.rowsPerPage).into(FXCollections.observableArrayList());
         logTable.setItems(x);
-        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage == 0 ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+        pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage.equals(0) ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
     }
 
     public void setData(HashMap<String, Object> data) {
@@ -426,7 +424,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                     @SuppressWarnings("unchecked")
                     HashMap<String, Object> filter_rules = (HashMap<String, Object>) tmp_filter_rules;
                     
-                    PrimaryController.filter_rules = filter_rules;
+                    PrimaryController.filter_rules = hashMapCloner.deepCopy(filter_rules);
                 }
             }
 
@@ -477,48 +475,51 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
                     Integer totalRequests = countryData.values().stream().mapToInt(Integer::intValue).sum();
 
-                    ObservableList<PieChart.Data> pieChartCountryData = FXCollections.observableArrayList();
-
-                    for (Map.Entry<String, Integer> entry : countryData.entrySet()) {
-                        String country = entry.getKey();
-                        Integer requests = entry.getValue();
-                        double percentage = (requests * 100.0) / totalRequests;
-
-                        String label = (country == null ? "Undefined" : country) + " (" + String.format("%.1f", percentage) + "%)";
-                        pieChartCountryData.add(new PieChart.Data(label, requests));
-                    }
-
-                    pieChartCountry.setData(pieChartCountryData);
-
-                    Platform.runLater(() -> {
-                        for (PieChart.Data piedata : pieChartCountryData) {
-                            String country = piedata.getName();
-                            double percent = (piedata.getPieValue() / totalRequests) * 100;
-                            Integer actualCount = Double.valueOf(piedata.getPieValue()).intValue();
+                    if(totalRequests > 0)
+                    {
+                        ObservableList<PieChart.Data> pieChartCountryData = FXCollections.observableArrayList();
     
-                            // Create a styled label as a tooltip
-                            Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
-                            tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-                            tooltipLabel.getStyleClass().add("piechart-tooltip");
-                            Popup popup = new Popup();
-                            popup.getContent().add(tooltipLabel);
-                            popup.setAutoHide(true);
+                        for (Map.Entry<String, Integer> entry : countryData.entrySet()) {
+                            String country = entry.getKey();
+                            Integer requests = entry.getValue();
+                            double percentage = (requests * 100.0) / totalRequests;
     
-                            FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), tooltipLabel);
-                            fadeIn.setFromValue(0);
-                            fadeIn.setToValue(1);
-    
-                            // Show tooltip on hover
-                            piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
-                                tooltipLabel.setOpacity(0);
-                                popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
-                                fadeIn.playFromStart();
-                            });
-    
-                            // Hide tooltip on exit
-                            piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                            String label = (country == null ? "Undefined" : country) + " (" + String.format("%.1f", percentage) + "%)";
+                            pieChartCountryData.add(new PieChart.Data(label, requests));
                         }
-                    });
+    
+                        pieChartCountry.setData(pieChartCountryData);
+    
+                        Platform.runLater(() -> {
+                            for (PieChart.Data piedata : pieChartCountryData) {
+                                String country = piedata.getName();
+                                double percent = (piedata.getPieValue() / totalRequests) * 100;
+                                Integer actualCount = Double.valueOf(piedata.getPieValue()).intValue();
+        
+                                // Create a styled label as a tooltip
+                                Label tooltipLabel = new Label(String.format("Country: %s\nPercentage: %.1f%%\nCount: %d", country, percent, actualCount));
+                                tooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                                tooltipLabel.getStyleClass().add("piechart-tooltip");
+                                Popup popup = new Popup();
+                                popup.getContent().add(tooltipLabel);
+                                popup.setAutoHide(true);
+        
+                                FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), tooltipLabel);
+                                fadeIn.setFromValue(0);
+                                fadeIn.setToValue(1);
+        
+                                // Show tooltip on hover
+                                piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                                    tooltipLabel.setOpacity(0);
+                                    popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                                    fadeIn.playFromStart();
+                                });
+        
+                                // Hide tooltip on exit
+                                piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                            }
+                        });
+                    }
                 }
             }
 
@@ -531,46 +532,49 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                     Map<Integer, Integer> responseStatusData = (Map<Integer, Integer>) tmp_responseStatusData;
 
                     Integer totalResponses = responseStatusData.values().stream().mapToInt(Integer::intValue).sum();
-            
-                    ObservableList<PieChart.Data> pieChartResponseStatusData = FXCollections.observableArrayList();
-
-                    for (Map.Entry<Integer, Integer> entry : responseStatusData.entrySet()) {
-                        Integer status = entry.getKey();
-                        Integer count = entry.getValue();
-                        double percentage = (count * 100.0) / totalResponses;
-
-                        String label = status + " (" + String.format("%.1f", percentage) + "%)";
-                        pieChartResponseStatusData.add(new PieChart.Data(label, count));
-                    }
-
-                    pieChartResponseStatus.setData(pieChartResponseStatusData);
-
-                    Platform.runLater(() -> {
-                        for (PieChart.Data piedata : pieChartResponseStatus.getData()) {
-                            String status = piedata.getName();
-                            double percent = (piedata.getPieValue() / totalResponses) * 100;
-                            Integer actualCount = Double.valueOf(piedata.getPieValue()).intValue();
+           
+                    if(totalResponses > 0)
+                    {
+                        ObservableList<PieChart.Data> pieChartResponseStatusData = FXCollections.observableArrayList();
     
-                            Label restooltipLabel = new Label(String.format("Status Code: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
-                            restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
-                            restooltipLabel.getStyleClass().add("piechart-tooltip");
-                            Popup popup = new Popup();
-                            popup.getContent().add(restooltipLabel);
-                            popup.setAutoHide(true);
+                        for (Map.Entry<Integer, Integer> entry : responseStatusData.entrySet()) {
+                            Integer status = entry.getKey();
+                            Integer count = entry.getValue();
+                            double percentage = (count * 100.0) / totalResponses;
     
-                            FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), restooltipLabel);
-                            fadeIn.setFromValue(0);
-                            fadeIn.setToValue(1);
-    
-                            piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
-                                restooltipLabel.setOpacity(0);
-                                popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
-                                fadeIn.playFromStart();
-                            });
-    
-                            piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                            String label = status + " (" + String.format("%.1f", percentage) + "%)";
+                            pieChartResponseStatusData.add(new PieChart.Data(label, count));
                         }
-                    });
+    
+                        pieChartResponseStatus.setData(pieChartResponseStatusData);
+    
+                        Platform.runLater(() -> {
+                            for (PieChart.Data piedata : pieChartResponseStatus.getData()) {
+                                String status = piedata.getName();
+                                double percent = (piedata.getPieValue() / totalResponses) * 100;
+                                Integer actualCount = Double.valueOf(piedata.getPieValue()).intValue();
+        
+                                Label restooltipLabel = new Label(String.format("Status Code: %s\nPercentage: %.1f%%\nCount: %d", status, percent, actualCount));
+                                restooltipLabel.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());
+                                restooltipLabel.getStyleClass().add("piechart-tooltip");
+                                Popup popup = new Popup();
+                                popup.getContent().add(restooltipLabel);
+                                popup.setAutoHide(true);
+        
+                                FadeTransition fadeIn = new FadeTransition(javafx.util.Duration.millis(200), restooltipLabel);
+                                fadeIn.setFromValue(0);
+                                fadeIn.setToValue(1);
+        
+                                piedata.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED, event -> {
+                                    restooltipLabel.setOpacity(0);
+                                    popup.show(piedata.getNode(), event.getScreenX() + 10, event.getScreenY() + 10);
+                                    fadeIn.playFromStart();
+                                });
+        
+                                piedata.getNode().addEventHandler(MouseEvent.MOUSE_EXITED, event -> popup.hide());
+                            }
+                        });
+                    }
                 }
             }
 
@@ -591,8 +595,8 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                         String label = entry.getKey();
                         Integer cnt = entry.getValue();
 
-                        minCnt = minCnt == -1 ? cnt : Math.min(minCnt, cnt);
-                        maxCnt = minCnt == -1 ? cnt : Math.max(maxCnt, cnt);
+                        minCnt = minCnt.equals(-1) ? cnt : Math.min(minCnt, cnt);
+                        maxCnt = minCnt.equals(-1) ? cnt : Math.max(maxCnt, cnt);
 
                         series.getData().add(new XYChart.Data<>(label, cnt));
                     }
@@ -651,7 +655,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
                 }
             }
 
-            pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage == 0 ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
+            pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage.equals(0) ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
             Platform.runLater(() -> {
                 main.App.closeLoadingStage();
             });
@@ -714,37 +718,11 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
     private ScrollBar findVerticalScrollBar(TableView<?> table) {
         for (var node : table.lookupAll(".scroll-bar")) {
-            if (node instanceof ScrollBar sb && sb.getOrientation() == Orientation.VERTICAL) {
+            if (node instanceof ScrollBar sb && sb.getOrientation().equals(Orientation.VERTICAL)) {
                 return sb;
             }
         }
         return null;
-    }
-
-    public static Map<String, Integer> loadDataFromFile(String filePath) {
-        Map<String, Integer> data = new HashMap<>();
-
-        try (InputStream input = PrimaryController.class.getResourceAsStream(filePath);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
-
-            if (input == null) {
-                System.err.println("Error reading data: file not found at " + filePath);
-                return null;
-            }
-            String line = reader.readLine();
-            if (line != null) {
-                String[] entries = line.split(",");
-                for (String entry : entries) {
-                    String[] parts = entry.trim().split("=");
-                    if (parts.length == 2) {
-                        data.put(parts[0], Integer.parseInt(parts[1]));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error reading data: " + e.getMessage());
-        }
-        return data;
     }
 
     

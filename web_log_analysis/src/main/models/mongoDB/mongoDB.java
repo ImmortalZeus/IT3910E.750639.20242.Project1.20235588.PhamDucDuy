@@ -25,6 +25,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 
+import controller.FilterController;
 import controller.PrimaryController;
 
 import com.mongodb.client.FindIterable;
@@ -44,7 +45,7 @@ public class mongoDB {
     private static MongoCollection<logData> collection = null;
     private static String now = null;
 
-    private void setUpHistory() {
+    private final void setUpHistory() {
         String mongoUri = System.getProperty("mongodb.uri");
         mongoUri = mongoUri == null ? "mongodb://localhost:27017" : mongoUri;
 
@@ -74,7 +75,7 @@ public class mongoDB {
         }
     }
 
-    private void setUp(String inputCollectionName) {
+    private final void setUp(String inputCollectionName) {
         mongoDB.now = mongoDB.now == null ? Long.toString(System.currentTimeMillis()) : mongoDB.now;
 
         String mongoUri = System.getProperty("mongodb.uri");
@@ -134,11 +135,13 @@ public class mongoDB {
     }
 
 
-    public void insertOne(logData doc) {
+    public final void insertOne(logData doc) {
+        if(doc == null) return;
         mongoDB.collection.insertOne(doc);
     }
 
-    public void insertMany(List<logData> list) {
+    public final void insertMany(List<logData> list) {
+        if(list == null || list.isEmpty()) return;
         mongoDB.collection.insertMany(list);
     }
 
@@ -813,7 +816,7 @@ public class mongoDB {
                 {
                     if(osValue != null)
                     {
-                        filtersList_byOS.add(eq("OS", osValue));
+                        filtersList_byOS.add(eq("os", osValue));
                     }
                 }
             }
@@ -853,22 +856,23 @@ public class mongoDB {
         return res;
     }
 
-    public void addHistory(String collectionName, String filepath, String createdAt) {
+    public final void addHistory(String collectionName, String filepath, String createdAt) {
         mongoDB.collectionHistory.insertOne((new mongoDBParseHistory(collectionName, filepath, createdAt)));
     }
 
-    public void saveToMongodb(List<logData> dataArrayList, String filepath) {
-        mongoDB.collection.insertMany(dataArrayList);
+    public final void saveToMongodb(List<logData> dataArrayList, String filepath) {
+        this.insertMany(dataArrayList);
         this.addHistory(mongoDB.collection.getNamespace().getCollectionName(), filepath, mongoDB.now);
     }
 
-    public void deleteCollection(String collectionName) {
+    public final void deleteCollection(String collectionName) {
         MongoCollection<logData> collection_tmp = database.getCollection(collectionName, logData.class);
         collection_tmp.drop();
         mongoDB.collectionHistory.deleteMany(Filters.eq("collectionName", collectionName));
         if(collectionName.equals(mongoDB.collection.getNamespace().getCollectionName()))
         {
             PrimaryController.resetData();
+            FilterController.resetData();
             mongoDB.mongoClient = null;
             mongoDB.database = null;
             mongoDB.collection = null;
@@ -878,10 +882,11 @@ public class mongoDB {
         }
     }
 
-    public void deleteCurrentCollection() {
+    public final void deleteCurrentCollection() {
         mongoDB.collection.drop();
         mongoDB.collectionHistory.deleteMany(Filters.eq("collectionName", mongoDB.collection.getNamespace().getCollectionName()));
         PrimaryController.resetData();
+        FilterController.resetData();
         mongoDB.mongoClient = null;
         mongoDB.database = null;
         mongoDB.collection = null;

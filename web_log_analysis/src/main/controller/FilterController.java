@@ -232,7 +232,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 if (node instanceof ComboBox<?>) {
                     ComboBox<?> combo = (ComboBox<?>) node;
                     // Check if the ComboBox contains Integer values
-                    if (combo.getItems().stream().allMatch(item -> item instanceof Integer)) {
+                    if (combo.getItems().stream().allMatch(item -> item == null || item instanceof Integer)) {
                         @SuppressWarnings("unchecked")
                         ComboBox<Integer> intCombo = (ComboBox<Integer>) combo;
                         Integer value = intCombo.getValue();
@@ -249,9 +249,9 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
 
             Integer minBytesSizeValue = Double.valueOf(bytesSizeRangeSlider.getLowValue()).intValue();
             Integer maxBytesSizeValue = Double.valueOf(bytesSizeRangeSlider.getHighValue()).intValue();
-            bytesSizeRangeSliderBackup = (minBytesSizeValue == 0 && maxBytesSizeValue == 2147483647) ? null : new SimpleEntry<>(minBytesSizeValue, maxBytesSizeValue);
-            bytesSizeMinFieldBackup = minBytesSizeValue == 0 ? null : String.valueOf(minBytesSizeValue);
-            bytesSizeMaxFieldBackup = maxBytesSizeValue == 2147483647 ? null : String.valueOf(maxBytesSizeValue);
+            bytesSizeRangeSliderBackup = (minBytesSizeValue.equals(0) && maxBytesSizeValue.equals(2147483647)) ? null : new SimpleEntry<>(minBytesSizeValue, maxBytesSizeValue);
+            bytesSizeMinFieldBackup = minBytesSizeValue.equals(0) ? null : String.valueOf(minBytesSizeValue);
+            bytesSizeMaxFieldBackup = maxBytesSizeValue.equals(2147483647) ? null : String.valueOf(maxBytesSizeValue);
 
             String requestURLValue = requestURLField.getText().length() > 0 ? requestURLField.getText() : null;
             requestURLFieldBackup = requestURLValue;
@@ -299,7 +299,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             if(ipAddressValue != null)
             {
                 filter_rules.put("byRemoteIp", true);
-                filter_rules.put("byRemoteIpValue", Arrays.asList(ipAddressValue));
+                filter_rules.put("byRemoteIpValue", new ArrayList<>(Arrays.asList(ipAddressValue)));
             }
             if(timestampFromDateValue != null || timestampToDateValue != null)
             {
@@ -311,39 +311,39 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 if(fromDateTime != null) byPeriodValueHashMap.put("byPeriodStartValue", (Date.from(fromDateTime.atZone(ZoneId.systemDefault()).toInstant())));
                 if(toDateTime != null) byPeriodValueHashMap.put("byPeriodEndValue", (Date.from(toDateTime.atZone(ZoneId.systemDefault()).toInstant())));
                 
-                filter_rules.put("byPeriodValue", Arrays.asList(byPeriodValueHashMap));
+                filter_rules.put("byPeriodValue", new ArrayList<>(Arrays.asList(byPeriodValueHashMap)));
             }
             if(countryValue != null)
             {
                 filter_rules.put("byCountryLong", true);
-                filter_rules.put("byCountryLongValue", Arrays.asList(countryValue));
+                filter_rules.put("byCountryLongValue", new ArrayList<>(Arrays.asList(countryValue)));
             }
             if(regionValue != null)
             {
                 filter_rules.put("byRegion", true);
-                filter_rules.put("byRegionValue", Arrays.asList(regionValue));
+                filter_rules.put("byRegionValue", new ArrayList<>(Arrays.asList(regionValue)));
             }
             if(cityValue != null)
             {
                 filter_rules.put("byCity", true);
-                filter_rules.put("byCityValue", Arrays.asList(cityValue));
+                filter_rules.put("byCityValue", new ArrayList<>(Arrays.asList(cityValue)));
             }
             if(requestMethodValue != null && !requestMethodValue.isEmpty())
             {
                 filter_rules.put("byRequestMethod", true);
-                filter_rules.put("byRequestMethodValue", Arrays.asList(requestMethodValue));
+                filter_rules.put("byRequestMethodValue", new ArrayList<>(requestMethodValue));
             }
             if(responseStatusCodeValue != null && !responseStatusCodeValue.isEmpty())
             {
                 filter_rules.put("byResponseStatusCode", true);
-                filter_rules.put("byResponseStatusCodeValue", responseStatusCodeValue);
+                filter_rules.put("byResponseStatusCodeValue", new ArrayList<>(responseStatusCodeValue));
             }
             if(userValue != null)
             {
                 filter_rules.put("byRemoteUser", true);
-                filter_rules.put("byRemoteUserValue", Arrays.asList(userValue));
+                filter_rules.put("byRemoteUserValue", new ArrayList<>(Arrays.asList(userValue)));
             }
-            if((minBytesSizeValue != null || maxBytesSizeValue != null) && (!(minBytesSizeValue == 0 && maxBytesSizeValue == 2147483647)))
+            if((minBytesSizeValue != null || maxBytesSizeValue != null) && (!(minBytesSizeValue.equals(0) && maxBytesSizeValue.equals(2147483647))))
             {
                 filter_rules.put("byBytes", true);
                 HashMap<String, Integer> byBytesValueHashMap = new HashMap<>();
@@ -351,32 +351,32 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 if(minBytesSizeValue != null) byBytesValueHashMap.put("byBytesStartValue", minBytesSizeValue);
                 if(maxBytesSizeValue != null) byBytesValueHashMap.put("byBytesEndValue", maxBytesSizeValue);
                 
-                filter_rules.put("byBytesValue", Arrays.asList(byBytesValueHashMap));
+                filter_rules.put("byBytesValue", new ArrayList<>(Arrays.asList(byBytesValueHashMap)));
             }
             if(requestURLValue != null)
             {
-                filter_rules.put("byRequest", true);
-                filter_rules.put("byRequestValue", Arrays.asList(requestURLValue));
+                filter_rules.put("byRequestUrl", true);
+                filter_rules.put("byRequestUrlValue", new ArrayList<>(Arrays.asList(requestURLValue)));
             }
             if(osValue != null)
             {
                 filter_rules.put("byOS", true);
-                filter_rules.put("byOSValue", Arrays.asList(osValue));
+                filter_rules.put("byOSValue", new ArrayList<>(Arrays.asList(osValue)));
             }
             if(browseValue != null)
             {
                 filter_rules.put("byBrowser", true);
-                filter_rules.put("byBrowserValue", Arrays.asList(browseValue));
+                filter_rules.put("byBrowserValue", new ArrayList<>(Arrays.asList(browseValue)));
             }
             if(deviceValue != null)
             {
                 filter_rules.put("byDevice", true);
-                filter_rules.put("byDeviceValue", Arrays.asList(deviceValue));
+                filter_rules.put("byDeviceValue", new ArrayList<>(Arrays.asList(deviceValue)));
             }
             if(referrerValue != null)
             {
                 filter_rules.put("byReferrer", true);
-                filter_rules.put("byReferrerValue", Arrays.asList(referrerValue));
+                filter_rules.put("byReferrerValue", new ArrayList<>(Arrays.asList(referrerValue)));
             }
 
             PrimaryController.resetData();
@@ -420,7 +420,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         500, 501, 502, 503, 504, 505, 506, 507, 508, 510, 511
     );
     
-    protected static void resetData() {
+    public static final void resetData() {
         FilterController.ipAddressFieldBackup = null;
         FilterController.timestampFromDateBackup = null;
         FilterController.timestampFromTimeBackup = null;

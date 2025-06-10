@@ -40,7 +40,7 @@ public class nginxLineParser implements Runnable {
         // mapper.disable(MapperFeature.AUTO_DETECT_GETTERS);
     }
     @Override
-    public void run() {
+    public final void run() {
         try {
             Matcher matcher = pattern.matcher("");
             HashMap<String, Object> map = new HashMap<String, Object>();

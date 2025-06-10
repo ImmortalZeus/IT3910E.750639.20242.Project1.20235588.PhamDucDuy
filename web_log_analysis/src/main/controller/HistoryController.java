@@ -29,10 +29,12 @@ import javafx.scene.layout.VBox;
 import models.logData.logData;
 import models.mongoDB.mongoDB;
 import models.mongoDB.mongoDBParseHistory;
+import models.utils.arrayListCloner;
 import models.utils.dateToUTC;
 import javafx.scene.control.Label;
 
 public class HistoryController implements DataReceiver<HashMap<String, Object>> {
+    private static mongoDB mongodb = new mongoDB();
     protected static List<mongoDBParseHistory> collectionHistory = new ArrayList<>();
 
     @FXML private VBox logHistoryContainer;
@@ -65,7 +67,7 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
 
     @FXML private void onHistoryButtonPressed() {
         HashMap<String, Object> historyData = new HashMap<>();
-        historyData.put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
+        historyData.put("collectionHistory", HistoryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
         main.App.switchToHistory(historyData);
     }
     
@@ -86,7 +88,7 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
                 {
                     @SuppressWarnings("unchecked")
                     ArrayList<mongoDBParseHistory> collectionHistory2 = (ArrayList<mongoDBParseHistory>) tmp_collectionHistory2;
-                    HistoryController.collectionHistory = collectionHistory2;
+                    HistoryController.collectionHistory = arrayListCloner.deepCopy(collectionHistory2);
                 }
             }
     
@@ -122,7 +124,8 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
         loadButton.getStyleClass().add("load-button");
         loadButton.setOnAction(e -> {
             PrimaryController.resetData();
-            PrimaryController.mongodb = new mongoDB(collectionName);
+            FilterController.resetData();
+            mongoDB mongodbtmp = new mongoDB(collectionName);
             Platform.runLater(() -> {
                 main.App.showLoadingStage(null);
                 Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
@@ -151,7 +154,7 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
         Button deleteButton = new Button("Delete"); // Unicode trash can
         deleteButton.getStyleClass().add("delete-button");
         deleteButton.setOnAction(e -> {
-            PrimaryController.mongodb.deleteCollection(collectionName);
+            HistoryController.mongodb.deleteCollection(collectionName);
             logHistoryContainer.getChildren().remove(entryBox);
             // deleteLogEntry(collectionName, entryBox);
         }); //Replace with deletion logic

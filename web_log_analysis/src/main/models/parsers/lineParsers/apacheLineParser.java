@@ -3,6 +3,7 @@ package models.parsers.lineParsers;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +22,7 @@ import ua_parser.Client;
 
 public class apacheLineParser implements Runnable {
     private static mongoDB mongodb = new mongoDB();
-    private static final String regex = "^" + "(?<RemoteIp>-|(?:^|\\b)(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){3})\\s-\\s(?<RemoteUser>-|[a-z_][a-z0-9_]{0,30})\\s(\\[(?<DateTime>(?<Date>[0-2][0-9]\\/\\w{3}\\/[12]\\d{3}):(?<Time>\\d{2}:\\d{2}:\\d{2})[^\\]]*+)\\])\\s(\\\"(?<Request>(?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<ByRequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))\\\")\\s(?<Response>-|\\d{3})\\s(?<Bytes>-|\\d+)\\s\\\"(?<Referrer>[^\\s]+)\\\"\\s\\\"(?<UserAgent>[^\\\"]*+)\\\"(?:\\s\\\"(?<ForwardFor>[^\\\"]*+)\\\")?" + "$";
+    private static final String regex = "^" + "(?<RemoteIp>-|(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){3})\\s(?<RemoteLogName>-|\\S+)\\s(?<RemoteUser>-|\\S+)\\s(\\[(?<DateTime>(?<Date>\\d{2})\\/\\w{3}\\/\\d{4}:(?<Time>\\d{2}:\\d{2}:\\d{2})\\s(?<Timezone>[+-]\\d{4}))\\])\\s(\\\"(?<Request>(?<RequestMethod>GET|POST|HEAD|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH)\\s(?<RequestUrl>\\/[^\\s]*)\\s(?<HttpVer>HTTP/\\d\\.\\d))\\\")\\s(?<Response>-|\\d{3})\\s(?<Bytes>-|\\d+)\\s\\\"(?<Referrer>[^\\s]+)\\\"\\s\\\"(?<UserAgent>[^\\\"]*+)\\\"(?:\\s\\\"(?<ForwardFor>[^\\\"]*+)\\\")?" + "$";
     private static final Pattern pattern = Pattern.compile(regex);
     private ResultAggregator aggregator;
     private List<SimpleEntry<Integer, String>> lines;
@@ -30,10 +31,10 @@ public class apacheLineParser implements Runnable {
         this.aggregator = agg;
     }
     @Override
-    public void run() {
+    public final void run() {
         try {
             Matcher matcher = pattern.matcher("");
-            //HashMap<Integer, String> groupNameMapping = new HashMap<Integer, String>();
+            HashMap<Integer, String> groupNameMapping = new HashMap<Integer, String>();
             //HashMap<String, Object> parsedData = new HashMap<String, Object>();
             HashMap<String, Object> map = new HashMap<String, Object>();
             for (SimpleEntry<Integer, String> line : lines) {
@@ -60,21 +61,24 @@ public class apacheLineParser implements Runnable {
                 // map.put("referrer", parsedData.get("Referrer"));
                 // map.put("agent", parsedData.get("UserAgent"));
                 // map.put("request_method", parsedData.get("RequestMethod"));
-                // map.put("request_url", parsedData.get("ByRequestUrl"));
+                // map.put("request_url", parsedData.get("RequestUrl"));
                 // map.put("http_ver", parsedData.get("HttpVer"));
                 // map.put("geo_info", ipParser.parse(map.get("remote_ip").toString()));
                 if (matcher.matches()) {
-                    map.put("time", matcher.group(4));
+                    // System.out.println(matcher.group(5));
+                    // System.out.println(matcher.group(6));
+                    // System.out.println(matcher.group(8));
+                    map.put("time", matcher.group(5));
                     map.put("remote_ip", matcher.group(1));
-                    map.put("remote_user", matcher.group(2));
-                    map.put("request", matcher.group(8));
-                    map.put("response", matcher.group(12));
-                    map.put("bytes", matcher.group(13));
-                    map.put("referrer", matcher.group(14));
-                    map.put("agent", matcher.group(15));
-                    map.put("request_method", matcher.group(9));
-                    map.put("request_url", matcher.group(10));
-                    map.put("http_ver", matcher.group(11));
+                    map.put("remote_user", matcher.group(3));
+                    map.put("request", matcher.group(10));
+                    map.put("response", matcher.group(14));
+                    map.put("bytes", matcher.group(15));
+                    map.put("referrer", matcher.group(16));
+                    map.put("agent", matcher.group(17));
+                    map.put("request_method", matcher.group(11));
+                    map.put("request_url", matcher.group(12));
+                    map.put("http_ver", matcher.group(13));
                     try {
                         IPResult ipResult = ip2Location.parse(map.get("remote_ip").toString());
                         map.put("country_short", ipResult.getCountryShort());
@@ -111,14 +115,18 @@ public class apacheLineParser implements Runnable {
                         map.put("OS", null);
                         map.put("device", null);
                     }
+                    map.put("index", line.getKey());
+                    map = parsedValueClassConverter.fix(map);
+        
+                    logData res = new logData(map);
+                    //mongodb.insertOne(res);
+                    this.aggregator.collect(res);
+                    this.aggregator.addSucceed();
                 }
-                map.put("index", line.getKey());
-                map = parsedValueClassConverter.fix(map);
-    
-                logData res = new logData(map);
-                //mongodb.insertOne(res);
-                this.aggregator.collect(res);
-                this.aggregator.addSucceed();
+                else
+                {
+                    this.aggregator.addFail();
+                }
             }
         } catch (Exception e) {
             this.aggregator.addFail();

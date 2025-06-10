@@ -8,11 +8,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import models.parsers.ResultAggregator;
+import models.utils.hashMapCloner;
 
 public class ParseResultController implements DataReceiver<HashMap<String, Object>> {
 
-    protected static ResultAggregator parseTaskValue = null;
-    protected static HashMap<String, Object> fetchDataTaskValue = null;
+    private static ResultAggregator parseTaskValue = null;
+    private static HashMap<String, Object> fetchDataTaskValue = null;
 
     @FXML private VBox parseResultVbox;
     @FXML private Label parseResultContentLabel;
@@ -31,7 +32,7 @@ public class ParseResultController implements DataReceiver<HashMap<String, Objec
             });
         });
     }
-    protected static void resetData() {
+    protected static final void resetData() {
         ParseResultController.parseTaskValue = null;
         ParseResultController.fetchDataTaskValue = null;
     }
@@ -54,12 +55,12 @@ public class ParseResultController implements DataReceiver<HashMap<String, Objec
         Object tmp_fetchDataTaskValue = data.get("fetchDataTaskValue");
         if(tmp_fetchDataTaskValue != null && tmp_fetchDataTaskValue instanceof HashMap<?, ?> map)
         {
-            if(map.keySet().stream().allMatch(key -> key instanceof String) && map.values().stream().allMatch(value -> value instanceof Object))
+            if(map.keySet().stream().allMatch(key -> key == null || key instanceof String) && map.values().stream().allMatch(value -> value == null || value instanceof Object))
             {
                 @SuppressWarnings("unchecked")
                 HashMap<String, Object> fetchDataTaskValue = (HashMap<String, Object>) tmp_fetchDataTaskValue;
                 
-                ParseResultController.fetchDataTaskValue = fetchDataTaskValue;
+                ParseResultController.fetchDataTaskValue = hashMapCloner.deepCopy(fetchDataTaskValue);
             }
         }
         // do something here
