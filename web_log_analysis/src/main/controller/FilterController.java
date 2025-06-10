@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bson.Document;
 
@@ -68,6 +70,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
 
     @FXML private TextField ipAddressField;
     private static String ipAddressFieldBackup = null;
+    @FXML private Label ipAddressFieldErrorLabel;
 
     @FXML private DatePicker timestampFromDate;
     private static LocalDate timestampFromDateBackup = null;
@@ -185,14 +188,14 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         }
         else
         {
-            String ipAddressValue = ipAddressField.getText().length() > 0 ? ipAddressField.getText() : null;
+            String ipAddressValue = ipAddressField.getText().trim().length() > 0 ? ipAddressField.getText().trim() : null;
             ipAddressFieldBackup = ipAddressValue;
             
             LocalDate timestampFromDateValue = timestampFromDate.getValue();
             timestampFromDateBackup = timestampFromDateValue;
             LocalTime timestampFromTimeValue;
             try {
-                timestampFromTimeValue = timestampFromTime.isDisable() ? null : LocalTime.parse(timestampFromTime.getText(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+                timestampFromTimeValue = timestampFromTime.isDisable() ? null : LocalTime.parse(timestampFromTime.getText().trim(), DateTimeFormatter.ofPattern("HH:mm:ss"));
             } catch (Exception e) {
                 timestampFromTimeValue = null;
             }
@@ -202,17 +205,17 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             timestampToDateBackup = timestampToDateValue;
             LocalTime timestampToTimeValue;
             try {
-                timestampToTimeValue = timestampToTime.isDisable() ? null : LocalTime.parse(timestampToTime.getText(), DateTimeFormatter.ofPattern("HH:mm:ss"));
+                timestampToTimeValue = timestampToTime.isDisable() ? null : LocalTime.parse(timestampToTime.getText().trim(), DateTimeFormatter.ofPattern("HH:mm:ss"));
             } catch (Exception e) {
                 timestampToTimeValue = null;
             }
             timestampToTimeBackup = timestampToTimeValue == null ? null : String.valueOf(timestampToTimeValue);
 
-            String countryValue = countryField.getText().length() > 0 ? countryField.getText() : null;
+            String countryValue = countryField.getText().trim().length() > 0 ? countryField.getText().trim() : null;
             countryFieldBackup = countryValue;
-            String regionValue = regionField.getText().length() > 0 ? regionField.getText() : null;
+            String regionValue = regionField.getText().trim().length() > 0 ? regionField.getText().trim() : null;
             regionFieldBackup = regionValue;
-            String cityValue = cityField.getText().length() > 0 ? cityField.getText() : null;
+            String cityValue = cityField.getText().trim().length() > 0 ? cityField.getText().trim() : null;
             cityFieldBackup = cityValue;
 
             ArrayList<String> requestMethodValue = new ArrayList<>();
@@ -221,7 +224,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                     ToggleButton toggle = (ToggleButton) node;
                     if(toggle.isSelected())
                     {
-                        requestMethodValue.add(toggle.getText());
+                        requestMethodValue.add(toggle.getText().trim());
                     }
                 }
             }
@@ -244,7 +247,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             }
             responseStatusCodeVBoxBackup = responseStatusCodeValue.isEmpty() ? null : responseStatusCodeValue;
 
-            String userValue = userField.getText().length() > 0 ? userField.getText() : null;
+            String userValue = userField.getText().trim().length() > 0 ? userField.getText().trim() : null;
             userFieldBackup = userValue;
 
             Integer minBytesSizeValue = Double.valueOf(bytesSizeRangeSlider.getLowValue()).intValue();
@@ -253,17 +256,17 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             bytesSizeMinFieldBackup = minBytesSizeValue.equals(0) ? null : String.valueOf(minBytesSizeValue);
             bytesSizeMaxFieldBackup = maxBytesSizeValue.equals(2147483647) ? null : String.valueOf(maxBytesSizeValue);
 
-            String requestURLValue = requestURLField.getText().length() > 0 ? requestURLField.getText() : null;
+            String requestURLValue = requestURLField.getText().trim().length() > 0 ? requestURLField.getText().trim() : null;
             requestURLFieldBackup = requestURLValue;
             
-            String osValue = osField.getText().length() > 0 ? osField.getText() : null;
+            String osValue = osField.getText().trim().length() > 0 ? osField.getText().trim() : null;
             osFieldBackup = osValue;
-            String browseValue = browserField.getText().length() > 0 ? browserField.getText() : null;
+            String browseValue = browserField.getText().trim().length() > 0 ? browserField.getText().trim() : null;
             browserFieldBackup = browseValue;
-            String deviceValue = deviceField.getText().length() > 0 ? deviceField.getText() : null;
+            String deviceValue = deviceField.getText().trim().length() > 0 ? deviceField.getText().trim() : null;
             deviceFieldBackup = deviceValue;
 
-            String referrerValue = referrerField.getText().length() > 0 ? referrerField.getText() : null;
+            String referrerValue = referrerField.getText().trim().length() > 0 ? referrerField.getText().trim() : null;
             referrerFieldBackup = referrerValue;
 
             // System.out.println(ipAddressValue);
@@ -444,6 +447,8 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
 
     @FXML
     public void initialize() {
+        ipAddressField.textProperty().addListener((obs, oldText, newText) -> validateipAddressField());
+
         timestampFromTime.setDisable(true);
         timestampToTime.setDisable(true);
         // startDatePicker.getEditor().setDisable(true);
@@ -530,54 +535,61 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         timestampFromTime.textProperty().addListener((obs, oldText, newText) -> validateTimestampFromTime());
         timestampToTime.textProperty().addListener((obs, oldText, newText) -> validateTimestampToTime());
 
+        timestampFromTime.disableProperty().addListener((obs, oldValue, newValue) -> validateTimestampFromTime());
+        timestampToTime.disableProperty().addListener((obs, oldValue, newValue) -> validateTimestampToTime());
+
         timestampFromDate.valueProperty().addListener((obs, oldDate, newDate) -> {
             if (newDate != null && timestampToDate.getValue() != null && newDate.isAfter(timestampToDate.getValue())) {
                 timestampFromDate.setValue(oldDate);
-                return;
-            }
-            if(newDate != null && newDate.toString().length() > 0)
-            {
-                timestampFromTime.setDisable(false);
             }
             else
             {
-                timestampFromTime.setDisable(true);
-            }
-            timestampToDate.setDayCellFactory(picker -> new DateCell() {
-                @Override
-                public void updateItem(LocalDate date, boolean empty) {
-                    super.updateItem(date, empty);
-                    if (empty || (newDate != null && date.isBefore(newDate))) {
-                        setDisable(true);
-                        setStyle("-fx-background-color:rgb(155, 155, 155);"); // Optional: style disabled days
-                    }
+                if(newDate != null && newDate.toString().length() > 0)
+                {
+                    timestampFromTime.setDisable(false);
                 }
-            });
+                else
+                {
+                    timestampFromTime.setDisable(true);
+                }
+                timestampToDate.setDayCellFactory(picker -> new DateCell() {
+                    @Override
+                    public void updateItem(LocalDate date, boolean empty) {
+                        super.updateItem(date, empty);
+                        if (empty || (newDate != null && date.isBefore(newDate))) {
+                            setDisable(true);
+                            setStyle("-fx-background-color:rgb(155, 155, 155);"); // Optional: style disabled days
+                        }
+                    }
+                });
+            }
         });
 
         timestampToDate.valueProperty().addListener((obs, oldDate, newDate) -> {
             if (newDate != null && timestampFromDate.getValue() != null && newDate.isBefore(timestampFromDate.getValue())) {
                 timestampToDate.setValue(oldDate);
-                return;
-            }
-            if(newDate != null && newDate.toString().length() > 0)
-            {
-                timestampToTime.setDisable(false);
             }
             else
             {
-                timestampToTime.setDisable(true);
-            }
-            timestampFromDate.setDayCellFactory(picker -> new DateCell() {
-                @Override
-                public void updateItem(LocalDate date, boolean empty) {
-                    super.updateItem(date, empty);
-                    if (empty || (newDate != null && date.isAfter(newDate))) {
-                        setDisable(true);
-                        setStyle("-fx-background-color:rgb(155, 155, 155);"); // Optional: style disabled days
-                    }
+                if(newDate != null && newDate.toString().length() > 0)
+                {
+                    timestampToTime.setDisable(false);
                 }
-            });
+                else
+                {
+                    timestampToTime.setDisable(true);
+                }
+                timestampFromDate.setDayCellFactory(picker -> new DateCell() {
+                    @Override
+                    public void updateItem(LocalDate date, boolean empty) {
+                        super.updateItem(date, empty);
+                        if (empty || (newDate != null && date.isAfter(newDate))) {
+                            setDisable(true);
+                            setStyle("-fx-background-color:rgb(155, 155, 155);"); // Optional: style disabled days
+                        }
+                    }
+                });
+            }
         });
 
         timestampFromDate.getEditor().textProperty().addListener((obs, oldText, newText) -> {
@@ -585,7 +597,20 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             {
                 try {
                     LocalDate parsed = timestampFromDate.getConverter().fromString(newText);
-                    timestampFromTime.setDisable(false);
+                    if(parsed != null) {
+                        if(!parsed.equals(timestampToDate.getValue()))
+                        {
+                            timestampFromDate.setValue(parsed);
+                        }
+                        else
+                        {
+                            timestampFromTime.setDisable(false);
+                        }
+                    }
+                    else
+                    {
+                        timestampFromTime.setDisable(true);
+                    }
                 } catch (Exception e) {
                     timestampFromTime.setDisable(true);
                 }
@@ -601,7 +626,20 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             {
                 try {
                     LocalDate parsed = timestampToDate.getConverter().fromString(newText);
-                    timestampToTime.setDisable(false);
+                    if(parsed != null) {
+                        if(!parsed.equals(timestampToDate.getValue()))
+                        {
+                            timestampToDate.setValue(parsed);
+                        }
+                        else
+                        {
+                            timestampToTime.setDisable(false);
+                        }
+                    }
+                    else
+                    {
+                        timestampToTime.setDisable(true);
+                    }
                 } catch (Exception e) {
                     timestampToTime.setDisable(true);
                 }
@@ -624,7 +662,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             for (Node node : requestMethodFlowPane.getChildren()) {
                 if (node instanceof ToggleButton) {
                     ToggleButton toggle = (ToggleButton) node;
-                    if(requestMethodFlowPaneBackup.contains(toggle.getText()))
+                    if(requestMethodFlowPaneBackup.contains(toggle.getText().trim()))
                     {
                         toggle.setSelected(true);
                     }
@@ -703,14 +741,51 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         clearError(bytesSizeMaxField, bytesSizeMaxFieldErrorLabel);
     }
 
+    private boolean validateipAddressField() {
+        if(ipAddressField.isDisable()) {
+            clearError(ipAddressField, ipAddressFieldErrorLabel);
+            return true;
+        }
+        try {
+            String ipAddressStr = ipAddressField.getText().trim();
+            ipAddressStr = ipAddressStr == null ? "" : ipAddressStr;
+            if(ipAddressStr.length() == 0)
+            {
+                clearError(ipAddressField, ipAddressFieldErrorLabel);
+                return true;
+            }
+            String regex = "^" + "(?<RemoteIp>-|(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){3})" + "$";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(ipAddressStr);
+            if(matcher.matches())
+            {
+                clearError(ipAddressField, ipAddressFieldErrorLabel);
+                return true;
+            }
+            else
+            {
+                showError(ipAddressField, ipAddressFieldErrorLabel);
+                return false;
+            }
+        } catch (Exception e) {
+            showError(ipAddressField, ipAddressFieldErrorLabel);
+            return false;
+        }
+    }
+
     private boolean validateTimestampFromTime() {
         if(timestampFromTime.isDisable()) {
             clearError(timestampFromTime, timestampFromTimeErrorLabel);
             return true;
         }
         try {
-            String timeFromStr = timestampFromTime.getText();
+            String timeFromStr = timestampFromTime.getText().trim();
             timeFromStr = timeFromStr == null ? "" : timeFromStr;
+            if(timeFromStr.length() == 0)
+            {
+                clearError(timestampFromTime, timestampFromTimeErrorLabel);
+                return true;
+            }
             LocalTime timeFrom = null;
             try {
                 if(timestampFromTime != null && timeFromStr.length() > 0)
@@ -726,7 +801,12 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 timeFrom = null;
             }
 
-            String timeToStr = timestampToTime.isDisable() ? null : timestampToTime.getText();
+            if(timeFrom == null) {
+                showError(timestampFromTime, timestampFromTimeErrorLabel);
+                return false;
+            }
+
+            String timeToStr = timestampToTime.isDisable() ? null : timestampToTime.getText().trim();
             LocalTime timeTo = null;
             try {
                 if(timeToStr != null && timeToStr.length() > 0)
@@ -767,8 +847,13 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             return true;
         }
         try {
-            String timeToStr = timestampToTime.getText();
+            String timeToStr = timestampToTime.getText().trim();
             timeToStr = timeToStr == null ? "" : timeToStr;
+            if(timeToStr.length() == 0)
+            {
+                clearError(timestampToTime, timestampToTimeErrorLabel);
+                return true;
+            }
             LocalTime timeTo = null;
             try {
                 if(timestampToTime != null && timeToStr.length() > 0)
@@ -783,8 +868,13 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             } catch (Exception e) {
                 timeTo = null;
             }
+            
+            if(timeTo == null) {
+                showError(timestampToTime, timestampToTimeErrorLabel);
+                return false;
+            }
 
-            String timeFromStr = timestampFromTime.isDisable() ? null : timestampFromTime.getText();
+            String timeFromStr = timestampFromTime.isDisable() ? null : timestampFromTime.getText().trim();
             LocalTime timeFrom = null;
             try {
                 if(timeFromStr != null && timeFromStr.length() > 0)
@@ -821,7 +911,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
 
     private boolean validateBytesSizeAndApplyMin() {
         try {
-            String minText = bytesSizeMinField.getText();
+            String minText = bytesSizeMinField.getText().trim();
             long min;
             if(minText.length() > 0)
             {
@@ -848,7 +938,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
 
     private boolean validateBytesSizeAndApplyMax() {
         try {
-            String maxText = bytesSizeMaxField.getText();
+            String maxText = bytesSizeMaxField.getText().trim();
             long max;
             if(maxText.length() > 0)
             {

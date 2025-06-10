@@ -65,7 +65,7 @@
                     <Label text="Phạm Đức Duy - 20235588" styleClass="member-name"/>
                     <Label text="CyberSecurity 01 - K68 HUST SOICT" styleClass="member-role"/>
                     <ImageView fx:id="pdd" fitWidth="150" fitHeight="150"/>
-                    <Label text="&quot;Tôi là đâu? Đây là ai? Không được khóc ;-;.&quot;" styleClass="quote-label"/>
+                    <Label text="&quot;Tôi là đâu? Đây là ai? Không được khóc ;-;&quot;" styleClass="quote-label"/>
                 </VBox>
             </HBox>
             <padding><Insets top="30" bottom="30" left="30" right="30"/></padding>

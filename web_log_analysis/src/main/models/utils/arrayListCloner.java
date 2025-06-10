@@ -43,6 +43,8 @@ public class arrayListCloner {
             return (V) arrayListCloner.deepCopySimpleEntry((AbstractMap.SimpleEntry<?, ?>) value); // Recursively copy SimpleEntry
         } else if (value instanceof ObservableList) {
             return (V) arrayListCloner.deepCopyObservableList((ObservableList<?>) value); // Recursively copy ObservableList
+        } else if (value instanceof Date) {
+            return (V) new Date(((Date) value).getTime());
         } else {
             throw new IllegalArgumentException("Unsupported type for deep copy: " + value.getClass());
         }

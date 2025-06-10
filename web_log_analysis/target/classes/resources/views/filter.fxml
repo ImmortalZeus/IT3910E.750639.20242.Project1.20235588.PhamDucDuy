@@ -42,6 +42,7 @@
                     <VBox spacing="5">
                         <Label text="IP Address" />
                         <TextField fx:id="ipAddressField" promptText="Search IP..." styleClass="neon-input"/>
+                        <Label fx:id="ipAddressFieldErrorLabel" text="Invalid!" styleClass="error-label" visible="false" />
                     </VBox>
                 </StackPane>
 

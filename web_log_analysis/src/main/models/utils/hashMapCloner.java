@@ -44,6 +44,8 @@ public class hashMapCloner {
             return (V) hashMapCloner.deepCopySimpleEntry((AbstractMap.SimpleEntry<?, ?>) value); // Recursively copy SimpleEntry
         } else if (value instanceof ObservableList) {
             return (V) hashMapCloner.deepCopyObservableList((ObservableList<?>) value); // Recursively copy ObservableList
+        } else if (value instanceof Date) {
+            return (V) new Date(((Date) value).getTime());
         } else {
             throw new IllegalArgumentException("Unsupported type for deep copy: " + value.getClass());
         }
