@@ -23,6 +23,7 @@ import java.util.Properties;
 import controller.DataReceiver;
 import controller.PrimaryController;
 import models.logData.logData;
+import models.logger.secureLogger;
 
 public class App extends Application {
     public static Stage primaryStage;
@@ -237,7 +238,7 @@ public class App extends Application {
             // Set properties into system properties
             System.getProperties().putAll(props);
 
-            System.out.println("Properties loaded into System properties!");
+            secureLogger.info("Properties loaded into System properties!");
         } catch (Exception e) {
             throw new propertiesLoaderException();
         }

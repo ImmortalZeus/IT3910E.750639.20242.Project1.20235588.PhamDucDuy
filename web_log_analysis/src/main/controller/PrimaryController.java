@@ -707,23 +707,23 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
         agentColumn.setCellValueFactory(cell -> new SimpleStringProperty(String.valueOf(cell.getValue().getAgent())));
     }
 
-    private void printAllNodes(Parent parent) {
-        for (Node node : parent.getChildrenUnmodifiable()) {
-            System.out.println(node.getClass().getSimpleName() + ": " + node);
-            if (node instanceof Parent p) {
-                printAllNodes(p);
-            }
-        }
-    }
+    // private void printAllNodes(Parent parent) {
+    //     for (Node node : parent.getChildrenUnmodifiable()) {
+    //         System.out.println(node.getClass().getSimpleName() + ": " + node);
+    //         if (node instanceof Parent p) {
+    //             printAllNodes(p);
+    //         }
+    //     }
+    // }
 
-    private ScrollBar findVerticalScrollBar(TableView<?> table) {
-        for (var node : table.lookupAll(".scroll-bar")) {
-            if (node instanceof ScrollBar sb && sb.getOrientation().equals(Orientation.VERTICAL)) {
-                return sb;
-            }
-        }
-        return null;
-    }
+    // private ScrollBar findVerticalScrollBar(TableView<?> table) {
+    //     for (var node : table.lookupAll(".scroll-bar")) {
+    //         if (node instanceof ScrollBar sb && sb.getOrientation().equals(Orientation.VERTICAL)) {
+    //             return sb;
+    //         }
+    //     }
+    //     return null;
+    // }
 
     
 

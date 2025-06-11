@@ -7,6 +7,7 @@ import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import models.logData.logData;
+import models.logger.secureLogger;
 import models.mongoDB.mongoDB;
 import models.mongoDB.mongoDBParseHistory;
 import models.parsers.ResultAggregator;
@@ -124,17 +125,23 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                 protected ResultAggregator call() throws Exception {
                     try {
                         // Simulate log parsing (replace with real logic)
-                        System.out.println("Selected log file: " + selectedFile.getCanonicalPath());
+                        secureLogger.info("Selected log file: " + selectedFile.getCanonicalPath());
                         if(clazz.equals(apacheFileParser.class))
                         {
+                            Long startTime = System.currentTimeMillis();
                             ResultAggregator res = apacheFileParser.parse(selectedFile.getCanonicalPath());
+                            Long endTime = System.currentTimeMillis();
+                            secureLogger.info("Parse time: " + (endTime - startTime) + "ms");
                             PrimaryController.resetData();
                             FilterController.resetData();
                             return res;
                         }
                         else if(clazz.equals(nginxFileParser.class))
                         {
+                            Long startTime = System.currentTimeMillis();
                             ResultAggregator res = nginxFileParser.parse(selectedFile.getCanonicalPath());
+                            Long endTime = System.currentTimeMillis();
+                            secureLogger.info("Parse time: " + (endTime - startTime) + "ms");
                             PrimaryController.resetData();
                             FilterController.resetData();
                             return res;
@@ -181,7 +188,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
             });
 
             parseTask.setOnFailed(e -> {
-                System.err.println("Task failed: " + e.getSource().getException());
+                // System.err.println("Task failed: " + e.getSource().getException());
                 
                 // Ensure the loading stage closes on failure
                 Platform.runLater(() -> {

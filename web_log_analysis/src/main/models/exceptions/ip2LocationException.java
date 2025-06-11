@@ -1,5 +1,7 @@
 package models.exceptions;
 
+import models.logger.secureLogger;
+
 public class ip2LocationException extends Exception {
     public ip2LocationException() {
         super("Failed to retrieve location info from IP!");
@@ -9,7 +11,7 @@ public class ip2LocationException extends Exception {
     }
     @Override
     public final void printStackTrace() {
-        System.out.println(this.getMessage());
+        secureLogger.info(this.getMessage());
     }
     @Override
     public final StackTraceElement[] getStackTrace() {

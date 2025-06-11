@@ -1,5 +1,7 @@
 package models.exceptions;
 
+import models.logger.secureLogger;
+
 public class fileParserException extends Exception {
     public fileParserException() {
         super("Failed to parse file!");
@@ -9,7 +11,7 @@ public class fileParserException extends Exception {
     }
     @Override
     public final void printStackTrace() {
-        System.out.println(this.getMessage());
+        secureLogger.info(this.getMessage());
     }
     @Override
     public final StackTraceElement[] getStackTrace() {

@@ -1,5 +1,7 @@
 package models.exceptions;
 
+import models.logger.secureLogger;
+
 public class propertiesLoaderException extends Exception {
     public propertiesLoaderException() {
         super("Failed to load properties!");
@@ -9,7 +11,7 @@ public class propertiesLoaderException extends Exception {
     }
     @Override
     public final void printStackTrace() {
-        System.out.println(this.getMessage());
+        secureLogger.info(this.getMessage());
     }
     @Override
     public final StackTraceElement[] getStackTrace() {

@@ -107,7 +107,6 @@ public class apacheFileParser {
                     return aggregator;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 try {
                     executor.shutdownNow();
                     Thread.currentThread().interrupt();
