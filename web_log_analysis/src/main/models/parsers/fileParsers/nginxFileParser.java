@@ -38,7 +38,7 @@ public class nginxFileParser {
         if(filepath == null) {
             throw new fileParserException();
         }
-        if(isSecureFile.check(filepath)) {
+        if(!isSecureFile.check(filepath)) {
             throw new fileParserException();
         }
         try {

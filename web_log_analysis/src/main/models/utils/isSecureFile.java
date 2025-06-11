@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Set;
 
@@ -70,24 +71,57 @@ public class isSecureFile {
         // Get UserPrincipal for specified user and superuser
         FileSystem fileSystem = Paths.get(file.getRoot().toString()).getFileSystem();
         UserPrincipalLookupService upls = fileSystem.getUserPrincipalLookupService();
-        UserPrincipal root = null;
+        ArrayList<UserPrincipal> root = new ArrayList<>();
+
+        String osName = System.getProperty("os.name");
+        
+        if(osName == null) {
+            return false;
+        }
+
+        osName = osName.toLowerCase();
+
         try {
-            root = upls.lookupPrincipalByName("root");
+            if (osName.contains("win")) {
+                try {root.add(upls.lookupPrincipalByName("NT AUTHORITY\\SYSTEM"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("NT AUTHORITY\\LocalService"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("NT AUTHORITY\\NetworkService"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("Administrator"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("BUILTIN\\Administrators"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("TrustedInstaller"));} catch (Exception e) {};
+            } else if (osName.contains("mac") || osName.contains("darwin")) {
+                try {root.add(upls.lookupPrincipalByName("root"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("daemon"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("sys"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("bin"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("adm"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("wheel"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("sudo"));} catch (Exception e) {};
+            } else if (osName.contains("nix") || osName.contains("nux") || osName.contains("aix")) {
+                try {root.add(upls.lookupPrincipalByName("root"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("daemon"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("sys"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("bin"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("adm"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("wheel"));} catch (Exception e) {};
+                try {root.add(upls.lookupPrincipalByName("sudo"));} catch (Exception e) {};
+            }
             if (user == null) {
                 user = upls.lookupPrincipalByName(System.getProperty("user.name"));
             }
-            if (root == null || user == null) {
+            if (root.isEmpty() || user == null) {
                 return false;
             }
         } catch (IOException x) {
             return false;
         }
+
         // If any parent dirs (from root on down) are not secure,
         // dir is not secure
         for (int i = 1; i <= file.getNameCount(); i++) {
             Path partialPath = Paths.get(file.getRoot().toString(),
-                file.subpath(0, i).toString());
-
+            file.subpath(0, i).toString());
+            
             try {
                 if (Files.isSymbolicLink(partialPath)) {
                     if (!isSecureFile.check(Files.readSymbolicLink(partialPath), user, symlinkDepth - 1)) {
@@ -96,23 +130,35 @@ public class isSecureFile {
                     }
                 } else {
                     UserPrincipal owner = Files.getOwner(partialPath);
-                    if (!user.equals(owner) && !root.equals(owner)) {
+                    if(owner == null)
+                    {
+                        return false;
+                    }
+                    boolean checkroot = false;
+                    for(UserPrincipal e: root) {
+                        if(e != null && e.equals(owner)) {
+                            checkroot = true;
+                            break;
+                        }
+                    }
+                    if (!user.equals(owner) && !checkroot) {
                         // dir owned by someone else, not secure
                         return false;
                     }
-                    PosixFileAttributes attr =
-                        Files.readAttributes(partialPath, PosixFileAttributes.class);
-                    Set < PosixFilePermission > perms = attr.permissions();
-                    if (perms.contains(PosixFilePermission.GROUP_WRITE) ||
-                        perms.contains(PosixFilePermission.OTHERS_WRITE)) {
-                        // Someone else can write files, not secure
-                        return false;
-                    }
+                    // PosixFileAttributes attr =
+                    //     Files.readAttributes(partialPath, PosixFileAttributes.class);
+                    // Set < PosixFilePermission > perms = attr.permissions();
+                    // if (perms.contains(PosixFilePermission.GROUP_WRITE) ||
+                    //     perms.contains(PosixFilePermission.OTHERS_WRITE)) {
+                    //     // Someone else can write files, not secure
+                    //     return false;
+                    // }
                 }
             } catch (IOException x) {
                 return false;
             }
         }
+
 
         try {
             BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
