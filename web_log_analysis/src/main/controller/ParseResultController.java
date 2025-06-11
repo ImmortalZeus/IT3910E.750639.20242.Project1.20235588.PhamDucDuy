@@ -26,9 +26,9 @@ public class ParseResultController implements DataReceiver<HashMap<String, Objec
     @FXML
     public void onContinueButtonPressed() {
         Platform.runLater(() -> {
-            main.App.closeParseResultStage();
+            main.MainApp.closeParseResultStage();
             Platform.runLater(() -> {
-                main.App.switchToDashboard(ParseResultController.fetchDataTaskValue);
+                main.MainApp.switchToDashboard(ParseResultController.fetchDataTaskValue);
             });
         });
     }

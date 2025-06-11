@@ -24,6 +24,6 @@ public class fileParserException extends Exception {
     }
     @Override
     protected final Object clone() {
-        return null;
+        return new fileParserException(this.getMessage());
     }
 }

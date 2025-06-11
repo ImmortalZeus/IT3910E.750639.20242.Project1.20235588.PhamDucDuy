@@ -24,6 +24,6 @@ public class fileReaderException extends Exception {
     }
     @Override
     protected final Object clone() {
-        return null;
+        return new fileReaderException(this.getMessage());
     }
 }

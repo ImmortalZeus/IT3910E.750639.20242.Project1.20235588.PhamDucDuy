@@ -135,7 +135,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     @FXML
     private void onBackButtonPressed(ActionEvent event) {
         Platform.runLater(() -> {
-            main.App.closeFilterStage();
+            main.MainApp.closeFilterStage();
         });
     }
 
@@ -171,7 +171,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             referrerField.setText("");
         } catch (Exception e) {
             Platform.runLater(() -> {
-                main.App.closeFilterStage();
+                main.MainApp.closeFilterStage();
             });
         }
     }
@@ -182,7 +182,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
         if(!validateipAddressField() || !validateBytesSizeAndApplyMin() || !validateBytesSizeAndApplyMax() || !validateTimestampFromTime() || !validateTimestampToTime())
         {
             Platform.runLater(() -> {
-                main.App.showInvalidFilterStage(null);
+                main.MainApp.showInvalidFilterStage(null);
             });
         }
         else
@@ -384,7 +384,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
             PrimaryController.resetData();
 
             Platform.runLater(() -> {
-                main.App.showLoadingStage(null);
+                main.MainApp.showLoadingStage(null);
                 
                 Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                     @Override
@@ -396,11 +396,11 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
                 fetchDataTask.setOnSucceeded(v2 -> {
                     HashMap<String, Object> data = fetchDataTask.getValue();
                     Platform.runLater(() -> {
-                        main.App.closeLoadingStage();
+                        main.MainApp.closeLoadingStage();
                         Platform.runLater(() -> {
-                            main.App.closeFilterStage();
+                            main.MainApp.closeFilterStage();
                             Platform.runLater(() -> {
-                                main.App.switchToDashboard(data);
+                                main.MainApp.switchToDashboard(data);
                             });
                         });
                     });

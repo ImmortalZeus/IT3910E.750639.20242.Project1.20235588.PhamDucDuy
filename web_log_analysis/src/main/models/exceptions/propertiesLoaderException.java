@@ -24,6 +24,6 @@ public class propertiesLoaderException extends Exception {
     }
     @Override
     protected final Object clone() {
-        return null;
+        return new propertiesLoaderException(this.getMessage());
     }
 }

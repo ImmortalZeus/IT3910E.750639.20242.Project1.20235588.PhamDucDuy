@@ -41,7 +41,7 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
 
     @FXML private void onDashboardButtonPressed() {
         Platform.runLater(() -> {
-            main.App.showLoadingStage(null);
+            main.MainApp.showLoadingStage(null);
             Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                 @Override
                 protected HashMap<String, Object> call() throws Exception {
@@ -52,9 +52,9 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
             fetchDataTask.setOnSucceeded(v2 -> {
                 HashMap<String, Object> data = fetchDataTask.getValue();
                 Platform.runLater(() -> {
-                    main.App.closeLoadingStage();
+                    main.MainApp.closeLoadingStage();
                     Platform.runLater(() -> {
-                        main.App.switchToDashboard(data);
+                        main.MainApp.switchToDashboard(data);
                     });
                 });
             });
@@ -68,17 +68,17 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
     @FXML private void onHistoryButtonPressed() {
         HashMap<String, Object> historyData = new HashMap<>();
         historyData.put("collectionHistory", HistoryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
-        main.App.switchToHistory(historyData);
+        main.MainApp.switchToHistory(historyData);
     }
     
     @FXML private void onExplorerButtonPressed() {
-        main.App.switchToExplorer(null);
+        main.MainApp.switchToExplorer(null);
     }
 
     @Override
     public void setData(HashMap<String, Object> data) {
         Platform.runLater(() -> {
-            main.App.showLoadingStage(null);
+            main.MainApp.showLoadingStage(null);
             Object tmp_collectionHistory = data.get("collectionHistory");
             if(tmp_collectionHistory != null && tmp_collectionHistory instanceof ArrayList<?>)
             {
@@ -97,7 +97,7 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
             }
 
             Platform.runLater(() -> {
-                main.App.closeLoadingStage();
+                main.MainApp.closeLoadingStage();
             });
         });
     }
@@ -127,7 +127,7 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
             FilterController.resetData();
             mongoDB mongodbtmp = new mongoDB(collectionName);
             Platform.runLater(() -> {
-                main.App.showLoadingStage(null);
+                main.MainApp.showLoadingStage(null);
                 Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                     @Override
                     protected HashMap<String, Object> call() throws Exception {
@@ -138,9 +138,9 @@ public class HistoryController implements DataReceiver<HashMap<String, Object>> 
                 fetchDataTask.setOnSucceeded(v2 -> {
                     HashMap<String, Object> data = fetchDataTask.getValue();
                     Platform.runLater(() -> {
-                        main.App.closeLoadingStage();
+                        main.MainApp.closeLoadingStage();
                         Platform.runLater(() -> {
-                            main.App.switchToDashboard(data);
+                            main.MainApp.switchToDashboard(data);
                         });
                     });
                 });

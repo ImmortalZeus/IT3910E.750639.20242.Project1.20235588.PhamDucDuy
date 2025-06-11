@@ -67,6 +67,10 @@ public class nginxFileParser {
                     Files.createDirectories(destination.getParent());
                     Files.copy(filepath, destination, StandardCopyOption.REPLACE_EXISTING);
                     destinationfile = destination.toFile();
+                    if(!isSecureFile.check(destination) || !destinationfile.exists() || !destinationfile.isFile())
+                    {
+                        throw new fileParserException();
+                    }
                     destinationfile.setReadOnly();
 
                     fr = new FileReader(destinationfile);

@@ -24,6 +24,6 @@ public class lineParserException extends Exception {
     }
     @Override
     protected final Object clone() {
-        return null;
+        return new lineParserException(this.getMessage());
     }
 }

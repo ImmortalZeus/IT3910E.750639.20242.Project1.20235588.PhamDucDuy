@@ -327,7 +327,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     @FXML
     private void onDashboardButtonPressed() {
         Platform.runLater(() -> {
-            main.App.showLoadingStage(null);
+            main.MainApp.showLoadingStage(null);
             Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                 @Override
                 protected HashMap<String, Object> call() throws Exception {
@@ -338,9 +338,9 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             fetchDataTask.setOnSucceeded(v2 -> {
                 HashMap<String, Object> data = fetchDataTask.getValue();
                 Platform.runLater(() -> {
-                    main.App.closeLoadingStage();
+                    main.MainApp.closeLoadingStage();
                     Platform.runLater(() -> {
-                        main.App.switchToDashboard(data);
+                        main.MainApp.switchToDashboard(data);
                     });
                 });
             });
@@ -355,17 +355,17 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
     private void onHistoryButtonPressed() {
         HashMap<String, Object> historyData = new HashMap<>();
         historyData.put("collectionHistory", PrimaryController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
-        main.App.switchToHistory(historyData);
+        main.MainApp.switchToHistory(historyData);
     }
     
     @FXML
     private void onExplorerButtonPressed() {
-        main.App.switchToExplorer(null);
+        main.MainApp.switchToExplorer(null);
     }
 
     @FXML
     private void onFilterButtonPressed() {
-        main.App.openFilterStage(null);
+        main.MainApp.openFilterStage(null);
     }
     @FXML
     private void onClearFilterButtonPressed() {
@@ -373,7 +373,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             PrimaryController.resetData();
             FilterController.resetData();
             
-            main.App.showLoadingStage(null);
+            main.MainApp.showLoadingStage(null);
             Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                 @Override
                 protected HashMap<String, Object> call() throws Exception {
@@ -384,9 +384,9 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
             fetchDataTask.setOnSucceeded(v2 -> {
                 HashMap<String, Object> data = fetchDataTask.getValue();
                 Platform.runLater(() -> {
-                    main.App.closeLoadingStage();
+                    main.MainApp.closeLoadingStage();
                     Platform.runLater(() -> {
-                        main.App.switchToDashboard(data);
+                        main.MainApp.switchToDashboard(data);
                     });
                 });
             });
@@ -415,7 +415,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
     public void setData(HashMap<String, Object> data) {
         Platform.runLater(() -> {
-            main.App.showLoadingStage(null);
+            main.MainApp.showLoadingStage(null);
             Object tmp_filter_rules = data.get("filter_rules");
             if(tmp_filter_rules != null && tmp_filter_rules instanceof HashMap<?, ?> map)
             {
@@ -657,7 +657,7 @@ public class PrimaryController implements DataReceiver<HashMap<String, Object>> 
 
             pageNumText.setText("Found : " + String.valueOf(PrimaryController.entriesCount) + " entries" + "  |  " + "Page : " + String.valueOf(PrimaryController.maxPage.equals(0) ? 0 : PrimaryController.currentPage + 1) + "/" + String.valueOf(PrimaryController.maxPage));
             Platform.runLater(() -> {
-                main.App.closeLoadingStage();
+                main.MainApp.closeLoadingStage();
             });
         });
     }

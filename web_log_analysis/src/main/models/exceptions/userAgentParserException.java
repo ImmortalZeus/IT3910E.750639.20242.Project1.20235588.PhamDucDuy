@@ -24,6 +24,6 @@ public class userAgentParserException extends Exception {
     }
     @Override
     protected final Object clone() {
-        return null;
+        return new userAgentParserException(this.getMessage());
     }
 }

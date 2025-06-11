@@ -55,7 +55,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
 
     @FXML private void onDashboardButtonPressed() {
         Platform.runLater(() -> {
-            main.App.showLoadingStage(null);
+            main.MainApp.showLoadingStage(null);
             Task<HashMap<String, Object>> fetchDataTask = new Task<>() {
                 @Override
                 protected HashMap<String, Object> call() throws Exception {
@@ -66,9 +66,9 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
             fetchDataTask.setOnSucceeded(v2 -> {
                 HashMap<String, Object> data = fetchDataTask.getValue();
                 Platform.runLater(() -> {
-                    main.App.closeLoadingStage();
+                    main.MainApp.closeLoadingStage();
                     Platform.runLater(() -> {
-                        main.App.switchToDashboard(data);
+                        main.MainApp.switchToDashboard(data);
                     });
                 });
             });
@@ -82,11 +82,11 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
     @FXML private void onHistoryButtonPressed() {
         HashMap<String, Object> historyData = new HashMap<>();
         historyData.put("collectionHistory", ExplorerController.mongodb.getHistory().into(new ArrayList<mongoDBParseHistory>()));
-        main.App.switchToHistory(historyData);
+        main.MainApp.switchToHistory(historyData);
     }
     
     @FXML private void onExplorerButtonPressed() {
-        main.App.switchToExplorer(null);
+        main.MainApp.switchToExplorer(null);
     }
 
     @FXML
@@ -118,7 +118,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
 
         if (selectedFile != null) {
             
-            main.App.showLoadingStage(null); // Show loading screen
+            main.MainApp.showLoadingStage(null); // Show loading screen
 
             Task<ResultAggregator> parseTask = new Task<>() {
                 @Override
@@ -148,7 +148,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                         }
                     } catch (Exception e) {
                         Platform.runLater(() -> {
-                            main.App.closeLoadingStage();
+                            main.MainApp.closeLoadingStage();
                         });
                     } finally {
                     }
@@ -174,9 +174,9 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                     data.put("parseTaskValue", parseTaskValue);
                     data.put("fetchDataTaskValue", fetchDataTaskValue);
                     Platform.runLater(() -> {
-                        main.App.closeLoadingStage();
+                        main.MainApp.closeLoadingStage();
                         Platform.runLater(() -> {
-                            main.App.showParseResultStageStage(data);
+                            main.MainApp.showParseResultStageStage(data);
                         });
                     });
                 });
@@ -192,7 +192,7 @@ public class ExplorerController implements DataReceiver<HashMap<String, Object>>
                 
                 // Ensure the loading stage closes on failure
                 Platform.runLater(() -> {
-                    main.App.closeLoadingStage();
+                    main.MainApp.closeLoadingStage();
                 });
             });
 

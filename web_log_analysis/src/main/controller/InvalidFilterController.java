@@ -28,7 +28,7 @@ public class InvalidFilterController implements DataReceiver<HashMap<String, Obj
     @FXML
     public void onOKButtonPressed() {
         Platform.runLater(() -> {
-            main.App.closeInvalidFilterStage();
+            main.MainApp.closeInvalidFilterStage();
         });
     }
     @Override

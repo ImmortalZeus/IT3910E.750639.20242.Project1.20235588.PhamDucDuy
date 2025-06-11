@@ -24,6 +24,6 @@ public class ip2LocationException extends Exception {
     }
     @Override
     protected final Object clone() {
-        return null;
+        return new ip2LocationException(this.getMessage());
     }
 }
