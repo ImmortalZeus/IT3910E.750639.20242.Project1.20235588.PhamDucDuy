@@ -2,15 +2,18 @@
 
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Button?>
 
 <VBox fx:id="invalidFilterVbox"
       alignment="CENTER" spacing="20.0"
       xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml"
       prefHeight="200.0" prefWidth="300.0"
       fx:controller="controller.InvalidFilterController"
-      style="-fx-border-color: #00ffff; -fx-border-width: 1px; -fx-border-radius: 15; -fx-background-color: #5c0099">
+      style="-fx-border-color: linear-gradient(to right, #3cff00, #9100f1); -fx-border-width: 4px; -fx-border-radius: 15;">
     <children>
         <Label wrapText="true" maxWidth="200.0" text="Invalid filter variable detected, please re-check your filters" styleClass="loading-label"/>
     </children>
+    <VBox alignment="CENTER" spacing="20.0">
+        <Button fx:id="okButton" text="OK" onAction="#onOKButtonPressed"/>
+    </VBox>
 </VBox>

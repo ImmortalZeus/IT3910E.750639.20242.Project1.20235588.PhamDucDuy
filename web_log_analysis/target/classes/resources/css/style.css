@@ -262,18 +262,34 @@
     -fx-text-fill: #0f172a;
 }
 
-.range-slider {
-    -fx-pref-width: 200;
-    -fx-padding: 5;
+.range-slider .low-thumb, .range-slider .high-thumb {
+    -fx-background-color: linear-gradient(to bottom, #4A90E2, #357ABD); /* Blue gradient */
+    -fx-background-radius: 10; /* Rounded corners */
+    -fx-pref-width: 12px; /* Smaller width */
+    -fx-pref-height: 12px; /* Smaller height */
+    -fx-border-color: #FFFFFF; /* White border */
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 5, 0, 0, 0); /* Soft shadow */
+}
+
+.range-slider .low-thumb:hover, .range-slider .high-thumb:hover {
+    -fx-background-color: linear-gradient(to bottom, #68B3E2, #357ABD); /* Lighter blue on hover */
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 8, 0, 0, 0); /* Stronger shadow */
+}
+
+.range-slider .track {
+    -fx-background-color: #d0d0d0;
+    -fx-background-radius: 2;
+}
+
+.range-slider .range-bar {
+    -fx-background-color: linear-gradient(to right, #b4b4ff, #9100f1);
+    -fx-background-radius: 2;
 }
 
 .floating-label {
     -fx-text-fill: #00fdfd;
-    -fx-background-color: #1b263b;
-    -fx-padding: 2 6;
-    -fx-background-radius: 4;
-    -fx-font-size: 11px;
-    -fx-opacity: 0;
+    -fx-font-size: 12px;
     -fx-transition: opacity 0.3s ease-in-out;
 }
 

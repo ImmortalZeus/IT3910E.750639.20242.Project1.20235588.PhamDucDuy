@@ -110,7 +110,6 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     private static String bytesSizeMaxFieldBackup = null;
     @FXML private Label bytesSizeMaxFieldErrorLabel;
     
-    @FXML private StackPane bytesSizeSliderStack;
     @FXML private RangeSlider bytesSizeRangeSlider;
     private static SimpleEntry<Integer, Integer> bytesSizeRangeSliderBackup = null;
     @FXML private Label minBytesSizeRangeSliderLabel;
@@ -180,7 +179,7 @@ public class FilterController implements DataReceiver<HashMap<String, Object>> {
     // Closes the filter window (intended to apply selected filters later)
     @FXML
     private void onApplyButtonPressed(ActionEvent event) {
-        if(!validateBytesSizeAndApplyMin() || !validateBytesSizeAndApplyMax() || !validateTimestampFromTime() || !validateTimestampToTime())
+        if(!validateipAddressField() || !validateBytesSizeAndApplyMin() || !validateBytesSizeAndApplyMax() || !validateTimestampFromTime() || !validateTimestampToTime())
         {
             Platform.runLater(() -> {
                 main.App.showInvalidFilterStage(null);

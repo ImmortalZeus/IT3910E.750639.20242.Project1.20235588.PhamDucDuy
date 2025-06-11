@@ -152,7 +152,7 @@ public class App extends Application {
             setData(loader, data);
 
             invalidFilterStage = new Stage();
-            // invalidFilterStage.initStyle(StageStyle.UNDECORATED);
+            invalidFilterStage.initStyle(StageStyle.UNDECORATED);
             invalidFilterStage.setTitle("Invalid Filter!");
             Scene invalidScene = new Scene(newRoot);
             invalidScene.getStylesheets().add(Thread.currentThread().getContextClassLoader().getResource("resources/css/style.css").toExternalForm());

@@ -9,7 +9,7 @@
       xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml"
       prefHeight="200.0" prefWidth="300.0"
       fx:controller="controller.LoadingController"
-      style="-fx-border-color: #00ffff; -fx-border-width: 1px; -fx-border-radius: 15; -fx-background-color: #5c0099">
+      style="-fx-border-color: linear-gradient(to right, #3cff00, #9100f1); -fx-border-width: 4px; -fx-border-radius: 15;">
     <children>
         <ProgressIndicator progress="-1.0"/>
         <Label text="Loading, please wait..." styleClass="loading-label"/>
