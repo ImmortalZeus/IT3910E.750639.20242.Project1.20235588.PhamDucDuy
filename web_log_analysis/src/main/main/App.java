@@ -17,6 +17,7 @@ import models.exceptions.propertiesLoaderException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -223,23 +224,24 @@ public class App extends Application {
 
     public static void main(String[] args) {
         try {
-            loadProperties(Thread.currentThread().getContextClassLoader().getResource("mongodb_config.properties").getPath());
+            loadProperties(Thread.currentThread().getContextClassLoader().getResourceAsStream("mongodb_config.properties"));
         } catch (Exception e) {
 
         }
 
         launch(args);
     }
-    private static void loadProperties(String filePath) throws propertiesLoaderException {
-        try (FileInputStream input = new FileInputStream(filePath)) {
+    private static void loadProperties(InputStream inpStream) throws propertiesLoaderException {
+        try {
             Properties props = new Properties();
-            props.load(input);
+            props.load(inpStream);
             
             // Set properties into system properties
             System.getProperties().putAll(props);
 
             secureLogger.info("Properties loaded into System properties!");
         } catch (Exception e) {
+            System.out.println(e);
             throw new propertiesLoaderException();
         }
     }
