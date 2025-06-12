@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ip2location.IPResult;
 
 import models.logData.logData;
+import models.logger.secureLogger;
 import models.mongoDB.mongoDB;
 import models.parsers.ResultAggregator;
 import models.exceptions.*;
@@ -102,6 +103,7 @@ public class nginxLineParser implements Runnable {
                     this.aggregator.addSucceed();
                 } catch (Exception e) {
                     this.aggregator.addFail();
+                    secureLogger.info("Failed to parse line: " + (line.getKey()));
                 }
             }
         } catch (Exception e) {
