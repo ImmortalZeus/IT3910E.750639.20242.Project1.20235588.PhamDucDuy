@@ -41,9 +41,9 @@
             <padding><Insets top="30" bottom="30" left="30" right="30"/></padding>
 
             <!-- About Section -->
-            <HBox spacing="40" alignment="CENTER_LEFT" style="-fx-alignment: center;">
+            <HBox spacing="40" alignment="CENTER" style="-fx-alignment: center;">
                 <VBox spacing="10">
-                    <Label text="About Us" styleClass="section-title"/>
+                    <Label text="About this project" styleClass="section-title"/>
                 </VBox>
                 <VBox spacing="10">
                     <Label text="Service Logs Analysis" styleClass="section-subtitle"/>
