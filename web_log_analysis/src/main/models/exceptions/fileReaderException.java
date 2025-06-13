@@ -1,5 +1,7 @@
 package models.exceptions;
 
+import models.logger.secureLogger;
+
 public class fileReaderException extends Exception {
     public fileReaderException() {
         super("Failed to read file!");
@@ -8,11 +10,20 @@ public class fileReaderException extends Exception {
         super(message);
     }
     @Override
-    public void printStackTrace() {
-        System.out.println(getMessage());
+    public final void printStackTrace() {
+        secureLogger.info(this.getMessage());
     }
     @Override
-    public synchronized Throwable fillInStackTrace() {
+    public final StackTraceElement[] getStackTrace() {
+        StackTraceElement[] fullTrace = super.getStackTrace();
+        return fullTrace.length > 0 ? new StackTraceElement[]{fullTrace[0]} : new StackTraceElement[0];
+    }
+    @Override
+    public final synchronized Throwable fillInStackTrace() {
         return this;
+    }
+    @Override
+    protected final Object clone() {
+        return new fileReaderException(this.getMessage());
     }
 }

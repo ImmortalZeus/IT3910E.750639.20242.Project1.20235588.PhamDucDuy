@@ -2,11 +2,11 @@ package models.exceptions;
 
 import models.logger.secureLogger;
 
-public class fileParserException extends Exception {
-    public fileParserException() {
-        super("Failed to parse file!");
+public class userAgentParserException extends Exception {
+    public userAgentParserException() {
+        super("Failed to parse user agent!");
     }
-    public fileParserException(String message) {
+    public userAgentParserException(String message) {
         super(message);
     }
     @Override
@@ -24,6 +24,6 @@ public class fileParserException extends Exception {
     }
     @Override
     protected final Object clone() {
-        return new fileParserException(this.getMessage());
+        return new userAgentParserException(this.getMessage());
     }
 }

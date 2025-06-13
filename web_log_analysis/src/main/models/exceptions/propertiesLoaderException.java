@@ -2,11 +2,11 @@ package models.exceptions;
 
 import models.logger.secureLogger;
 
-public class fileParserException extends Exception {
-    public fileParserException() {
-        super("Failed to parse file!");
+public class propertiesLoaderException extends Exception {
+    public propertiesLoaderException() {
+        super("Failed to load properties!");
     }
-    public fileParserException(String message) {
+    public propertiesLoaderException(String message) {
         super(message);
     }
     @Override
@@ -24,6 +24,6 @@ public class fileParserException extends Exception {
     }
     @Override
     protected final Object clone() {
-        return new fileParserException(this.getMessage());
+        return new propertiesLoaderException(this.getMessage());
     }
 }

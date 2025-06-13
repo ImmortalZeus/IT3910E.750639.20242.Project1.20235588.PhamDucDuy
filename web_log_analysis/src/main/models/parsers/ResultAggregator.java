@@ -2,103 +2,84 @@ package models.parsers;
 
 import java.util.concurrent.atomic.*;
 
-import models.logData.logData;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClients;
+
+import models.logData.logData;
+import models.mongoDB.mongoDB;
+
+import java.util.Queue;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ResultAggregator {
-    private final AtomicLong count = new AtomicLong();
-    private final Map<String, AtomicLong> countByRemoteIp = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByRemoteUser = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByRequest = new ConcurrentHashMap<>();
-    private final Map<Integer, AtomicLong> countByResponseStatusCode = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByReferrer = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByAgent = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByRequestMethod = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByRequestURL = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByHttpVer = new ConcurrentHashMap<>();
-    private final Map<String, AtomicLong> countByCountryShort = new ConcurrentHashMap<>();
+    //private final static Queue<logData> dataQueue = new ConcurrentLinkedQueue<>();
+    private static List<logData> dataArrayList = null;
+    private static mongoDB mongodb = null;
+    private static AtomicInteger succeed = null;
+    private static AtomicInteger fail = null;
+    private static String filepath = "-";
 
-    public void collect(logData e) {
-        count.incrementAndGet();
-        countByRemoteIp
-            .computeIfAbsent(e.getRemoteIp(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByRemoteUser
-            .computeIfAbsent(e.getRemoteUser(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByRequest
-            .computeIfAbsent(e.getRequest(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByResponseStatusCode
-            .computeIfAbsent(e.getResponseStatusCode(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByReferrer
-            .computeIfAbsent(e.getReferrer(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByAgent
-            .computeIfAbsent(e.getAgent(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByRequestMethod
-            .computeIfAbsent(e.getRequestMethod(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByRequestURL
-            .computeIfAbsent(e.getRequestURL(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByHttpVer
-            .computeIfAbsent(e.getHttpVer(), k -> new AtomicLong())
-            .incrementAndGet();
-        countByCountryShort
-            .computeIfAbsent(e.getGeoInfo().getCountryShort(), k -> new AtomicLong())
-            .incrementAndGet();
+    private final void setUp(String filepath) {
+        ResultAggregator.dataArrayList = ResultAggregator.dataArrayList == null ? Collections.synchronizedList(new ArrayList<>()) : ResultAggregator.dataArrayList;
+        ResultAggregator.mongodb = ResultAggregator.mongodb == null ? new mongoDB(true) : ResultAggregator.mongodb;
+        ResultAggregator.succeed = ResultAggregator.succeed == null ? new AtomicInteger(0) : ResultAggregator.succeed;
+        ResultAggregator.fail = ResultAggregator.fail == null ? new AtomicInteger(0) : ResultAggregator.fail;
+        ResultAggregator.filepath = ResultAggregator.filepath.equals("-") ? (filepath == null ? "-" : filepath) : ResultAggregator.filepath;
     }
 
-    public ResultAggregator report() {
-        return this;
+    public ResultAggregator(String filepath) {
+        this.setUp(filepath);
     }
 
-    public AtomicLong getCount() {
-        return count;
+    public ResultAggregator(boolean initNewResultAggregator, String filepath) {
+        if(initNewResultAggregator == true)
+        {
+            ResultAggregator.dataArrayList = null;
+            ResultAggregator.mongodb = null;
+            ResultAggregator.succeed = null;
+            ResultAggregator.fail = null;
+            ResultAggregator.filepath = "-";
+        }
+        this.setUp(filepath);
     }
 
-    public Map<String, AtomicLong> getCountByRemoteIp() {
-        return countByRemoteIp;
+    public final void addSucceed() {
+        ResultAggregator.succeed.incrementAndGet();
     }
 
-    public Map<String, AtomicLong> getCountByRemoteUser() {
-        return countByRemoteUser;
+    public final void addFail() {
+        ResultAggregator.fail.incrementAndGet();
     }
 
-    public Map<String, AtomicLong> getCountByRequest() {
-        return countByRequest;
+    public final void collect(logData e) {
+        if(e == null) return;
+        ResultAggregator.dataArrayList.add(e);
     }
 
-    public Map<Integer, AtomicLong> getCountByResponseStatusCode() {
-        return countByResponseStatusCode;
+    public final void saveToMongodb() {
+        //ArrayList<logData> dataArrayList = new ArrayList<>(dataQueue);
+        synchronized (ResultAggregator.dataArrayList) {
+            ResultAggregator.dataArrayList.sort((a, b) -> {return a.getIndex().compareTo(b.getIndex());});
+            ResultAggregator.mongodb.saveToMongodb(new ArrayList<>(ResultAggregator.dataArrayList), filepath);
+            ResultAggregator.dataArrayList.clear();
+        } 
+        //dataQueue.clear();
     }
 
-    public Map<String, AtomicLong> getCountByReferrer() {
-        return countByReferrer;
+    public Integer getSucceed() {
+        return Integer.valueOf(ResultAggregator.succeed.get());
     }
 
-    public Map<String, AtomicLong> getCountByAgent() {
-        return countByAgent;
-    }
-
-    public Map<String, AtomicLong> getCountByRequestMethod() {
-        return countByRequestMethod;
-    }
-
-    public Map<String, AtomicLong> getCountByRequestURL() {
-        return countByRequestURL;
-    }
-
-    public Map<String, AtomicLong> getCountByHttpVer() {
-        return countByHttpVer;
-    }
-
-    public Map<String, AtomicLong> getCountByCountryShort() {
-        return countByCountryShort;
+    public Integer getFail() {
+        return Integer.valueOf(ResultAggregator.fail.get());
     }
 }
